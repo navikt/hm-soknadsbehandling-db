@@ -30,8 +30,8 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @ExperimentalTime
 fun Application.module(testing: Boolean = false) {
 
-    val tokenXConfig = runBlocking { environment.config.loadTokenXConfig() }
-    val aadConfig = runBlocking { environment.config.loadAadConfig() }
+    val tokenXConfig = runBlocking { loadTokenXConfig() }
+    val aadConfig = runBlocking { loadAadConfig() }
 
     if (!waitForDB(10.minutes, Configuration)) {
         throw Exception("database never became available within the deadline")

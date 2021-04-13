@@ -49,7 +49,7 @@ spec:
         diskAutoresize: true
         autoBackupTime: "03:00"
         databases:
-          - name: soknadsbehandling
+          - name: soknadsbehandling-v2-db-dev
             envVarPrefix: DB
         cascadingDelete: false
 
