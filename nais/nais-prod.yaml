@@ -27,6 +27,7 @@ spec:
       rules:
         - application: hm-brukerbekreftelse
         - application: hm-formidler
+        - application: hm-soknadsbehandling
   tokenx:
     enabled: true
   resources:

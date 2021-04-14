@@ -13,7 +13,6 @@ spec:
     type: RollingUpdate
   liveness:
     path: /internal/is_alive
-    initialDelay: 50
   readiness:
     path: /internal/is_ready
   port: 8080
@@ -28,6 +27,7 @@ spec:
       rules:
         - application: hm-brukerbekreftelse
         - application: hm-formidler
+        - application: hm-soknadsbehandling
   tokenx:
     enabled: true
   resources:
