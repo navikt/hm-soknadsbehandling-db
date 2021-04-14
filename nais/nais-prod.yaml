@@ -30,6 +30,9 @@ spec:
         - application: hm-soknadsbehandling
   tokenx:
     enabled: true
+  azure:
+    application:
+      enabled: true
   resources:
     limits:
       cpu: 500m
