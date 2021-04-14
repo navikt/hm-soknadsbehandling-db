@@ -13,15 +13,21 @@ spec:
     type: RollingUpdate
   liveness:
     path: /internal/is_alive
+    initialDelay: 10
+    timeout: 1
+    periodSeconds: 5
+    failureThreshold: 3
   readiness:
     path: /internal/is_ready
+    initialDelay: 10
+    timeout: 1
   port: 8080
   prometheus:
     enabled: true
     path: /internal/metrics
   replicas:
-    max: 2
-    min: 2
+    max: 1
+    min: 1
   accessPolicy:
     inbound:
       rules:
