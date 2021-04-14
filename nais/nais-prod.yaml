@@ -12,13 +12,13 @@ spec:
   strategy:
     type: RollingUpdate
   liveness:
-    path: /isalive
+    path: /internal/is_alive
   readiness:
-    path: /isready
+    path: /internal/is_ready
   port: 8080
   prometheus:
     enabled: true
-    path: /metrics
+    path: /internal/metrics
   replicas:
     max: 2
     min: 2

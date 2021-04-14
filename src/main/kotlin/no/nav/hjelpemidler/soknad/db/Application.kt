@@ -55,7 +55,9 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        internal()
         route("/api") {
+
             authenticate("tokenX") {
                 hentSoknad(store)
                 hentSoknaderForBruker(store)
