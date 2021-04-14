@@ -13,6 +13,7 @@ spec:
     type: RollingUpdate
   liveness:
     path: /isalive
+    initialDelay: 50
   readiness:
     path: /isready
   port: 8080
