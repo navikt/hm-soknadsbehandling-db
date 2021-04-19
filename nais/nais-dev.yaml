@@ -62,4 +62,8 @@ spec:
           - name: soknadsbehandling-v4-db-dev
             envVarPrefix: DB
         cascadingDelete: false
-
+  env:
+    - name: PORT
+      value: "{{ port }}"
+    - name: KTOR_ENV
+      value: production
