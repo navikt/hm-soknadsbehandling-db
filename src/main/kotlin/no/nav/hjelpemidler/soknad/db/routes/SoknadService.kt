@@ -14,7 +14,6 @@ import io.ktor.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.UserPrincipal
-import no.nav.hjelpemidler.soknad.db.db.InfotrygdStore
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
@@ -23,6 +22,7 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
 import java.time.LocalDate
 import java.util.UUID
 

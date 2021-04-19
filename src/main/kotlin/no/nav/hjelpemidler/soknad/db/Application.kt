@@ -12,7 +12,6 @@ import io.ktor.request.path
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
-import no.nav.hjelpemidler.soknad.db.db.InfotrygdStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidlerPostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStorePostgres
@@ -39,6 +38,7 @@ import no.nav.hjelpemidler.soknad.db.routes.saveSoknad
 import no.nav.hjelpemidler.soknad.db.routes.slettSøknad
 import no.nav.hjelpemidler.soknad.db.routes.slettUtløptSøknad
 import no.nav.hjelpemidler.soknad.db.routes.soknadFinnes
+import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes

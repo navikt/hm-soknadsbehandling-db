@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.db
 
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID

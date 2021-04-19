@@ -50,7 +50,7 @@ spec:
     enabled: true
   gcp:
     sqlInstances:
-      - name: hm-soknadsbehandling-v3-db-dev
+      - name: hm-soknadsbehandling-v4-db-dev
         type: POSTGRES_12
         tier: db-custom-1-3840
         diskType: SSD
@@ -59,7 +59,7 @@ spec:
         diskAutoresize: true
         autoBackupTime: "03:00"
         databases:
-          - name: soknadsbehandling-v3-db-dev
+          - name: soknadsbehandling-v4-db-dev
             envVarPrefix: DB
         cascadingDelete: false
 
