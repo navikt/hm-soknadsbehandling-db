@@ -28,17 +28,19 @@ spec:
   replicas:
     max: 1
     min: 1
+  tokenx:
+    enabled: true
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     inbound:
       rules:
         - application: hm-brukerbekreftelse
         - application: hm-formidler
         - application: hm-soknadsbehandling
-  tokenx:
-    enabled: true
-  azure:
-    application:
-      enabled: true
+          namespace: teamdigihot
+          cluster: dev-gcp
   resources:
     limits:
       cpu: 500m

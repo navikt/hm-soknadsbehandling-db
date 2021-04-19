@@ -28,6 +28,8 @@ spec:
         - application: hm-brukerbekreftelse
         - application: hm-formidler
         - application: hm-soknadsbehandling
+          namespace: teamdigihot
+          cluster: prod-gcp
   tokenx:
     enabled: true
   azure:
