@@ -64,6 +64,6 @@ spec:
         cascadingDelete: false
   env:
     - name: PORT
-      value: 8080
+      value: "8080"
     - name: KTOR_ENV
       value: production
