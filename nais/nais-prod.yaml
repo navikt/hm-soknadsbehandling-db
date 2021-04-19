@@ -56,4 +56,8 @@ spec:
           - name: hm-soknadsbehandling-db-v2-prod
             envVarPrefix: DB
         cascadingDelete: false
-
+  env:
+    - name: PORT
+      value: 8080
+    - name: KTOR_ENV
+      value: production
