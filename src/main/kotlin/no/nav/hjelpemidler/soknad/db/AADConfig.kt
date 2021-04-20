@@ -17,8 +17,8 @@ data class AadConfig(
 @KtorExperimentalAPI
 suspend fun loadAadConfig(): AadConfig {
 
-    val jwksUri = System.getenv("TOKEN_X_WELL_KNOWN_URL") ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"
-    val clientId = System.getenv("TOKEN_X_CLIENT_ID") ?: "local:hm-soknadsbehandling-db"
+    val jwksUri = System.getenv("AZURE_APP_WELL_KNOWN_URL") ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"
+    val clientId = System.getenv("AZURE_APP_CLIENT_ID") ?: "local:hm-soknadsbehandling-db"
 
     return AadConfig(
         metadata = httpClient().get(jwksUri),
