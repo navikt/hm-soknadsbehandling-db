@@ -373,7 +373,7 @@ internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val newOppgaveId = call.receive<Map<String, String>>()
-            val rowsUpdated = store.oppdaterJournalpostId(
+            val rowsUpdated = store.oppdaterOppgaveId(
                 soknadsId,
                 newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
             )
