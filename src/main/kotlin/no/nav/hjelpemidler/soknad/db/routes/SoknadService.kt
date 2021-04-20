@@ -123,7 +123,11 @@ internal fun Route.lagreVedtaksresultat(store: InfotrygdStore) {
     post("/infotrygd/vedtaksresultat") {
         try {
             val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = store.lagreVedtaksresultat(vedtaksresultatToBeSaved.søknadId, vedtaksresultatToBeSaved.vedtaksresultat, vedtaksresultatToBeSaved.vedtaksdato)
+            val rowUpdated = store.lagreVedtaksresultat(
+                vedtaksresultatToBeSaved.søknadId,
+                vedtaksresultatToBeSaved.vedtaksresultat,
+                vedtaksresultatToBeSaved.vedtaksdato
+            )
             call.respond(rowUpdated)
         } catch (e: Exception) {
             logger.error { "Feilet ved lagring av vedtaksresultat: ${e.message}. ${e.stackTrace}" }
@@ -234,7 +238,10 @@ internal fun Route.fnrOgJournalpostIdFinnes(store: SøknadStore) {
         try {
 
             val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
-            val fnrOgJournalpostIdFinnes = store.fnrOgJournalpostIdFinnes(fnrOgJournalpostIdFinnesDto.fnrBruker, fnrOgJournalpostIdFinnesDto.journalpostId)
+            val fnrOgJournalpostIdFinnes = store.fnrOgJournalpostIdFinnes(
+                fnrOgJournalpostIdFinnesDto.fnrBruker,
+                fnrOgJournalpostIdFinnesDto.journalpostId
+            )
 
             when {
                 fnrOgJournalpostIdFinnes -> {
@@ -282,7 +289,11 @@ internal fun Route.hentSøknadIdFraVedtaksresultat(store: InfotrygdStore) {
         try {
 
             val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
-            val soknadId = store.hentSøknadIdFraVedtaksresultat(soknadFraVedtaksresultatDto.fnrBruker, soknadFraVedtaksresultatDto.saksblokkOgSaksnr, soknadFraVedtaksresultatDto.vedtaksdato)
+            val soknadId = store.hentSøknadIdFraVedtaksresultat(
+                soknadFraVedtaksresultatDto.fnrBruker,
+                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+                soknadFraVedtaksresultatDto.vedtaksdato
+            )
             when (soknadId) {
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
@@ -344,8 +355,11 @@ internal fun Route.oppdaterJournalpostId(store: SøknadStore) {
     put("/soknad/journalpost-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newJournalpostId = call.receive<String>()
-            val rowsUpdated = store.oppdaterJournalpostId(soknadsId, newJournalpostId)
+            val newJournalpostId = call.receive<Map<String, String>>()
+            val rowsUpdated = store.oppdaterJournalpostId(
+                soknadsId,
+                newJournalpostId["journalpostId"] ?: throw Exception("No journalpostId in body")
+            )
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error { "Feilet ved oppdatering av journalpost-id: ${e.message}. ${e.stackTrace}" }
@@ -358,8 +372,11 @@ internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
     put("/soknad/oppgave-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newOppgaveId = call.receive<String>()
-            val rowsUpdated = store.oppdaterJournalpostId(soknadsId, newOppgaveId)
+            val newOppgaveId = call.receive<Map<String, String>>()
+            val rowsUpdated = store.oppdaterJournalpostId(
+                soknadsId,
+                newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
+            )
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error { "Feilet ved oppdatering av oppgave-id: ${e.message}. ${e.stackTrace}" }
