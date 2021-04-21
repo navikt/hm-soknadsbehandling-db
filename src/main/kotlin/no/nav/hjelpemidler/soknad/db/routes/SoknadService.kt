@@ -294,14 +294,9 @@ internal fun Route.hentSøknadIdFraVedtaksresultat(store: InfotrygdStore) {
                 soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
                 soknadFraVedtaksresultatDto.vedtaksdato
             )
-            when (soknadId) {
-                null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-                else -> {
-                    call.respond(soknadId)
-                }
-            }
+
+            call.respond(mapOf(Pair("soknadId", soknadId)))
+
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
@@ -358,7 +353,7 @@ internal fun Route.oppdaterJournalpostId(store: SøknadStore) {
             val newJournalpostId = call.receive<Map<String, String>>()
             val rowsUpdated = store.oppdaterJournalpostId(
                 soknadsId,
-                newJournalpostId["journalpostId"] ?: throw Exception("No journalpostId in body")
+                newJournalpostId["journalpostId"] ?: throw Exception("journalpostId mangler i body")
             )
             call.respond(rowsUpdated)
         } catch (e: Exception) {
