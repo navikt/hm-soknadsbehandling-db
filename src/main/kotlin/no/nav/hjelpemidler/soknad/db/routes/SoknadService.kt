@@ -296,7 +296,6 @@ internal fun Route.hentSøknadIdFraVedtaksresultat(store: InfotrygdStore) {
             )
 
             call.respond(mapOf(Pair("soknadId", soknadId)))
-
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
