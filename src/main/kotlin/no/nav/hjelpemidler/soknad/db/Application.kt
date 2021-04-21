@@ -70,7 +70,7 @@ fun Application.module(testing: Boolean = false) {
     installAuthentication(tokenXConfig, aadConfig, Configuration.application)
 
     install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter())
+        register(ContentType.Application.Json, JacksonConverter(JacksonMapper.objectMapper))
     }
 
     install(CallLogging) {
