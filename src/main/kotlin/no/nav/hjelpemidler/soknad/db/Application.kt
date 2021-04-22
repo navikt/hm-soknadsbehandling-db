@@ -59,7 +59,7 @@ fun Application.module(testing: Boolean = false) {
         throw Exception("database never became available within the deadline")
     }
 
-    migrate(Configuration)
+    //migrate(Configuration)
 
     val ds: HikariDataSource = dataSourceFrom(Configuration)
     val store = SøknadStorePostgres(ds)
