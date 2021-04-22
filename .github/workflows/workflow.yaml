@@ -23,7 +23,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Format code with spotless
-          run: ./gradlew spotlessApply
+        run: ./gradlew spotlessApply
       - name: Build with Gradle
         run: ./gradlew build --info
         env:
