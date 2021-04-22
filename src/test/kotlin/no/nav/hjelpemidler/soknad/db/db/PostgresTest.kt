@@ -41,7 +41,7 @@ internal class PostgresTest {
     fun `Migration scripts are applied successfully`() {
         withCleanDb {
             val migrations = migrate(DataSource.instance)
-            migrations shouldBe 14
+            migrations shouldBe 15
         }
     }
 
