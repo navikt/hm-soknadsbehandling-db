@@ -379,5 +379,18 @@ internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
     }
 }
 
+internal fun Route.orderWithinSameDay(store: OrdreStore) {
+    put("/soknad/ordre/oprettet-siste-doegn/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val result = store.orderWithinLastDay(soknadsId)
+            call.respond(result)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved sjekk om en ordre har blitt oppdatert det siste døgnet ${e.message}")
+        }
+    }
+}
+
 private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
     call.parameters["soknadsId"]
