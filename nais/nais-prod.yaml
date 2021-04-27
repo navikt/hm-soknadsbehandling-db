@@ -10,7 +10,7 @@ spec:
   image: {{ image }}
   team: teamdigihot
   strategy:
-    type: RollingUpdate
+    type: Recreate
   liveness:
     path: /is_alive
   readiness:
