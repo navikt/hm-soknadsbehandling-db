@@ -110,7 +110,7 @@ internal fun Route.lagKnytningMellomFagsakOgSøknad(store: InfotrygdStore) {
     post("/infotrygd/fagsak") {
         try {
             val vedtaksresultatData = call.receive<VedtaksresultatData>()
-            val numRows =  store.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            val numRows = store.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
             call.respond(numRows)
         } catch (e: Exception) {
             logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }

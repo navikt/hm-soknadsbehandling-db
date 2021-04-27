@@ -4,12 +4,8 @@ import com.natpryce.konfig.ConfigurationMap
 import com.natpryce.konfig.ConfigurationProperties.Companion.systemProperties
 import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.Key
-import com.natpryce.konfig.intType
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
-import java.io.File
-import java.net.InetAddress
-import java.net.UnknownHostException
 
 private val localProperties = ConfigurationMap(
     mapOf(
@@ -26,14 +22,12 @@ private val localProperties = ConfigurationMap(
 )
 private val devProperties = ConfigurationMap(
     mapOf(
-        "application.httpPort" to "8080",
         "application.profile" to "DEV",
         "userclaim" to "pid",
     )
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
-        "application.httpPort" to "8080",
         "application.profile" to "PROD",
         "userclaim" to "pid",
     )
@@ -62,7 +56,6 @@ internal object Configuration {
     data class Application(
         val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val httpPort: Int = config()[Key("application.httpPort", intType)],
         val userclaim: String = config()[Key("userclaim", stringType)]
     )
 }
@@ -70,15 +63,3 @@ internal object Configuration {
 enum class Profile {
     LOCAL, DEV, PROD
 }
-
-private fun getHostname(): String {
-    return try {
-        val addr: InetAddress = InetAddress.getLocalHost()
-        addr.hostName
-    } catch (e: UnknownHostException) {
-        "unknown"
-    }
-}
-
-private fun String.readFile() =
-    File(this).readText(Charsets.UTF_8)

@@ -1,3 +1,5 @@
+
+
 package no.nav.hjelpemidler.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
