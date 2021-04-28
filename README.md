@@ -6,15 +6,15 @@ Api foran database som brukes av søknadsbehandling og brukers/formidlers søkna
 
 # Lokal køyring
 
-Kjør docker-compose for å starte database lokalt: 
+1. Kjør docker-compose i [hm-soknad-api](https://github.com/navikt/hm-soknad-api) for å starte nødvendig økosystem:
 ```
+cd hm-soknad-api
 docker-compose -f docker-compose/docker-compose.yml up
 ```
+- start hm-soknadsbehandling-db gjennom Application run configuration i Idea
 
-- start [backend](https://github.com/navikt/hm-soknad-api) for å starte rapid og evt. populere rapid
-- start [hm-soknadsbehandling-db](https://github.com/navikt/hm-soknadsbehandling-db) for å lagre søknad i db og sende videre på rapid
-
-- start hm-soknadsbehandling-db og vent på melding
+Hvis du vil se søknadsdata i front-end se readmes for disse: [hm-formidler](https://github.com/navikt/hm-formidler) 
+og [hm-brukerbekreftelse](https://github.com/navikt/hm-brukerbekreftelse) 
 
 
 # Henvendelser
