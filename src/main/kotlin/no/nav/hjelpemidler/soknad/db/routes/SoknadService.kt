@@ -379,11 +379,11 @@ internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
     }
 }
 
-internal fun Route.orderWithinSameDay(store: OrdreStore) {
-    put("/soknad/ordre/oprettet-siste-doegn/{soknadsId}") {
+internal fun Route.ordreSisteDøgn(store: OrdreStore) {
+    put("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val result = store.orderWithinLastDay(soknadsId)
+            val result = store.ordreSisteDøgn(soknadsId)
             call.respond(result)
         } catch (e: Exception) {
             logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }

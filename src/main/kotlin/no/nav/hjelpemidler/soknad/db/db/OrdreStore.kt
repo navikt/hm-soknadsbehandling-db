@@ -16,7 +16,7 @@ import javax.sql.DataSource
 
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
-    fun orderWithinLastDay(soknadsId: UUID): Boolean
+    fun ordreSisteDøgn(soknadsId: UUID): Boolean
 }
 
 internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
@@ -46,7 +46,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
         }
     }
 
-    override fun orderWithinLastDay(soknadsId: UUID): Boolean {
+    override fun ordreSisteDøgn(soknadsId: UUID): Boolean {
         val query =
             """
             SELECT 1
