@@ -51,7 +51,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             """
             SELECT 1
             FROM V1_OEBS_DATA 
-            WHERE  created > NOW() - '20 hours'::interval AND SOKNADS_ID = ?
+            WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ?
             """.trimIndent()
 
         val result = time("orderWithinLastDay") {
