@@ -384,7 +384,7 @@ internal fun Route.ordreSisteDøgn(store: OrdreStore) {
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val result = store.ordreSisteDøgn(soknadsId)
-            logger.info("ordreSisteDøgn: $result")
+            call.respond("ordreSisteDøgn" to result)
         } catch (e: Exception) {
             logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
             call.respond(
