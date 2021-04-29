@@ -54,7 +54,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ?
             """.trimIndent()
 
-        val result = time("orderWithinLastDay") {
+        val result = time("order_siste_doegn") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
