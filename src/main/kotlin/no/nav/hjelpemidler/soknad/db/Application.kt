@@ -35,6 +35,7 @@ import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultat
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterJournalpostId
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterOppgaveId
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterStatus
+import no.nav.hjelpemidler.soknad.db.routes.ordreSisteDøgn
 import no.nav.hjelpemidler.soknad.db.routes.saveOrdrelinje
 import no.nav.hjelpemidler.soknad.db.routes.savePapir
 import no.nav.hjelpemidler.soknad.db.routes.saveSoknad
@@ -108,6 +109,7 @@ fun Application.module(testing: Boolean = false) {
                 lagKnytningMellomFagsakOgSøknad(infotrygdStore)
                 fnrOgJournalpostIdFinnes(store)
                 savePapir(store)
+                ordreSisteDøgn(ordreStore)
             } else {
                 authenticate("aad") {
                     saveSoknad(store)
@@ -127,6 +129,7 @@ fun Application.module(testing: Boolean = false) {
                     lagKnytningMellomFagsakOgSøknad(infotrygdStore)
                     fnrOgJournalpostIdFinnes(store)
                     savePapir(store)
+                    ordreSisteDøgn(ordreStore)
                 }
             }
         }
