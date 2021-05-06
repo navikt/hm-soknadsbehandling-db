@@ -18,7 +18,7 @@ internal class OrdreStoreTest {
             ordrelinje = 1,
             delordrelinje = 1,
             artikkelnr = "123456",
-            antall = 1,
+            antall = 1.0,
             produktgruppe = "Manuelle armdrevne rullestoler",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
@@ -39,7 +39,7 @@ internal class OrdreStoreTest {
             ordrelinje = 1,
             delordrelinje = 1,
             artikkelnr = "123456",
-            antall = 1,
+            antall = 1.0,
             produktgruppe = "Manuelle armdrevne rullestoler",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
