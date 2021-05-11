@@ -115,7 +115,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         soknadsId,
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
-                        if (status.isSlettetEllerUtløpt()) {
+                        if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SøknadForBruker.newEmptySøknad(
                                 søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                                 status = Status.valueOf(it.string("STATUS")),

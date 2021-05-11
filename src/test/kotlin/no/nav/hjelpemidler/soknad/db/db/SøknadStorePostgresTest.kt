@@ -203,6 +203,7 @@ internal class SøknadStorePostgresTest {
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
                 assertEquals("15084300133", hentSoknad?.søknadsdata?.bruker?.fnummer)
+                assertEquals(true, hentSoknad?.er_digital)
             }
         }
     }
@@ -408,6 +409,24 @@ internal class SøknadStorePostgresTest {
                     "Person"
                 )
             ).also { it.shouldBe(1) }
+        }
+    }
+
+    @Test
+    fun `Papirsøknad lagres ikke som digital søknad`() {
+        val id = UUID.randomUUID()
+        SøknadStorePostgres(DataSource.instance).apply {
+            this.savePapir(
+                PapirSøknadData(
+                    "12345678910",
+                    id,
+                    Status.ENDELIG_JOURNALFØRT,
+                    7654321,
+                    "Person"
+                )
+            )
+            val soknad = this.hentSoknad(id)
+            assertEquals(false, soknad?.er_digital)
         }
     }
 }
