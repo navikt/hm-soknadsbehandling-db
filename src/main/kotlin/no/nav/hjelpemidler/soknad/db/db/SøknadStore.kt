@@ -330,7 +330,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
-                WHERE soknad.FNR_BRUKER = ? AND soknad.ER_DIGITAL
+                WHERE soknad.FNR_BRUKER = ?
                 ORDER BY soknad.CREATED DESC
             """
 
@@ -383,7 +383,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
-                WHERE status.STATUS = ? AND (soknad.CREATED + interval '$dager day') < now() AND soknad.ER_DIGITAL
+                WHERE status.STATUS = ? AND (soknad.CREATED + interval '$dager day') < now()
                 ORDER BY soknad.CREATED DESC
             """
 
@@ -480,7 +480,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             """
                 SELECT SOKNADS_ID
                 FROM V1_SOKNAD
-                WHERE JOURNALPOSTID = ? AND NOT ER_DIGITAL
+                WHERE JOURNALPOSTID = ?
             """
 
         val uuid = time("soknad_eksisterer") {
