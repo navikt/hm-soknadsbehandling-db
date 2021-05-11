@@ -321,7 +321,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.CREATED, soknad.UPDATED, soknad.DATA, status.STATUS,
+                SELECT soknad.SOKNADS_ID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, status.STATUS,
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -342,7 +342,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         fnrBruker,
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
-                        if (status.isSlettetEllerUtløpt()) {
+                        if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = UUID.fromString(it.string("SOKNADS_ID")),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -351,7 +351,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 datoOppdatert = when {
                                     it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
                                     else -> it.sqlTimestamp("created")
-                                }
+                                },
+                                er_digital = it.boolean("ER_DIGITAL")
                             )
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
@@ -365,7 +366,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 },
                                 søknad = JacksonMapper.objectMapper.readTree(
                                     it.string("DATA")
-                                )
+                                ),
+                                er_digital = it.boolean("ER_DIGITAL")
                             )
                         }
                     }.asList
