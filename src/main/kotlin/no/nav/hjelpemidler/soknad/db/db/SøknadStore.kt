@@ -95,7 +95,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknad(soknadsId: UUID): SøknadForBruker? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, status.STATUS, soknad.ER_DIGITAL 
+                SELECT soknad.SOKNADS_ID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -198,8 +198,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknad = JacksonMapper.objectMapper.readTree(
                                 it.string("DATA")
                             ),
-                            kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                            er_digital = it.boolean("ER_DIGITAL")
+                            kommunenavn = it.stringOrNull("KOMMUNENAVN")
                         )
                     }.asSingle
                 )
