@@ -195,8 +195,7 @@ internal class SøknadStorePostgresTest {
                         } """
                         ),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null,
-                        er_digital = true
+                        kommunenavn = null
                     )
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
@@ -217,8 +216,8 @@ internal class SøknadStorePostgresTest {
                         UUID.randomUUID(),
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null,
-                        er_digital = true
+                        kommunenavn = null
+
                     )
                 ).also {
                     it shouldBe 1
@@ -294,8 +293,8 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null,
-                        er_digital = true
+                        kommunenavn = null
+
                     )
                 ).also {
                     it shouldBe 1
@@ -337,8 +336,7 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
-                        kommunenavn = null,
-                        er_digital = true
+                        kommunenavn = null
                     )
                 )
             }
@@ -371,8 +369,7 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
-                        kommunenavn = null,
-                        er_digital = true
+                        kommunenavn = null
                     )
                 )
             }
