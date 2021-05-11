@@ -12,14 +12,42 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
-
+    val er_digital: Boolean?,
 ) {
 
     companion object {
-        fun new(søknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, søknad: JsonNode, status: Status, fullmakt: Boolean, kommunenavn: String?, fnrBruker: String) =
-            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, Søknadsdata(søknad, kommunenavn))
-        fun newEmptySøknad(søknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, fnrBruker: String) =
-            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null)
+        fun new(
+            søknadId: UUID,
+            datoOpprettet: Date,
+            datoOppdatert: Date,
+            søknad: JsonNode,
+            status: Status,
+            fullmakt: Boolean,
+            kommunenavn: String?,
+            fnrBruker: String,
+            er_digital: Boolean = true
+        ) =
+            SøknadForBruker(
+                søknadId,
+                datoOpprettet,
+                datoOppdatert,
+                status,
+                fullmakt,
+                fnrBruker,
+                Søknadsdata(søknad, kommunenavn),
+                er_digital
+            )
+
+        fun newEmptySøknad(
+            søknadId: UUID,
+            datoOpprettet: Date,
+            datoOppdatert: Date,
+            status: Status,
+            fullmakt: Boolean,
+            fnrBruker: String,
+            er_digital: Boolean = true
+        ) =
+            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital)
     }
 }
 

@@ -195,7 +195,8 @@ internal class SøknadStorePostgresTest {
                         } """
                         ),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null
+                        kommunenavn = null,
+                        er_digital = true
                     )
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
@@ -216,8 +217,8 @@ internal class SøknadStorePostgresTest {
                         UUID.randomUUID(),
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null
-
+                        kommunenavn = null,
+                        er_digital = true
                     )
                 ).also {
                     it shouldBe 1
@@ -293,8 +294,8 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null
-
+                        kommunenavn = null,
+                        er_digital = true
                     )
                 ).also {
                     it shouldBe 1
@@ -336,7 +337,8 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
-                        kommunenavn = null
+                        kommunenavn = null,
+                        er_digital = true
                     )
                 )
             }
@@ -369,7 +371,8 @@ internal class SøknadStorePostgresTest {
                         id,
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
-                        kommunenavn = null
+                        kommunenavn = null,
+                        er_digital = true
                     )
                 )
             }

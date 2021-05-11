@@ -90,5 +90,6 @@ internal fun mockSøknad(id: UUID, status: Status = Status.VENTER_GODKJENNING) =
                         } """
     ),
     status = status,
-    kommunenavn = null
+    kommunenavn = null,
+    er_digital = true
 )
