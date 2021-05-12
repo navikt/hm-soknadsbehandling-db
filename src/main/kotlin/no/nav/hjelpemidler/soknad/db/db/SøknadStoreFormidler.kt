@@ -40,7 +40,6 @@ internal class SøknadStoreFormidlerPostgres(private val ds: DataSource) : Søkn
                         statement,
                         fnrFormidler,
                     ).map {
-                        val status = Status.valueOf(it.string("STATUS"))
                         SoknadForFormidler(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             status = Status.valueOf(it.string("STATUS")),

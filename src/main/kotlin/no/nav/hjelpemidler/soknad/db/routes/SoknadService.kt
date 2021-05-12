@@ -84,8 +84,8 @@ internal fun Route.saveOrdrelinje(store: OrdreStore) {
     post("/ordre") {
         try {
             val ordreToBeSaved = call.receive<OrdrelinjeData>()
-            store.save(ordreToBeSaved)
-            call.respond("OK")
+            val rowsUpdated = store.save(ordreToBeSaved)
+            call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
@@ -375,6 +375,22 @@ internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
         } catch (e: Exception) {
             logger.error { "Feilet ved oppdatering av oppgave-id: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av oppgave-id ${e.message}")
+        }
+    }
+}
+
+internal fun Route.ordreSisteDøgn(store: OrdreStore) {
+    get("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val result = store.ordreSisteDøgn(soknadsId)
+            call.respond("ordreSisteDøgn" to result)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Feil ved sjekk om en ordre har blitt oppdatert det siste døgnet ${e.message}"
+            )
         }
     }
 }

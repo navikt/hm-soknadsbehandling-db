@@ -11,10 +11,12 @@ import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.postgresql.util.PGobject
+import java.util.UUID
 import javax.sql.DataSource
 
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
+    fun ordreSisteDøgn(soknadsId: UUID): Boolean
 }
 
 internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
@@ -42,6 +44,30 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                 )
             }
         }
+    }
+
+    override fun ordreSisteDøgn(soknadsId: UUID): Boolean {
+        val query =
+            """
+            SELECT 1
+            FROM V1_OEBS_DATA 
+            WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ?
+            """.trimIndent()
+
+        val result = time("order_siste_doegn") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        query,
+                        soknadsId
+                    ).map {
+                        true
+                    }.asSingle
+                )
+            }
+        }
+
+        return result != null
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
