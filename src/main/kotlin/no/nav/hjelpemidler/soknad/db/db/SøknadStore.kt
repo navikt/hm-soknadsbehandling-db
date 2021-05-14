@@ -432,7 +432,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 value = soknadToJsonString(soknadData.soknad)
                             },
                             soknadData.kommunenavn,
-                            soknadData.er_digital
+                            true
                         ).asUpdate
                     )
                 }
