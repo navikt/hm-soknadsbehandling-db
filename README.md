@@ -14,7 +14,7 @@ docker-compose -f docker-compose/docker-compose.yml up
 - start hm-soknadsbehandling-db gjennom Application run configuration i Idea
 
 Hvis du vil se søknadsdata i front-end se readmes for disse: [hm-formidler](https://github.com/navikt/hm-formidler) 
-og [hm-brukerbekreftelse](https://github.com/navikt/hm-brukerbekreftelse) 
+og [hm-dinehjelpemidler](https://github.com/navikt/hm-dinehjelpemidler) 
 
 
 # Henvendelser

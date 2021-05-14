@@ -34,7 +34,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: hm-brukerbekreftelse
+        - application: hm-dinehjelpemidler
         - application: hm-formidler
         - application: hm-soknadsbehandling
           namespace: teamdigihot
