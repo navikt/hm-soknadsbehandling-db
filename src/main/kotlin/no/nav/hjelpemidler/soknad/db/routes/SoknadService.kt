@@ -192,6 +192,8 @@ internal fun Route.hentSoknaderForBruker(store: SøknadStore) {
             call.respond(soknaderTilGodkjenning)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching søknader til godkjenning" }
+            logger.info("Error on fetching søknader til godkjenning: $e")
+            e.printStackTrace()
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
