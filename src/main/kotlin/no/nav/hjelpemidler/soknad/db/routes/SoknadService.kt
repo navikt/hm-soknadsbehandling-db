@@ -184,11 +184,10 @@ internal fun Route.oppdaterStatus(store: SøknadStore) {
 
 internal fun Route.hentSoknaderForBruker(store: SøknadStore) {
     get("/soknad/bruker") {
-        println("henter søknader for bruker")
-        logger.info("hetner søknader for bruker")
+
+        val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
 
         try {
-            val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
             val soknaderTilGodkjenning = store.hentSoknaderForBruker(fnr)
             call.respond(soknaderTilGodkjenning)
         } catch (e: Exception) {
