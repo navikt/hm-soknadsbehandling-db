@@ -11,14 +11,15 @@ class SoknadMedStatus private constructor(
     val status: Status,
     val fullmakt: Boolean,
     val formidlerNavn: String?,
-    val er_digital: Boolean
+    val er_digital: Boolean,
+    val kilde: String?,
 ) {
     companion object {
         fun newSøknadUtenFormidlernavn(soknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital)
+            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, null)
 
         fun newSøknadMedFormidlernavn(soknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital)
+            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, søknad.get("bruker")?.get("kilde")?.asText())
     }
 }
 
