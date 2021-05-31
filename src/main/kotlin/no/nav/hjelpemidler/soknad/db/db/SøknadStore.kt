@@ -262,18 +262,20 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }
 
-                val startStatuses = listOf(
+                val validStartStatuses = listOf(
                     Status.GODKJENT,
                     Status.GODKJENT_MED_FULLMAKT
                 )
-                val endStatuses = listOf(
+                val validEndStatuses = listOf(
                     Status.VEDTAKSRESULTAT_ANNET,
                     Status.VEDTAKSRESULTAT_AVSLÅTT,
                     Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
                     Status.VEDTAKSRESULTAT_INNVILGET,
                     Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
                 )
-                recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, startStatuses, endStatuses)
+
+                if (status in validEndStatuses)
+                    recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
 
                 return@using result
             }
