@@ -126,7 +126,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     else -> it.sqlTimestamp("created")
                                 },
                                 fnrBruker = it.string("FNR_BRUKER"),
-                                er_digital = it.boolean("ER_DIGITAL")
+                                er_digital = it.boolean("ER_DIGITAL"),
+                                ordrelinjer = emptyList(),
                             )
                         } else {
                             SøknadForBruker.new(
@@ -143,7 +144,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 ),
                                 kommunenavn = it.stringOrNull("KOMMUNENAVN"),
                                 fnrBruker = it.string("FNR_BRUKER"),
-                                er_digital = it.boolean("ER_DIGITAL")
+                                er_digital = it.boolean("ER_DIGITAL"),
+                                ordrelinjer = emptyList(),
                             )
                         }
                     }.asSingle

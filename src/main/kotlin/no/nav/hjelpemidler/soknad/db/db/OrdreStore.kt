@@ -9,6 +9,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
+import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.postgresql.util.PGobject
 import java.util.UUID
@@ -17,6 +18,7 @@ import javax.sql.DataSource
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
     fun ordreSisteDøgn(soknadsId: UUID): Boolean
+    fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
 internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
@@ -68,6 +70,28 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
         }
 
         return result != null
+    }
+
+    override fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
+        return using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    """
+                        SELECT ARTIKKELNR, data -> artikkelbeskrivelse AS ARTIKKELNAVN, ANTALL, PRODUKTGRUPPE
+                        FROM V1_OEBS_DATA
+                        WHERE SOKNADS_ID = ?
+                    """.trimIndent(),
+                    soknadsId,
+                ).map {
+                    SøknadForBrukerOrdrelinje(
+                        it.string("ARTIKKELNR"),
+                        it.string("ARTIKKELNAVN"),
+                        it.double("ANTALL"),
+                        it.string("PRODUKTGRUPPE"),
+                    )
+                }.asList
+            )
+        }
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =

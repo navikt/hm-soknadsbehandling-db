@@ -12,7 +12,8 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
-    val er_digital: Boolean
+    val er_digital: Boolean,
+    var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
 ) {
 
     companion object {
@@ -25,7 +26,8 @@ class SøknadForBruker private constructor(
             fullmakt: Boolean,
             kommunenavn: String?,
             fnrBruker: String,
-            er_digital: Boolean
+            er_digital: Boolean,
+            ordrelinjer: List<SøknadForBrukerOrdrelinje>,
         ) =
             SøknadForBruker(
                 søknadId,
@@ -35,7 +37,8 @@ class SøknadForBruker private constructor(
                 fullmakt,
                 fnrBruker,
                 Søknadsdata(søknad, kommunenavn),
-                er_digital
+                er_digital,
+                ordrelinjer,
             )
 
         fun newEmptySøknad(
@@ -45,9 +48,10 @@ class SøknadForBruker private constructor(
             status: Status,
             fullmakt: Boolean,
             fnrBruker: String,
-            er_digital: Boolean
+            er_digital: Boolean,
+            ordrelinjer: List<SøknadForBrukerOrdrelinje>,
         ) =
-            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital)
+            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital, ordrelinjer)
     }
 }
 
@@ -312,4 +316,11 @@ class Tilbehor(
     val hmsnr: String,
     val antall: Int?,
     val navn: String
+)
+
+data class SøknadForBrukerOrdrelinje(
+    val artikkelNr: String,
+    val artikkelNavn: String,
+    val antall: Double,
+    val kategori: String?,
 )

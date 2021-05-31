@@ -86,7 +86,7 @@ fun Application.module() {
         route("/api") {
 
             authenticate("tokenX") {
-                hentSoknad(store)
+                hentSoknad(store, ordreStore)
                 hentSoknaderForBruker(store)
                 hentSoknaderForFormidler(storeFormidler)
             }
