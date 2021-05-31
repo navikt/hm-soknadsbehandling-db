@@ -17,19 +17,24 @@ private val localProperties = ConfigurationMap(
         "db.port" to "5434",
         "db.username" to "postgres",
         "userclaim" to "sub",
-
+        "sensu" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
+        "NAIS_APP_NAME" to "hm-soknadsbehandling-db",
+        "NAIS_CLUSTER_NAME" to "dev-gcp",
+        "NAIS_NAMESPACE" to "teamdigiot"
     )
 )
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "DEV",
         "userclaim" to "pid",
+        "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
     )
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "PROD",
         "userclaim" to "pid",
+        "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
     )
 )
 
@@ -56,7 +61,11 @@ internal object Configuration {
     data class Application(
         val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val userclaim: String = config()[Key("userclaim", stringType)]
+        val userclaim: String = config()[Key("userclaim", stringType)],
+        val sensu: String = config()[Key("sensu", stringType)],
+        val NAIS_APP_NAME: String = config()[Key("NAIS_APP_NAME", stringType)],
+        val NAIS_CLUSTER_NAME: String = config()[Key("NAIS_CLUSTER_NAME", stringType)],
+        val NAIS_NAMESPACE: String = config()[Key("NAIS_NAMESPACE", stringType)],
     )
 }
 

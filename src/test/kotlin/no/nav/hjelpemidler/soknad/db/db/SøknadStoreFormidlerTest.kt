@@ -142,6 +142,7 @@ internal class SøknadStoreFormidlerTest {
                     soknadId,
                     Status.GODKJENT
                 ).also {
+                    println(it)
                     it shouldBe 1
                 }
 

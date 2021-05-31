@@ -17,9 +17,11 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
+import no.nav.hjelpemidler.soknad.db.metrics.SensuMetrics
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
+import java.sql.Timestamp
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
@@ -242,7 +244,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         time("oppdater_status") {
             using(sessionOf(ds)) { session ->
                 if (checkIfLastStatusMatches(session, soknadsId, status)) return@using 0
-                session.transaction { transaction ->
+                val result = session.transaction { transaction ->
                     // Add the new status to the status table
                     transaction.run(
                         queryOf(
@@ -259,6 +261,21 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         ).asUpdate
                     )
                 }
+
+                val startStatuses = listOf(
+                    Status.GODKJENT,
+                    Status.GODKJENT_MED_FULLMAKT
+                )
+                val endStatuses = listOf(
+                    Status.VEDTAKSRESULTAT_ANNET,
+                    Status.VEDTAKSRESULTAT_AVSLÅTT,
+                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                    Status.VEDTAKSRESULTAT_INNVILGET,
+                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                )
+                recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, startStatuses, endStatuses)
+
+                return@using result
             }
         }
 
@@ -450,6 +467,36 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         ) ?: return false /* special case where there is no status in the database (søknad is being added now) */
         if (result != status.name) return false
         return true
+    }
+
+    private fun recordTimeElapsedBetweenStatusChange(session: Session, soknadsId: UUID, metricFieldName: String, validStartStatuses: List<Status>, validEndStatuses: List<Status>) {
+
+        data class StatusRow(val STATUS: Status, val CREATED: Timestamp)
+
+        val result = session.run(
+            queryOf(
+                "SELECT STATUS, CREATED FROM V1_STATUS WHERE SOKNADS_ID = ?",
+                soknadsId
+            ).map {
+                StatusRow(
+                    Status.valueOf(it.string("STATUS")),
+                    it.sqlTimestamp("CREATED"),
+                )
+            }.asList
+        )
+
+        // TODO if multiple statuses converged to a single common status this would not be necessary
+        val foundEndStatuses = result.filter { statusRow -> statusRow.STATUS in validEndStatuses }
+        if (foundEndStatuses.isEmpty()) return
+        val foundStartStatuses = result.filter { statusRow -> statusRow.STATUS in validStartStatuses }
+        if (foundStartStatuses.isEmpty()) return
+
+        val earliestEndStatus = foundEndStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
+        val earliestStartStatus = foundStartStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
+
+        val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
+
+        SensuMetrics().registerElapsedTime(metricFieldName, timeDifference)
     }
 
     override fun savePapir(soknadData: PapirSøknadData): Int =
