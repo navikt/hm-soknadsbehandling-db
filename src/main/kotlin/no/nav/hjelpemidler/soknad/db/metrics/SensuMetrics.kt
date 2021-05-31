@@ -79,6 +79,6 @@ class SensuMetrics(
             "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot")
         )
 
-        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling-db.event.tid_fra_godkjent_til_vedtak"
+        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling-db.event.tid_fra_innsendt_til_vedtak"
     }
 }
