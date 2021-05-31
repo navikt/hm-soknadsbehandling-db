@@ -77,7 +77,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             session.run(
                 queryOf(
                     """
-                        SELECT ARTIKKELNR, data -> artikkelbeskrivelse AS ARTIKKELNAVN, ANTALL, PRODUKTGRUPPE
+                        SELECT ARTIKKELNR, DATA -> 'artikkelbeskrivelse' AS ARTIKKELNAVN, ANTALL, PRODUKTGRUPPE
                         FROM V1_OEBS_DATA
                         WHERE SOKNADS_ID = ?
                     """.trimIndent(),
