@@ -9,6 +9,8 @@ metadata:
 spec:
   image: {{ image }}
   team: teamdigihot
+  envFrom:
+    - secret: hm-influxdb-secret
   liveness:
     path: /is_alive
   readiness:

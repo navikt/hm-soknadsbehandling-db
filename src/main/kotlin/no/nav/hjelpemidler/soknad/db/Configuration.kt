@@ -20,7 +20,12 @@ private val localProperties = ConfigurationMap(
         "sensu" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
         "NAIS_APP_NAME" to "hm-soknadsbehandling-db",
         "NAIS_CLUSTER_NAME" to "dev-gcp",
-        "NAIS_NAMESPACE" to "teamdigiot"
+        "NAIS_NAMESPACE" to "teamdigiot",
+        "INFLUX_HOST" to "http://localhost",
+        "INFLUX_PORT" to "1234",
+        "INFLUX_DATABASE_NAME" to "defaultdb",
+        "INFLUX_USER" to "user",
+        "INFLUX_PASSWORD" to "password"
     )
 )
 private val devProperties = ConfigurationMap(
@@ -66,6 +71,12 @@ internal object Configuration {
         val NAIS_APP_NAME: String? = config()[Key("NAIS_APP_NAME", stringType)],
         val NAIS_CLUSTER_NAME: String? = config()[Key("NAIS_CLUSTER_NAME", stringType)],
         val NAIS_NAMESPACE: String? = config()[Key("NAIS_NAMESPACE", stringType)],
+        val INFLUX_HOST: String? = config()[Key("INFLUX_HOST", stringType)],
+        val INFLUX_PORT: String? = config()[Key("INFLUX_PORT", stringType)],
+        val INFLUX_DATABASE_NAME: String? = config()[Key("INFLUX_DATABASE_NAME", stringType)],
+        val INFLUX_USER: String? = config()[Key("INFLUX_USER", stringType)],
+        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)],
+        val aiventopic: String? = "teamdigihot.hm-soknadsbehandling-v1"
     )
 }
 

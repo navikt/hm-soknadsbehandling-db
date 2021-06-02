@@ -4,6 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 val ktor_version = "1.4.0"
 val logback_version: String by project
 val influxdb_version: String by project
+val influxdb_aiven_version: String by project
 
 plugins {
     application
@@ -27,7 +28,8 @@ apply {
 repositories {
     mavenCentral()
     jcenter()
-    maven("https://jitpack.io")
+    maven("https://jitpack.io") // Used for Rapids and rivers-dependency
+    maven("https://packages.confluent.io/maven/") // Kafka-avro
 }
 
 application {
@@ -66,6 +68,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktor_version")
     implementation(Micrometer.prometheusRegistry)
     implementation("org.influxdb:influxdb-java:$influxdb_version")
+    implementation("com.influxdb:influxdb-client-kotlin:$influxdb_aiven_version")
 
     testImplementation(Junit5.api)
     testImplementation(KoTest.assertions)
@@ -117,5 +120,6 @@ tasks.named("jar") {
 }
 
 tasks.named("compileKotlin") {
+    dependsOn("spotlessApply")
     dependsOn("spotlessCheck")
 }

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotliquery.Session
@@ -20,6 +19,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.metrics.AivenMetrics
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import no.nav.hjelpemidler.soknad.db.metrics.SensuMetrics
 import org.intellij.lang.annotations.Language
@@ -506,6 +506,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
         val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
 
+        AivenMetrics().registerElapsedTime(metricFieldName, timeDifference)
         SensuMetrics().registerElapsedTime(metricFieldName, timeDifference)
     }
 
