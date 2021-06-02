@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -262,20 +266,24 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }
 
-                val validStartStatuses = listOf(
-                    Status.GODKJENT,
-                    Status.GODKJENT_MED_FULLMAKT
-                )
-                val validEndStatuses = listOf(
-                    Status.VEDTAKSRESULTAT_ANNET,
-                    Status.VEDTAKSRESULTAT_AVSLÅTT,
-                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                    Status.VEDTAKSRESULTAT_INNVILGET,
-                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
-                )
+                runBlocking {
+                    launch(Job()) {
+                        val validStartStatuses = listOf(
+                            Status.GODKJENT,
+                            Status.GODKJENT_MED_FULLMAKT
+                        )
+                        val validEndStatuses = listOf(
+                            Status.VEDTAKSRESULTAT_ANNET,
+                            Status.VEDTAKSRESULTAT_AVSLÅTT,
+                            Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                            Status.VEDTAKSRESULTAT_INNVILGET,
+                            Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                        )
 
-                if (status in validEndStatuses)
-                    recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
+                        if (status in validEndStatuses)
+                            recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
+                    }
+                }
 
                 return@using result
             }

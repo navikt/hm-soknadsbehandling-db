@@ -13,7 +13,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 private val logg = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+// private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class SensuMetrics(
     private val httpClient: HttpClient = HttpClient.newBuilder()
@@ -79,6 +79,6 @@ class SensuMetrics(
             "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot")
         )
 
-        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling-db.event.tid_fra_innsendt_til_vedtak"
+        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_innsendt_til_vedtak"
     }
 }

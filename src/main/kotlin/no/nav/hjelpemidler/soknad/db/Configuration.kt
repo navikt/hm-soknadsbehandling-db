@@ -62,10 +62,10 @@ internal object Configuration {
         val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val userclaim: String = config()[Key("userclaim", stringType)],
-        val sensu: String = config()[Key("sensu", stringType)],
-        val NAIS_APP_NAME: String = config()[Key("NAIS_APP_NAME", stringType)],
-        val NAIS_CLUSTER_NAME: String = config()[Key("NAIS_CLUSTER_NAME", stringType)],
-        val NAIS_NAMESPACE: String = config()[Key("NAIS_NAMESPACE", stringType)],
+        val sensu: String? = config()[Key("sensu", stringType)],
+        val NAIS_APP_NAME: String? = config()[Key("NAIS_APP_NAME", stringType)],
+        val NAIS_CLUSTER_NAME: String? = config()[Key("NAIS_CLUSTER_NAME", stringType)],
+        val NAIS_NAMESPACE: String? = config()[Key("NAIS_NAMESPACE", stringType)],
     )
 }
 

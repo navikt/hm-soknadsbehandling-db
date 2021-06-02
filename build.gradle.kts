@@ -27,7 +27,6 @@ apply {
 repositories {
     mavenCentral()
     jcenter()
-    maven("http://packages.confluent.io/maven/")
     maven("https://jitpack.io")
 }
 
@@ -98,13 +97,15 @@ tasks.withType<Test> {
     testLogging {
         showExceptions = true
         showStackTraces = true
+        showStandardStreams = true
+        outputs.upToDateWhen { false }
         exceptionFormat = TestExceptionFormat.FULL
         events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
     }
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "6.2.2"
+    gradleVersion = "7.0.2"
 }
 
 tasks.named("shadowJar") {
