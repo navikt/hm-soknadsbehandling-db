@@ -12,6 +12,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
@@ -29,6 +30,8 @@ import java.sql.Timestamp
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
+
+private val logg = KotlinLogging.logger {}
 
 internal interface SøknadStore {
     fun save(soknadData: SoknadData): Int
@@ -269,21 +272,25 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 runBlocking {
                     launch(Job()) {
 
-                        // TODO consider extracting for new measurements
-                        val validStartStatuses = listOf(
-                            Status.GODKJENT,
-                            Status.GODKJENT_MED_FULLMAKT
-                        )
-                        val validEndStatuses = listOf(
-                            Status.VEDTAKSRESULTAT_ANNET,
-                            Status.VEDTAKSRESULTAT_AVSLÅTT,
-                            Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                            Status.VEDTAKSRESULTAT_INNVILGET,
-                            Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
-                        )
+                        try {
+                            // TODO consider extracting for new measurements
+                            val validStartStatuses = listOf(
+                                Status.GODKJENT,
+                                Status.GODKJENT_MED_FULLMAKT
+                            )
+                            val validEndStatuses = listOf(
+                                Status.VEDTAKSRESULTAT_ANNET,
+                                Status.VEDTAKSRESULTAT_AVSLÅTT,
+                                Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                                Status.VEDTAKSRESULTAT_INNVILGET,
+                                Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                            )
 
-                        if (status in validEndStatuses)
-                            recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
+                            if (status in validEndStatuses)
+                                recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
+                        } catch (e: Exception) {
+                            logg.error { "Feilet ved sending av status endring metrikker: ${e.message}. ${e.stackTrace}" }
+                        }
                     }
                 }
 
