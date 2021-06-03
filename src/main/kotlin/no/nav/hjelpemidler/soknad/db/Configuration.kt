@@ -75,8 +75,7 @@ internal object Configuration {
         val INFLUX_PORT: String? = config()[Key("INFLUX_PORT", stringType)],
         val INFLUX_DATABASE_NAME: String? = config()[Key("INFLUX_DATABASE_NAME", stringType)],
         val INFLUX_USER: String? = config()[Key("INFLUX_USER", stringType)],
-        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)],
-        val aiventopic: String? = "teamdigihot.hm-soknadsbehandling-v1"
+        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)]
     )
 }
 
