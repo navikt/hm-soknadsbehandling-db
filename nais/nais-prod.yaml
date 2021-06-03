@@ -11,6 +11,8 @@ spec:
   team: teamdigihot
   envFrom:
     - secret: hm-influxdb-secret
+  kafka:
+    pool: nav-prod # just to get the SSL certificate required influxDB on GCP?
   liveness:
     path: /is_alive
   readiness:

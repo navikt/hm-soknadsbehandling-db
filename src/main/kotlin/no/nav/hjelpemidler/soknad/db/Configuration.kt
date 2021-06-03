@@ -20,7 +20,7 @@ private val localProperties = ConfigurationMap(
         "sensu" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
         "NAIS_APP_NAME" to "hm-soknadsbehandling-db",
         "NAIS_CLUSTER_NAME" to "dev-gcp",
-        "NAIS_NAMESPACE" to "teamdigiot",
+        "NAIS_NAMESPACE" to "teamdigihot",
         "INFLUX_HOST" to "http://localhost",
         "INFLUX_PORT" to "1234",
         "INFLUX_DATABASE_NAME" to "defaultdb",
