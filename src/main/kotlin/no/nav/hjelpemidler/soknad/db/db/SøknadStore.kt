@@ -268,6 +268,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
                 runBlocking {
                     launch(Job()) {
+
+                        // TODO consider extracting for new measurements
                         val validStartStatuses = listOf(
                             Status.GODKJENT,
                             Status.GODKJENT_MED_FULLMAKT
