@@ -142,6 +142,7 @@ internal class SøknadStoreFormidlerTest {
                     soknadId,
                     Status.GODKJENT
                 ).also {
+                    println(it)
                     it shouldBe 1
                 }
 
@@ -152,6 +153,32 @@ internal class SøknadStoreFormidlerTest {
             SøknadStoreFormidlerPostgres(DataSource.instance).apply {
                 val søknader = this.hentSøknaderForFormidler("12345678910", 4)
                 assertFalse { søknader[0].fullmakt }
+            }
+        }
+    }
+
+    @Test
+    fun `Metrikker er non-blocking`() {
+        val soknadId = UUID.randomUUID()
+        withMigratedDb {
+            SøknadStorePostgres(DataSource.instance).apply {
+                this.save(
+                    mockSøknad(soknadId, Status.VENTER_GODKJENNING)
+                ).also {
+                    it shouldBe 1
+                }
+
+                this.oppdaterStatus(
+                    soknadId,
+                    Status.GODKJENT
+                ).also {
+                    println(it)
+                    it shouldBe 1
+                }
+
+                this.oppdaterStatus(soknadId, Status.VEDTAKSRESULTAT_ANNET).also {
+                    it shouldBe 1
+                }
             }
         }
     }

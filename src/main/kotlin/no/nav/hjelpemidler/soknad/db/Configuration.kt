@@ -17,19 +17,29 @@ private val localProperties = ConfigurationMap(
         "db.port" to "5434",
         "db.username" to "postgres",
         "userclaim" to "sub",
-
+        "sensu" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
+        "NAIS_APP_NAME" to "hm-soknadsbehandling-db",
+        "NAIS_CLUSTER_NAME" to "dev-gcp",
+        "NAIS_NAMESPACE" to "teamdigihot",
+        "INFLUX_HOST" to "http://localhost",
+        "INFLUX_PORT" to "1234",
+        "INFLUX_DATABASE_NAME" to "defaultdb",
+        "INFLUX_USER" to "user",
+        "INFLUX_PASSWORD" to "password"
     )
 )
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "DEV",
         "userclaim" to "pid",
+        "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
     )
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "PROD",
         "userclaim" to "pid",
+        "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
     )
 )
 
@@ -56,7 +66,16 @@ internal object Configuration {
     data class Application(
         val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val userclaim: String = config()[Key("userclaim", stringType)]
+        val userclaim: String = config()[Key("userclaim", stringType)],
+        val sensu: String? = config()[Key("sensu", stringType)],
+        val NAIS_APP_NAME: String? = config()[Key("NAIS_APP_NAME", stringType)],
+        val NAIS_CLUSTER_NAME: String? = config()[Key("NAIS_CLUSTER_NAME", stringType)],
+        val NAIS_NAMESPACE: String? = config()[Key("NAIS_NAMESPACE", stringType)],
+        val INFLUX_HOST: String? = config()[Key("INFLUX_HOST", stringType)],
+        val INFLUX_PORT: String? = config()[Key("INFLUX_PORT", stringType)],
+        val INFLUX_DATABASE_NAME: String? = config()[Key("INFLUX_DATABASE_NAME", stringType)],
+        val INFLUX_USER: String? = config()[Key("INFLUX_USER", stringType)],
+        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)]
     )
 }
 
