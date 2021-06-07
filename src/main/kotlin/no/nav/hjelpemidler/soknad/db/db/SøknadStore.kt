@@ -264,10 +264,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }
 
-                metrics.recordTidVenterGodkjenningTilGodkjent(session, soknadsId, status)
-                metrics.recordTidFraGodjentTilJournalfort(session, soknadsId, status)
-                metrics.recordTidFraJournalfortTilVedtak(session, soknadsId, status)
-                metrics.recordTidFraVedtakTilUtsending(session, soknadsId, status)
+                metrics.measureElapsedTimeBetweenStatusChanges(session, soknadsId, status)
 
                 return@using result
             }
