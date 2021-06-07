@@ -265,7 +265,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 }
 
                 metrics.recordTidVenterGodkjenningTilGodkjent(session, soknadsId, status)
-                metrics.recordTidFraInnsendtTilVedtak(session, soknadsId, status)
+                metrics.recordTidFraGodjentTilJournalfort(session, soknadsId, status)
                 metrics.recordTidFraJournalfortTilVedtak(session, soknadsId, status)
                 metrics.recordTidFraVedtakTilUtsending(session, soknadsId, status)
 
