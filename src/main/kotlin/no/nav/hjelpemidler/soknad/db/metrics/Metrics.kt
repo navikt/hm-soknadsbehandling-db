@@ -13,7 +13,7 @@ import java.util.UUID
 private val logg = KotlinLogging.logger {}
 
 class Metrics {
-    fun recordTidFraInnsendtTilVedtak(session: Session, soknadsId: UUID, status: Status) {
+    fun recordTidFraGodjentTilJournalfort(session: Session, soknadsId: UUID, status: Status) {
         runBlocking {
             launch(Job()) {
 
@@ -24,18 +24,14 @@ class Metrics {
                         Status.GODKJENT_MED_FULLMAKT
                     )
                     val validEndStatuses = listOf(
-                        Status.VEDTAKSRESULTAT_ANNET,
-                        Status.VEDTAKSRESULTAT_AVSLÅTT,
-                        Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                        Status.VEDTAKSRESULTAT_INNVILGET,
-                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                        Status.ENDELIG_JOURNALFØRT,
                     )
 
                     if (status in validEndStatuses)
                         recordTimeElapsedBetweenStatusChange(
                             session,
                             soknadsId,
-                            TID_FRA_INNSENDT_TIL_VEDTAK,
+                            TID_FRA_GODKJENT_TIL_JOURNALFORT,
                             validStartStatuses,
                             validEndStatuses
                         )
@@ -110,6 +106,34 @@ class Metrics {
         }
     }
 
+    fun recordTidVenterGodkjenningTilGodkjent(session: Session, soknadsId: UUID, status: Status) {
+        runBlocking {
+            launch(Job()) {
+
+                try {
+                    // TODO consider extracting for new measurements
+                    val validStartStatuses = listOf(
+                        Status.VENTER_GODKJENNING,
+                    )
+                    val validEndStatuses = listOf(
+                        Status.GODKJENT,
+                    )
+
+                    if (status in validEndStatuses)
+                        recordTimeElapsedBetweenStatusChange(
+                            session,
+                            soknadsId,
+                            TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
+                            validStartStatuses,
+                            validEndStatuses
+                        )
+                } catch (e: Exception) {
+                    logg.error { "Feilet ved sending av status endring metrikker: ${e.message}. ${e.stackTrace}" }
+                }
+            }
+        }
+    }
+
     private fun recordTimeElapsedBetweenStatusChange(session: Session, soknadsId: UUID, metricFieldName: String, validStartStatuses: List<Status>, validEndStatuses: List<Status>) {
 
         data class StatusRow(val STATUS: Status, val CREATED: Timestamp, val ER_DIGITAL: Boolean)
@@ -148,7 +172,8 @@ class Metrics {
     }
 
     companion object {
-        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_innsendt_til_vedtak"
+        const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT = "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
+        const val TID_FRA_GODKJENT_TIL_JOURNALFORT = "hm-soknadsbehandling.event.tid_fra_godkjent_til_journalfort"
         const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_journalfort_til_vedtak"
         const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
     }
