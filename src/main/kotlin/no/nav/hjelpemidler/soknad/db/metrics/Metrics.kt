@@ -110,6 +110,34 @@ class Metrics {
         }
     }
 
+    fun recordTidVenterGodkjenningTilGodkjent(session: Session, soknadsId: UUID, status: Status) {
+        runBlocking {
+            launch(Job()) {
+
+                try {
+                    // TODO consider extracting for new measurements
+                    val validStartStatuses = listOf(
+                        Status.VENTER_GODKJENNING,
+                    )
+                    val validEndStatuses = listOf(
+                        Status.GODKJENT,
+                    )
+
+                    if (status in validEndStatuses)
+                        recordTimeElapsedBetweenStatusChange(
+                            session,
+                            soknadsId,
+                            TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
+                            validStartStatuses,
+                            validEndStatuses
+                        )
+                } catch (e: Exception) {
+                    logg.error { "Feilet ved sending av status endring metrikker: ${e.message}. ${e.stackTrace}" }
+                }
+            }
+        }
+    }
+
     private fun recordTimeElapsedBetweenStatusChange(session: Session, soknadsId: UUID, metricFieldName: String, validStartStatuses: List<Status>, validEndStatuses: List<Status>) {
 
         data class StatusRow(val STATUS: Status, val CREATED: Timestamp, val ER_DIGITAL: Boolean)
@@ -151,5 +179,6 @@ class Metrics {
         const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_innsendt_til_vedtak"
         const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_journalfort_til_vedtak"
         const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
+        const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT = "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
     }
 }
