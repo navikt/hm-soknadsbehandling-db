@@ -9,7 +9,7 @@ import no.nav.hjelpemidler.soknad.db.Configuration
 import java.time.Instant
 
 private val logg = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+// private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class AivenMetrics {
     private val influxHost = Configuration.application.INFLUX_HOST ?: "http://localhost"
@@ -39,7 +39,7 @@ class AivenMetrics {
     }
 
     fun registerElapsedTime(metricFieldName: String, tid: Long) {
-        writeEvent(TID_FRA_INNSENDT_TIL_VEDTAK, mapOf("elapsed_ms" to tid), emptyMap())
+        writeEvent(metricFieldName, mapOf("elapsed_ms" to tid), emptyMap())
     }
 
     companion object {
@@ -48,7 +48,5 @@ class AivenMetrics {
             "cluster" to (Configuration.application.NAIS_CLUSTER_NAME ?: "dev-gcp"),
             "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot")
         )
-
-        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling.tid_fra_innsendt_til_vedtak"
     }
 }

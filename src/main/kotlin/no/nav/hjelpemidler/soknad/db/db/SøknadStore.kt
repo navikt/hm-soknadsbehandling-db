@@ -5,9 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -20,13 +17,11 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.metrics.AivenMetrics
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
-import no.nav.hjelpemidler.soknad.db.metrics.SensuMetrics
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
-import java.sql.Timestamp
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
@@ -269,30 +264,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }
 
-                runBlocking {
-                    launch(Job()) {
-
-                        try {
-                            // TODO consider extracting for new measurements
-                            val validStartStatuses = listOf(
-                                Status.GODKJENT,
-                                Status.GODKJENT_MED_FULLMAKT
-                            )
-                            val validEndStatuses = listOf(
-                                Status.VEDTAKSRESULTAT_ANNET,
-                                Status.VEDTAKSRESULTAT_AVSLÅTT,
-                                Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                                Status.VEDTAKSRESULTAT_INNVILGET,
-                                Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
-                            )
-
-                            if (status in validEndStatuses)
-                                recordTimeElapsedBetweenStatusChange(session, soknadsId, SensuMetrics.TID_FRA_INNSENDT_TIL_VEDTAK, validStartStatuses, validEndStatuses)
-                        } catch (e: Exception) {
-                            logg.error { "Feilet ved sending av status endring metrikker: ${e.message}. ${e.stackTrace}" }
-                        }
-                    }
-                }
+                metrics.recordTidFraInnsendtTilVedtak(session, soknadsId, status)
+                metrics.recordTidFraJournalfortTilVedtak(session, soknadsId, status)
 
                 return@using result
             }
@@ -488,37 +461,6 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         return true
     }
 
-    private fun recordTimeElapsedBetweenStatusChange(session: Session, soknadsId: UUID, metricFieldName: String, validStartStatuses: List<Status>, validEndStatuses: List<Status>) {
-
-        data class StatusRow(val STATUS: Status, val CREATED: Timestamp)
-
-        val result = session.run(
-            queryOf(
-                "SELECT STATUS, CREATED FROM V1_STATUS WHERE SOKNADS_ID = ?",
-                soknadsId
-            ).map {
-                StatusRow(
-                    Status.valueOf(it.string("STATUS")),
-                    it.sqlTimestamp("CREATED"),
-                )
-            }.asList
-        )
-
-        // TODO if multiple statuses converged to a single common status this would not be necessary
-        val foundEndStatuses = result.filter { statusRow -> statusRow.STATUS in validEndStatuses }
-        if (foundEndStatuses.isEmpty()) return
-        val foundStartStatuses = result.filter { statusRow -> statusRow.STATUS in validStartStatuses }
-        if (foundStartStatuses.isEmpty()) return
-
-        val earliestEndStatus = foundEndStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
-        val earliestStartStatus = foundStartStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
-
-        val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
-
-        AivenMetrics().registerElapsedTime(metricFieldName, timeDifference)
-        SensuMetrics().registerElapsedTime(metricFieldName, timeDifference)
-    }
-
     override fun savePapir(soknadData: PapirSøknadData): Int =
         time("insert_papirsoknad") {
             using(sessionOf(ds)) { session ->
@@ -579,6 +521,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             .registerModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
+        private val metrics = Metrics()
     }
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)

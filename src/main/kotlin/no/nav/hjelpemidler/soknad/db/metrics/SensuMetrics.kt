@@ -78,7 +78,5 @@ class SensuMetrics(
             "cluster" to (Configuration.application.NAIS_CLUSTER_NAME ?: "dev-fss"),
             "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot")
         )
-
-        const val TID_FRA_INNSENDT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_innsendt_til_vedtak"
     }
 }
