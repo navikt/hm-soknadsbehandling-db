@@ -25,7 +25,7 @@ private val localProperties = ConfigurationMap(
         "INFLUX_PORT" to "1234",
         "INFLUX_DATABASE_NAME" to "defaultdb",
         "INFLUX_USER" to "user",
-        "INFLUX_PASSWORD" to "password"
+        "INFLUX_PASSWORD" to "password",
 
         "GRUNNDATA_API_URL" to "http://host.docker.internal",
     )
