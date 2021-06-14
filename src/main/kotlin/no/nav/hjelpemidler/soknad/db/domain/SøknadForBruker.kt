@@ -319,8 +319,20 @@ class Tilbehor(
 )
 
 data class SøknadForBrukerOrdrelinje(
-    val artikkelNr: String,
-    val artikkelNavn: String,
     val antall: Double,
+    val antallEnhet: String,
     val kategori: String?,
+    val artikkelBeskrivelse: String,
+    val artikkelNr: String,
+    val datoUtsendelse: String,
+
+    // val artikkelBeskrivelse: String, <=> artikkelNavn
+    // val serieNr: String?,
+
+    var hmdbBeriket: Boolean,
+    var hmdbProduktNavn: String?,
+    var hmdbBeskrivelse: String?,
+    var hmdbKategori: String?,
+    var hmdbBilde: String?,
+    var hmdbURL: String?,
 )

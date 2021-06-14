@@ -18,18 +18,24 @@ private val localProperties = ConfigurationMap(
         "db.username" to "postgres",
         "userclaim" to "sub",
 
+        "GRUNNDATA_API_URL" to "http://host.docker.internal",
+
     )
 )
 private val devProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "DEV",
         "userclaim" to "pid",
+
+        "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
     )
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
         "application.profile" to "PROD",
         "userclaim" to "pid",
+
+        "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
     )
 )
 
@@ -56,7 +62,8 @@ internal object Configuration {
     data class Application(
         val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
         val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val userclaim: String = config()[Key("userclaim", stringType)]
+        val userclaim: String = config()[Key("userclaim", stringType)],
+        val grunndataApiURL: String = config()[Key("GRUNNDATA_API_URL", stringType)],
     )
 }
 
