@@ -9,6 +9,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
@@ -16,6 +17,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
@@ -23,6 +25,8 @@ import java.math.BigInteger
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
+
+private val logg = KotlinLogging.logger {}
 
 internal interface SøknadStore {
     fun save(soknadData: SoknadData): Int
@@ -244,7 +248,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         time("oppdater_status") {
             using(sessionOf(ds)) { session ->
                 if (checkIfLastStatusMatches(session, soknadsId, status)) return@using 0
-                session.transaction { transaction ->
+                val result = session.transaction { transaction ->
                     // Add the new status to the status table
                     transaction.run(
                         queryOf(
@@ -261,6 +265,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         ).asUpdate
                     )
                 }
+
+                metrics.measureElapsedTimeBetweenStatusChanges(session, soknadsId, status)
+
+                return@using result
             }
         }
 
@@ -514,6 +522,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             .registerModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
+        private val metrics = Metrics()
     }
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)

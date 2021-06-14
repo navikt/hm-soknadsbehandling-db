@@ -9,15 +9,19 @@ metadata:
 spec:
   image: {{ image }}
   team: teamdigihot
+  envFrom:
+    - secret: hm-influxdb-secret
+  kafka:
+    pool: nav-dev # just to get the SSL certificate required influxDB on GCP?
   liveness:
     path: /is_alive
-    initialDelay: 10
+    initialDelay: 30
     timeout: 1
     periodSeconds: 5
     failureThreshold: 3
   readiness:
     path: /is_ready
-    initialDelay: 10
+    initialDelay: 30
     timeout: 1
   port: 8080
   prometheus:
