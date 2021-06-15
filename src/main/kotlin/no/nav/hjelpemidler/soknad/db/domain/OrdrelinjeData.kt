@@ -5,6 +5,7 @@ import java.util.UUID
 
 internal data class OrdrelinjeData(
     val søknadId: UUID,
+    val oebsId: Int,
     val fnrBruker: String,
     val serviceforespørsel: Int?, // Viss det ikkje er ein SF
     val ordrenr: Int,
@@ -12,6 +13,8 @@ internal data class OrdrelinjeData(
     val delordrelinje: Int,
     val artikkelnr: String,
     val antall: Double,
+    val enhet: String,
     val produktgruppe: String,
+    val produktgruppeNr: String,
     val data: JsonNode,
 )
