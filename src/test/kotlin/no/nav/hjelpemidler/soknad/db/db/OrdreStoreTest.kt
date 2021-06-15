@@ -12,6 +12,7 @@ internal class OrdreStoreTest {
     fun `Lagr ordrelinje frå OEBS`() {
         val ordrelinje = OrdrelinjeData(
             søknadId = UUID.randomUUID(),
+            oebsId = 123,
             fnrBruker = "15084300133",
             serviceforespørsel = 19162211,
             ordrenr = 6181503,
@@ -19,7 +20,9 @@ internal class OrdreStoreTest {
             delordrelinje = 1,
             artikkelnr = "123456",
             antall = 1.0,
+            enhet = "STK",
             produktgruppe = "Manuelle armdrevne rullestoler",
+            produktgruppeNr = "012345",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
         withMigratedDb {
@@ -33,6 +36,7 @@ internal class OrdreStoreTest {
     fun `Forsøk på lagring av identiske ordrelinjer frå OEBS gir ingen endringar for duplikatet`() {
         val ordrelinje = OrdrelinjeData(
             søknadId = UUID.randomUUID(),
+            oebsId = 123,
             fnrBruker = "15084300133",
             serviceforespørsel = 19162211,
             ordrenr = 6181503,
@@ -40,7 +44,9 @@ internal class OrdreStoreTest {
             delordrelinje = 1,
             artikkelnr = "123456",
             antall = 1.0,
+            enhet = "STK",
             produktgruppe = "Manuelle armdrevne rullestoler",
+            produktgruppeNr = "012345",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
         withMigratedDb {
