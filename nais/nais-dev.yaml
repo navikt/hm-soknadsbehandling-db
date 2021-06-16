@@ -43,6 +43,9 @@ spec:
         - application: hm-soknadsbehandling
           namespace: teamdigihot
           cluster: dev-gcp
+    outbound:
+      rules:
+        - application: hm-grunndata-api
   resources:
     limits:
       cpu: 500m
