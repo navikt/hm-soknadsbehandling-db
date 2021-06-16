@@ -45,8 +45,10 @@ class Hjelpemiddeldatabase {
                 if (statusCode == 200) {
                     logg.info("Grunndata-api dataset download successful: timeElapsed=${elapsed.inMilliseconds}ms url=$apiURL")
                 } else {
-                    logg.error("Unable to download the dataset from grunndata-api: statusCode=$statusCode url=$apiURL")
+                    logg.error("Unable to download the dataset from grunndata-api (using cached): statusCode=$statusCode url=$apiURL")
+                    database = mapperJson.readValue(javaClass.getResource("/dineHjelpemidlerProdukter.json").readText())
                 }
+                logg.info("Grunndata-api dataset loaded with ${database?.size} items")
             }
         }
 
