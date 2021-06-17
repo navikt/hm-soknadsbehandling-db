@@ -26,26 +26,32 @@ class Hjelpemiddeldatabase {
 
         fun loadDatabase() {
             if (database == null) {
-                var statusCode = 0
-                val apiURL = "${Configuration.application.grunndataApiURL}/dineHjelpemidlerProdukter"
-                val elapsed: kotlin.time.Duration = measureTime {
-                    val client = HttpClient.newBuilder().build()
-                    val request = HttpRequest.newBuilder()
-                        .uri(URI.create(apiURL))
-                        .timeout(Duration.ofSeconds(30))
-                        .header("Accepts", "application/json")
-                        .GET()
-                        .build()
-                    val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
-                    statusCode = response.statusCode()
-                    if (statusCode == 200) {
-                        database = mapperJson.readValue(response.body().toString())
+                try {
+                    var statusCode = 0
+                    val apiURL = "${Configuration.application.grunndataApiURL}/dineHjelpemidlerProdukter"
+                    val elapsed: kotlin.time.Duration = measureTime {
+                        val client = HttpClient.newBuilder().build()
+                        val request = HttpRequest.newBuilder()
+                            .uri(URI.create(apiURL))
+                            .timeout(Duration.ofSeconds(30))
+                            .header("Accepts", "application/json")
+                            .GET()
+                            .build()
+                        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+                        statusCode = response.statusCode()
+                        if (statusCode == 200) {
+                            database = mapperJson.readValue(response.body().toString())
+                        }
                     }
-                }
-                if (statusCode == 200) {
-                    logg.info("Grunndata-api dataset download successful: timeElapsed=${elapsed.inMilliseconds}ms url=$apiURL")
-                } else {
-                    logg.error("Unable to download the dataset from grunndata-api (using cached): statusCode=$statusCode url=$apiURL")
+                    if (statusCode == 200) {
+                        logg.info("Grunndata-api dataset download successful: timeElapsed=${elapsed.inMilliseconds}ms url=$apiURL")
+                    } else {
+                        logg.error("Unable to download the dataset from grunndata-api (using cached): statusCode=$statusCode url=$apiURL")
+                        database = mapperJson.readValue(javaClass.getResource("/dineHjelpemidlerProdukter.json").readText())
+                    }
+                } catch (e: Exception) {
+                    logg.error("Downloading dataset from grunndata-api threw an exception: $e. Loading dataset from local cache.")
+                    e.printStackTrace()
                     database = mapperJson.readValue(javaClass.getResource("/dineHjelpemidlerProdukter.json").readText())
                 }
                 logg.info("Grunndata-api dataset loaded with ${database?.size} items")
