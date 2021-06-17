@@ -1,5 +1,3 @@
-
-
 package no.nav.hjelpemidler.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
@@ -42,6 +40,7 @@ import no.nav.hjelpemidler.soknad.db.routes.saveSoknad
 import no.nav.hjelpemidler.soknad.db.routes.slettSøknad
 import no.nav.hjelpemidler.soknad.db.routes.slettUtløptSøknad
 import no.nav.hjelpemidler.soknad.db.routes.soknadFinnes
+import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
 import kotlin.time.ExperimentalTime
@@ -57,6 +56,9 @@ fun Application.module() {
 
     val tokenXConfig = runBlocking { loadTokenXConfig() }
     val aadConfig = runBlocking { loadAadConfig() }
+
+    // Last ned hjelpemiddeldatabase datasett for beriking av ordrelinjer
+    Hjelpemiddeldatabase.loadDatabase()
 
     if (!waitForDB(10.minutes, Configuration)) {
         throw Exception("database never became available within the deadline")
@@ -86,7 +88,7 @@ fun Application.module() {
         route("/api") {
 
             authenticate("tokenX") {
-                hentSoknad(store)
+                hentSoknad(store, ordreStore)
                 hentSoknaderForBruker(store)
                 hentSoknaderForFormidler(storeFormidler)
             }

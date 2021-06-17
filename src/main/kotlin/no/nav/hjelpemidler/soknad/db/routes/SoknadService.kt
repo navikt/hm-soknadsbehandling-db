@@ -28,7 +28,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.hentSoknad(store: SøknadStore) {
+internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore) {
     get("/soknad/bruker/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
@@ -44,11 +44,15 @@ internal fun Route.hentSoknad(store: SøknadStore) {
                     call.respond(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
                 }
                 else -> {
+                    // Fetch ordrelinjer belonging to søknad
+                    soknad.ordrelinjer = ordreStore.ordreForSoknad(soknad.søknadId)
+
                     call.respond(soknad)
                 }
             }
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
+            e.printStackTrace()
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
         }
     }

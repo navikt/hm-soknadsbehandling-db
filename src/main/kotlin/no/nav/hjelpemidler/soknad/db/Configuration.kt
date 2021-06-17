@@ -25,7 +25,9 @@ private val localProperties = ConfigurationMap(
         "INFLUX_PORT" to "1234",
         "INFLUX_DATABASE_NAME" to "defaultdb",
         "INFLUX_USER" to "user",
-        "INFLUX_PASSWORD" to "password"
+        "INFLUX_PASSWORD" to "password",
+
+        "GRUNNDATA_API_URL" to "http://host.docker.internal",
     )
 )
 private val devProperties = ConfigurationMap(
@@ -33,6 +35,8 @@ private val devProperties = ConfigurationMap(
         "application.profile" to "DEV",
         "userclaim" to "pid",
         "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
+
+        "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
     )
 )
 private val prodProperties = ConfigurationMap(
@@ -40,6 +44,8 @@ private val prodProperties = ConfigurationMap(
         "application.profile" to "PROD",
         "userclaim" to "pid",
         "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
+
+        "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
     )
 )
 
@@ -75,7 +81,8 @@ internal object Configuration {
         val INFLUX_PORT: String? = config()[Key("INFLUX_PORT", stringType)],
         val INFLUX_DATABASE_NAME: String? = config()[Key("INFLUX_DATABASE_NAME", stringType)],
         val INFLUX_USER: String? = config()[Key("INFLUX_USER", stringType)],
-        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)]
+        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)],
+        val grunndataApiURL: String = config()[Key("GRUNNDATA_API_URL", stringType)],
     )
 }
 
