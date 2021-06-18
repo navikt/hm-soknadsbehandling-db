@@ -69,7 +69,20 @@ private fun bruker(søknad: JsonNode): Bruker {
         boform = brukerSituasjonNode["bostedRadioButton"].textValue(),
         bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) Bruksarena.DAGLIGLIVET else Bruksarena.UKJENT,
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
-        signatur = signaturType(søknad)
+        signatur = signaturType(søknad),
+        kroppsamaal = kroppsmaal(brukerNode)
+    )
+}
+
+fun kroppsmaal(brukerNode: JsonNode): Kroppsmaal? {
+    val kroppsmaal = brukerNode["kroppsmaal"] ?: return null
+
+    return Kroppsmaal(
+        setebredde = kroppsmaal["setebredde"].intValue(),
+        laarlengde = kroppsmaal["laarlengde"].intValue(),
+        legglengde = kroppsmaal["legglengde"].intValue(),
+        hoyde = kroppsmaal["hoyde"].intValue(),
+        kroppsvekt = kroppsmaal["kroppsvekt"].intValue(),
     )
 }
 
@@ -190,7 +203,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             tilbehorListe = tilbehor(it),
             begrunnelse = it["begrunnelsen"]?.textValue(),
             kanIkkeTilsvarande = it["kanIkkeTilsvarande"].booleanValue(),
-            navn = it["navn"]?.textValue()
+            navn = it["navn"]?.textValue(),
+            rullestolInfo = rullestolinfo(it)
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -224,6 +238,19 @@ private fun tilbehor(hjelpemiddel: JsonNode): List<Tilbehor> {
     return tilbehorListe
 }
 
+private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
+    val rullestolInfoJson = hjelpemiddel["rullestolInfo"] ?: return null
+    return RullestolInfo(
+        skalBrukesIBil = rullestolInfoJson["skalBrukesIBil"]?.booleanValue(),
+        sitteputeValg = when (rullestolInfoJson["sitteputeValg"].textValue()) {
+            "StandardSittepute" -> SitteputeValg.StandardSittepute
+            "LeggesTilSeparat" -> SitteputeValg.LeggesTilSeparat
+            "HarFraFor" -> SitteputeValg.HarFraFor
+            else -> throw RuntimeException("Ugyldig signaturtype")
+        }
+    )
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -244,12 +271,21 @@ class Bruker(
     val boform: String,
     val bruksarena: Bruksarena,
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
-    val signatur: SignaturType
+    val signatur: SignaturType,
+    val kroppsamaal: Kroppsmaal?
 )
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT }
 enum class Bruksarena { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
+
+data class Kroppsmaal(
+    val setebredde: Int,
+    val laarlengde: Int,
+    val legglengde: Int,
+    val hoyde: Int,
+    val kroppsvekt: Int
+)
 
 class Formidler(
     val navn: String,
@@ -283,7 +319,17 @@ class Hjelpemiddel(
     val begrunnelse: String?,
     val kanIkkeTilsvarande: Boolean,
     val navn: String?,
+    val rullestolInfo: RullestolInfo?
 )
+
+data class RullestolInfo(
+    val skalBrukesIBil: Boolean?,
+    val sitteputeValg: SitteputeValg?
+)
+
+enum class SitteputeValg {
+    StandardSittepute, LeggesTilSeparat, HarFraFor
+}
 
 class Levering(
     val kontaktPerson: KontaktPerson,

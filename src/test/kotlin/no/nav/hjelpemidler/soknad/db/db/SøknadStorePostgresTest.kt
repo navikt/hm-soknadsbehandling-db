@@ -7,13 +7,16 @@ import kotliquery.sessionOf
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
 import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
+import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.mockSøknad
+import no.nav.hjelpemidler.soknad.db.mockSøknadMedRullestol
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -427,6 +430,31 @@ internal class SøknadStorePostgresTest {
             )
             val soknad = this.hentSoknad(id)
             assertEquals(false, soknad?.er_digital)
+        }
+    }
+
+    @Test
+    fun `Kroppsmål og rullestolinfo blir hentet ut`() {
+        val id = UUID.randomUUID()
+        SøknadStorePostgres(DataSource.instance).apply {
+            this.save(
+                mockSøknadMedRullestol(id)
+            )
+            val soknad = this.hentSoknad(id)
+
+            assertNotNull(soknad?.søknadsdata?.bruker?.kroppsamaal)
+            assertEquals(176, soknad?.søknadsdata?.bruker?.kroppsamaal?.hoyde)
+            assertEquals(99, soknad?.søknadsdata?.bruker?.kroppsamaal?.kroppsvekt)
+            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsamaal?.legglengde)
+            assertEquals(56, soknad?.søknadsdata?.bruker?.kroppsamaal?.laarlengde)
+            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsamaal?.setebredde)
+
+            assertNotNull(soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo)
+            assertEquals(
+                SitteputeValg.LeggesTilSeparat,
+                soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.sitteputeValg
+            )
+            assertEquals(true, soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.skalBrukesIBil)
         }
     }
 }
