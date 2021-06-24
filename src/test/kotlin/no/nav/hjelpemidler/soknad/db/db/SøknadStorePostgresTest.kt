@@ -442,12 +442,12 @@ internal class SøknadStorePostgresTest {
             )
             val soknad = this.hentSoknad(id)
 
-            assertNotNull(soknad?.søknadsdata?.bruker?.kroppsamaal)
-            assertEquals(176, soknad?.søknadsdata?.bruker?.kroppsamaal?.hoyde)
-            assertEquals(99, soknad?.søknadsdata?.bruker?.kroppsamaal?.kroppsvekt)
-            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsamaal?.legglengde)
-            assertEquals(56, soknad?.søknadsdata?.bruker?.kroppsamaal?.laarlengde)
-            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsamaal?.setebredde)
+            assertNotNull(soknad?.søknadsdata?.bruker?.kroppsmaal)
+            assertEquals(176, soknad?.søknadsdata?.bruker?.kroppsmaal?.hoyde)
+            assertEquals(99, soknad?.søknadsdata?.bruker?.kroppsmaal?.kroppsvekt)
+            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsmaal?.legglengde)
+            assertEquals(56, soknad?.søknadsdata?.bruker?.kroppsmaal?.laarlengde)
+            assertEquals(23, soknad?.søknadsdata?.bruker?.kroppsmaal?.setebredde)
 
             assertNotNull(soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo)
             assertEquals(

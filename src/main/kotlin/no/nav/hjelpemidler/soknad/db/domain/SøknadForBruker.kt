@@ -70,7 +70,7 @@ private fun bruker(søknad: JsonNode): Bruker {
         bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) Bruksarena.DAGLIGLIVET else Bruksarena.UKJENT,
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
-        kroppsamaal = kroppsmaal(brukerNode)
+        kroppsmaal = kroppsmaal(brukerNode)
     )
 }
 
@@ -242,10 +242,11 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
     val rullestolInfoJson = hjelpemiddel["rullestolInfo"] ?: return null
     return RullestolInfo(
         skalBrukesIBil = rullestolInfoJson["skalBrukesIBil"]?.booleanValue(),
-        sitteputeValg = when (rullestolInfoJson["sitteputeValg"].textValue()) {
+        sitteputeValg = when (rullestolInfoJson["sitteputeValg"]?.textValue()) {
             "StandardSittepute" -> SitteputeValg.StandardSittepute
             "LeggesTilSeparat" -> SitteputeValg.LeggesTilSeparat
             "HarFraFor" -> SitteputeValg.HarFraFor
+            null -> null
             else -> throw RuntimeException("Ugyldig signaturtype")
         }
     )
@@ -272,7 +273,7 @@ class Bruker(
     val bruksarena: Bruksarena,
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
-    val kroppsamaal: Kroppsmaal?
+    val kroppsmaal: Kroppsmaal?
 )
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT }

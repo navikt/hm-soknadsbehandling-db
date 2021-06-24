@@ -181,8 +181,6 @@ internal fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GO
         "begrunnelsen": "Må ha dette",
         "kanIkkeTilsvarande": true,
         "rullestolInfo": {
-        "skalBrukesIBil": true,
-        "sitteputeValg": "LeggesTilSeparat"
     }
     }
     ],
