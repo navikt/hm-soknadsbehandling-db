@@ -25,7 +25,8 @@ internal fun mockSøknad(id: UUID, status: Status = Status.VENTER_GODKJENNING) =
                                 "signatur": "FULLMAKT",
                                 "etternavn": "etternavn",
                                 "telefonNummer": "12345678",
-                                "poststed": "Stedet"
+                                "poststed": "Stedet",
+                                "kroppsmaal": {}
                               },
                               "brukersituasjon": {
                                 "bostedRadioButton": "Hjemme",
