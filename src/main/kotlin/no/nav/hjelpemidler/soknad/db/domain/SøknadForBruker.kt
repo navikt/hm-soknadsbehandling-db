@@ -78,11 +78,11 @@ fun kroppsmaal(brukerNode: JsonNode): Kroppsmaal? {
     val kroppsmaal = brukerNode["kroppsmaal"] ?: return null
 
     return Kroppsmaal(
-        setebredde = kroppsmaal["setebredde"].intValue(),
-        laarlengde = kroppsmaal["laarlengde"].intValue(),
-        legglengde = kroppsmaal["legglengde"].intValue(),
-        hoyde = kroppsmaal["hoyde"].intValue(),
-        kroppsvekt = kroppsmaal["kroppsvekt"].intValue(),
+        setebredde = kroppsmaal["setebredde"]?.intValue(),
+        laarlengde = kroppsmaal["laarlengde"]?.intValue(),
+        legglengde = kroppsmaal["legglengde"]?.intValue(),
+        hoyde = kroppsmaal["hoyde"]?.intValue(),
+        kroppsvekt = kroppsmaal["kroppsvekt"]?.intValue(),
     )
 }
 
@@ -281,11 +281,11 @@ enum class Bruksarena { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
 
 data class Kroppsmaal(
-    val setebredde: Int,
-    val laarlengde: Int,
-    val legglengde: Int,
-    val hoyde: Int,
-    val kroppsvekt: Int
+    val setebredde: Int?,
+    val laarlengde: Int?,
+    val legglengde: Int?,
+    val hoyde: Int?,
+    val kroppsvekt: Int?
 )
 
 class Formidler(
