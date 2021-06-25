@@ -1,10 +1,6 @@
 name: Build and deploy
 
-on:
-  push:
-    branches:
-      - main
-      - DIGIHOT-268-MRS
+on: [push]
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
@@ -33,6 +29,7 @@ jobs:
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
       - name: Build and Publish Docker image
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ordrelinje-endpoint' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,6 +40,7 @@ jobs:
   deploy-dev:
     name: Deploy to dev
     needs: build
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ordrelinje-endpoint' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
