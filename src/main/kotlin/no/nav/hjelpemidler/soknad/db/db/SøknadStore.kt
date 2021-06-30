@@ -267,6 +267,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 }
 
                 metrics.measureElapsedTimeBetweenStatusChanges(session, soknadsId, status)
+                metrics.countApplicationsByStatus(session)
 
                 return@using result
             }
