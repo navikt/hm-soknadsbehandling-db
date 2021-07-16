@@ -252,6 +252,22 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
     )
 }
 
+private fun utlevertInfo(hjelpemiddel: JsonNode): UtlevertInfo? {
+    val utlevertInfoJson = hjelpemiddel["utlevertInfo"] ?: return null
+    return UtlevertInfo(
+        overførtFraBruker = utlevertInfoJson["overførtFraFrn"]?.textValue(),
+        annenKommentar = utlevertInfoJson["annenKommentar"]?.textValue(),
+        utlevertType = when (utlevertInfoJson["utlevertType"]?.textValue()) {
+            "FremskuttLager" -> UtlevertType.FremskuttLager
+            "Korttidslån" -> UtlevertType.Korttidslån
+            "Overført" -> UtlevertType.Overført
+            "Annet" -> UtlevertType.Annet
+            null -> null
+            else -> throw java.lang.RuntimeException("ugyldig utlevertInfo")
+        }
+    )
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -332,12 +348,24 @@ enum class SitteputeValg {
     StandardSittepute, LeggesTilSeparat, HarFraFor
 }
 
+data class UtlevertInfo(
+    val utlevertType: UtlevertType?,
+    val overførtFraBruker: String?,
+    val annenKommentar: String?
+)
+
+enum class UtlevertType {
+    FremskuttLager,
+    Korttidslån,
+    Overført,
+    Annet
+}
+
 class Levering(
     val kontaktPerson: KontaktPerson,
     val leveringsmaate: Leveringsmaate,
     val adresse: String?,
     val merknad: String?
-
 )
 
 class KontaktPerson(
