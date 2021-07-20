@@ -204,7 +204,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             begrunnelse = it["begrunnelsen"]?.textValue(),
             kanIkkeTilsvarande = it["kanIkkeTilsvarande"].booleanValue(),
             navn = it["navn"]?.textValue(),
-            rullestolInfo = rullestolinfo(it)
+            rullestolInfo = rullestolinfo(it),
+            utlevertInfo = utlevertInfo(it)
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -255,7 +256,7 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
 private fun utlevertInfo(hjelpemiddel: JsonNode): UtlevertInfo? {
     val utlevertInfoJson = hjelpemiddel["utlevertInfo"] ?: return null
     return UtlevertInfo(
-        overførtFraBruker = utlevertInfoJson["overførtFraFrn"]?.textValue(),
+        overførtFraBruker = utlevertInfoJson["overførtFraBruker"]?.textValue(),
         annenKommentar = utlevertInfoJson["annenKommentar"]?.textValue(),
         utlevertType = when (utlevertInfoJson["utlevertType"]?.textValue()) {
             "FremskuttLager" -> UtlevertType.FremskuttLager
@@ -336,7 +337,8 @@ class Hjelpemiddel(
     val begrunnelse: String?,
     val kanIkkeTilsvarande: Boolean,
     val navn: String?,
-    val rullestolInfo: RullestolInfo?
+    val rullestolInfo: RullestolInfo?,
+    val utlevertInfo: UtlevertInfo?
 )
 
 data class RullestolInfo(
