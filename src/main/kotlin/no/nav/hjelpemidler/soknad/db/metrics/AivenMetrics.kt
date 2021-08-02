@@ -42,6 +42,10 @@ class AivenMetrics {
         writeEvent(metricFieldName, mapOf("elapsed_ms" to tid), emptyMap())
     }
 
+    fun registerStatusCounts(metricFieldName: String, statusCounts: Map<String, Any>) {
+        writeEvent(metricFieldName, statusCounts, emptyMap())
+    }
+
     companion object {
         private val DEFAULT_TAGS: Map<String, String> = mapOf(
             "application" to (Configuration.application.NAIS_APP_NAME ?: "hm-soknadsbehandling-db"),

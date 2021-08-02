@@ -64,10 +64,47 @@ class Metrics {
         }
     }
 
+    fun countApplicationsByStatus(session: Session) {
+        runBlocking {
+            launch(Job()) {
+                try {
+                    data class StatusRow(val STATUS: Status, val COUNT: Number)
+
+                    val result = session.run(
+                        queryOf(
+                            """
+                                SELECT STATUS AS STATUS, COUNT(SOKNADS_ID) AS COUNT FROM (
+                                SELECT V1_STATUS.SOKNADS_ID, V1_STATUS.STATUS FROM V1_STATUS
+                                                    LEFT JOIN V1_STATUS last_status ON
+                                            V1_STATUS.SOKNADS_ID = last_status.SOKNADS_ID AND
+                                            V1_STATUS.created < last_status.created
+                                WHERE last_status.SOKNADS_ID IS NULL) last_statuses
+                                GROUP BY STATUS                                
+                            """.trimIndent()
+                        ).map {
+                            StatusRow(
+                                Status.valueOf(it.string("STATUS")),
+                                it.int("COUNT"),
+                            )
+                        }.asList
+                    )
+
+                    val metricsToSend = result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
+
+                    if (!metricsToSend.isEmpty())
+                        AivenMetrics().registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+                } catch (e: Exception) {
+                    logg.error { "Feil ved sending antall per status metrikker: ${e.message}. ${e.stackTrace}" }
+                }
+            }
+        }
+    }
+
     companion object {
         const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT = "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
         const val TID_FRA_GODKJENT_TIL_JOURNALFORT = "hm-soknadsbehandling.event.tid_fra_godkjent_til_journalfort"
         const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_journalfort_til_vedtak"
         const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
+        const val COUNT_OF_SOKNAD_BY_STATUS = "hm-soknadsbehandling.event.count_of_soknad_by_status"
     }
 }
