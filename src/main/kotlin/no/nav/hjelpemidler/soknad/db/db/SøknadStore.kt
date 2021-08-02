@@ -12,8 +12,8 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoerWrapper
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -48,7 +48,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer>
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<Array<ForslagsmotorTilbehoer_Hjelpemiddel>>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -514,7 +514,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         return uuid != null
     }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer> {
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<Array<ForslagsmotorTilbehoer_Hjelpemiddel>> {
         @Language("PostgreSQL") val statement =
             """
                 SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
@@ -526,7 +526,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoerWrapper>(it.string("DATA")).soknad
+                        objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")).soknad.hjelpemidler.hjelpemiddelListe
                     }.asList
                 )
             }

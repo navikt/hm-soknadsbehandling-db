@@ -1,19 +1,23 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
-data class ForslagsmotorTilbehoerWrapper(
-    val soknad: ForslagsmotorTilbehoer,
+data class ForslagsmotorTilbehoer_Soknad(
+    val soknad: ForslagsmotorTilbehoer_Hjelpemidler,
 )
 
-data class ForslagsmotorTilbehoer(
-    val hjelpemidler: Array<ForslagsmotorTilbehoerHjelpemiddel>,
+data class ForslagsmotorTilbehoer_Hjelpemidler(
+    val hjelpemidler: ForslagsmotorTilbehoer_HjelpemiddelListe,
 )
 
-data class ForslagsmotorTilbehoerHjelpemiddel(
+data class ForslagsmotorTilbehoer_HjelpemiddelListe(
+    val hjelpemiddelListe: Array<ForslagsmotorTilbehoer_Hjelpemiddel>
+)
+
+data class ForslagsmotorTilbehoer_Hjelpemiddel(
     val hmsNr: String,
-    val tilbehorListe: Array<ForslagsmotorTilbehoerTilbehoer>,
+    val tilbehorListe: Array<ForslagsmotorTilbehoer_Tilbehoer>,
 )
 
-data class ForslagsmotorTilbehoerTilbehoer(
+data class ForslagsmotorTilbehoer_Tilbehoer(
     val hmsnr: String,
     val antall: Int,
     val navn: String,
