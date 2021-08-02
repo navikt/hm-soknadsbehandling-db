@@ -39,6 +39,7 @@ spec:
     inbound:
       rules:
         - application: hm-dinehjelpemidler
+        - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
         - application: hm-soknadsbehandling
           namespace: teamdigihot
