@@ -14,7 +14,7 @@ data class ForslagsmotorTilbehoer_HjelpemiddelListe(
 
 data class ForslagsmotorTilbehoer_Hjelpemiddel(
     val hmsNr: String,
-    val tilbehorListe: Array<ForslagsmotorTilbehoer_Tilbehoer>,
+    val tilbehorListe: Array<ForslagsmotorTilbehoer_Tilbehoer>?,
 )
 
 data class ForslagsmotorTilbehoer_Tilbehoer(
