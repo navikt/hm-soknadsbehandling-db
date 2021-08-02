@@ -407,6 +407,7 @@ internal fun Route.initieltDatasettForForslagsmotorTilbehoer(store: SøknadStore
             call.respond(store.initieltDatasettForForslagsmotorTilbehoer())
         } catch (e: Exception) {
             logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
+            e.printStackTrace()
             call.respond(
                 HttpStatusCode.InternalServerError,
                 "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}"

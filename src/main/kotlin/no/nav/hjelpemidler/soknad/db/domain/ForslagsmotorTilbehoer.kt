@@ -1,12 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
 data class ForslagsmotorTilbehoer(
-    val hjelpemidler: List<ForslagsmotorTilbehoerHjelpemiddel>,
+    val hjelpemidler: Array<ForslagsmotorTilbehoerHjelpemiddel>,
 )
 
 data class ForslagsmotorTilbehoerHjelpemiddel(
     val hmsNr: String,
-    val tilbehorListe: List<ForslagsmotorTilbehoerTilbehoer>,
+    val tilbehorListe: Array<ForslagsmotorTilbehoerTilbehoer>,
 )
 
 data class ForslagsmotorTilbehoerTilbehoer(
