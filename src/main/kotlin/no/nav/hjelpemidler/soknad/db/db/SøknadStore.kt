@@ -516,7 +516,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL
+                SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
             """
 
         return time("initieltDatasettForForslagsmotorTilbehoer") {
