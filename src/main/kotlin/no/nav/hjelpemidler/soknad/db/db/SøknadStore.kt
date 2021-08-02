@@ -48,7 +48,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<Array<ForslagsmotorTilbehoer_Hjelpemiddel>>
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -514,13 +514,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         return uuid != null
     }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<Array<ForslagsmotorTilbehoer_Hjelpemiddel>> {
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel> {
         @Language("PostgreSQL") val statement =
             """
                 SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
             """
 
-        return time("initieltDatasettForForslagsmotorTilbehoer") {
+        val res = time("initieltDatasettForForslagsmotorTilbehoer") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
@@ -531,6 +531,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 )
             }
         }
+
+        val result = mutableListOf<ForslagsmotorTilbehoer_Hjelpemiddel>()
+        for (rOuter in res) {
+            for (rInner in rOuter) {
+                if (rInner.tilbehorListe?.isNotEmpty() == true) result.add(rInner)
+            }
+        }
+        return result
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
