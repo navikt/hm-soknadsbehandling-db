@@ -115,6 +115,11 @@ fun Application.module() {
                 ordreSisteDøgn(ordreStore)
                 initieltDatasettForForslagsmotorTilbehoer(store)
             } else {
+                if (Configuration.application.profile == Profile.DEV) {
+                    route("/test") {
+                        initieltDatasettForForslagsmotorTilbehoer(store)
+                    }
+                }
                 authenticate("aad") {
                     saveSoknad(store)
                     soknadFinnes(store)
