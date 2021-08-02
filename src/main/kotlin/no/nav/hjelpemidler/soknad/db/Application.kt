@@ -28,6 +28,7 @@ import no.nav.hjelpemidler.soknad.db.routes.hentSoknaderForFormidler
 import no.nav.hjelpemidler.soknad.db.routes.hentSoknaderTilGodkjenningEldreEnn
 import no.nav.hjelpemidler.soknad.db.routes.hentSoknadsdata
 import no.nav.hjelpemidler.soknad.db.routes.hentSøknadIdFraVedtaksresultat
+import no.nav.hjelpemidler.soknad.db.routes.initieltDatasettForForslagsmotorTilbehoer
 import no.nav.hjelpemidler.soknad.db.routes.lagKnytningMellomFagsakOgSøknad
 import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultat
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterJournalpostId
@@ -112,6 +113,7 @@ fun Application.module() {
                 fnrOgJournalpostIdFinnes(store)
                 savePapir(store)
                 ordreSisteDøgn(ordreStore)
+                initieltDatasettForForslagsmotorTilbehoer(store)
             } else {
                 authenticate("aad") {
                     saveSoknad(store)
@@ -132,6 +134,7 @@ fun Application.module() {
                     fnrOgJournalpostIdFinnes(store)
                     savePapir(store)
                     ordreSisteDøgn(ordreStore)
+                    initieltDatasettForForslagsmotorTilbehoer(store)
                 }
             }
         }

@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoerHjelpemiddel
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -45,6 +47,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoerHjelpemiddel>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -508,6 +511,25 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
         return uuid != null
+    }
+
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoerHjelpemiddel> {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL
+            """
+
+        return time("initieltDatasettForForslagsmotorTilbehoer") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                    ).map {
+                        objectMapper.readValue<ForslagsmotorTilbehoerHjelpemiddel>(it.string("DATA"))
+                    }.asList
+                )
+            }
+        }
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =

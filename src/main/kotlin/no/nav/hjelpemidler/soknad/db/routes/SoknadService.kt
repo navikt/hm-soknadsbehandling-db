@@ -401,5 +401,19 @@ internal fun Route.ordreSisteDøgn(store: OrdreStore) {
     }
 }
 
+internal fun Route.initieltDatasettForForslagsmotorTilbehoer(store: SøknadStore) {
+    get("/forslagsmotor/tilbehoer/datasett") {
+        try {
+            call.respond(store.initieltDatasettForForslagsmotorTilbehoer())
+        } catch (e: Exception) {
+            logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}"
+            )
+        }
+    }
+}
+
 private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
     call.parameters["soknadsId"]
