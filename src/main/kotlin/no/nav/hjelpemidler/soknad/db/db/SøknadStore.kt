@@ -12,7 +12,7 @@ import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoerHjelpemiddel
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -47,7 +47,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoerHjelpemiddel>
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -513,7 +513,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         return uuid != null
     }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoerHjelpemiddel> {
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer> {
         @Language("PostgreSQL") val statement =
             """
                 SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL
@@ -525,7 +525,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoerHjelpemiddel>(it.string("DATA"))
+                        objectMapper.readValue<ForslagsmotorTilbehoer>(it.string("DATA"))
                     }.asList
                 )
             }
