@@ -1,5 +1,9 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+data class ForslagsmotorTilbehoerWrapper(
+    val soknad: ForslagsmotorTilbehoer,
+)
+
 data class ForslagsmotorTilbehoer(
     val hjelpemidler: Array<ForslagsmotorTilbehoerHjelpemiddel>,
 )

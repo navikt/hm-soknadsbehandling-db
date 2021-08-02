@@ -13,6 +13,7 @@ import kotliquery.using
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoerWrapper
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -525,7 +526,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoer>(it.string("DATA"))
+                        objectMapper.readValue<ForslagsmotorTilbehoerWrapper>(it.string("DATA")).soknad
                     }.asList
                 )
             }
