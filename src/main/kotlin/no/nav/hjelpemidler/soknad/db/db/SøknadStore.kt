@@ -136,6 +136,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 ordrelinjer = emptyList(),
+                                fagsakId = null,
                             )
                         } else {
                             SøknadForBruker.new(
@@ -154,6 +155,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 ordrelinjer = emptyList(),
+                                fagsakId = null,
                             )
                         }
                     }.asSingle
