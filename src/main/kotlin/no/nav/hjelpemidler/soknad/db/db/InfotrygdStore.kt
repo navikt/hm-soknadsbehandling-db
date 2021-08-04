@@ -131,8 +131,8 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             FROM V1_INFOTRYGD_DATA
                             WHERE
                                 SOKNADS_ID = ?
-                                AND TRYGDEKONTORNR IS NOT NULL,
-                                AND SAKSBLOKK IS NOT NULL,
+                                AND TRYGDEKONTORNR IS NOT NULL
+                                AND SAKSBLOKK IS NOT NULL
                                 AND SAKSNR IS NOT NULL
                         """.trimIndent(),
                         søknadId,
