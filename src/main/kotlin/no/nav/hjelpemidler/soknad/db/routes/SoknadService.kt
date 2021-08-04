@@ -28,7 +28,7 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore) {
+internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore, infotrygdStore: InfotrygdStore) {
     get("/soknad/bruker/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
@@ -46,6 +46,12 @@ internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore) {
                 else -> {
                     // Fetch ordrelinjer belonging to søknad
                     soknad.ordrelinjer = ordreStore.ordreForSoknad(soknad.søknadId)
+
+                    // Fetch fagsakid if it exists
+                    val fagsakData = infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId)
+                    if (fagsakData != null) {
+                        soknad.fagsakId = fagsakData.fagsakId
+                    }
 
                     call.respond(soknad)
                 }
