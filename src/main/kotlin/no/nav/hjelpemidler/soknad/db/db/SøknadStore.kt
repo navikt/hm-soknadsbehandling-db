@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -45,6 +48,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -132,6 +136,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 ordrelinjer = emptyList(),
+                                fagsakId = null,
                             )
                         } else {
                             SøknadForBruker.new(
@@ -150,6 +155,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 ordrelinjer = emptyList(),
+                                fagsakId = null,
                             )
                         }
                     }.asSingle
@@ -509,6 +515,33 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
         return uuid != null
+    }
+
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel> {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
+            """
+
+        val res = time("initieltDatasettForForslagsmotorTilbehoer") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                    ).map {
+                        objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")).soknad.hjelpemidler.hjelpemiddelListe
+                    }.asList
+                )
+            }
+        }
+
+        val result = mutableListOf<ForslagsmotorTilbehoer_Hjelpemiddel>()
+        for (rOuter in res) {
+            for (rInner in rOuter) {
+                if (rInner.tilbehorListe?.isNotEmpty() == true) result.add(rInner)
+            }
+        }
+        return result
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =

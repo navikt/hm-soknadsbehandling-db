@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
+import no.nav.hjelpemidler.soknad.db.domain.FagsakData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import java.time.LocalDate
@@ -20,6 +21,7 @@ internal interface InfotrygdStore {
 
     fun hentSøknadIdFraVedtaksresultat(fnrBruker: String, saksblokkOgSaksnr: String, vedtaksdato: LocalDate): UUID?
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData?
+    fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData?
 }
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -112,6 +114,32 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             saksnr = it.string("SAKSNR"),
                             vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
                             vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
+                        )
+                    }.asSingle
+                )
+            }
+        }
+    }
+
+    override fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData? {
+        return time("hent_fagsakId_for_soknad") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        """
+                            SELECT SOKNADS_ID, TRYGDEKONTORNR, SAKSBLOKK, SAKSNR
+                            FROM V1_INFOTRYGD_DATA
+                            WHERE
+                                SOKNADS_ID = ?
+                                AND TRYGDEKONTORNR IS NOT NULL
+                                AND SAKSBLOKK IS NOT NULL
+                                AND SAKSNR IS NOT NULL
+                        """.trimIndent(),
+                        søknadId,
+                    ).map {
+                        FagsakData(
+                            søknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                            fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
                         )
                     }.asSingle
                 )
