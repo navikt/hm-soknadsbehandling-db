@@ -141,7 +141,11 @@ internal class SøknadStorePostgresTest {
                               "utleveringEtternavn": "",
                               "merknadTilUtlevering": "",
                               "utleveringPostadresse": "",
-                              "utleveringsmaateRadioButton": "AlleredeUtlevertAvNav"
+                              "utleveringsmaateRadioButton": "AlleredeUtlevertAvNav",
+                              "utlevertInfo": {
+                                "utlevertType":"Overført",
+                                "overførtFraBruker":"1234"
+                              }
                             },
                             "hjelpemidler": {
                               "hjelpemiddelListe": [
