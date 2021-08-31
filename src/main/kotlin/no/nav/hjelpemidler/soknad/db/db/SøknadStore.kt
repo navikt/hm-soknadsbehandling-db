@@ -112,7 +112,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
-                WHERE soknad.SOKNADS_ID = ?
+                WHERE soknad.SOKNADS_ID = ? AND status.STATUS <> ?
             """
 
         return time("hent_soknad") {
@@ -121,6 +121,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                         soknadsId,
+                        "GODKJENT_MED_FULLMAKT",
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
@@ -347,7 +348,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
-                WHERE soknad.FNR_BRUKER = ?
+                WHERE soknad.FNR_BRUKER = ? AND status.STATUS <> ?
                 ORDER BY soknad.CREATED DESC
             """
 
@@ -357,6 +358,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                         fnrBruker,
+                        "GODKJENT_MED_FULLMAKT",
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
