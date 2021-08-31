@@ -29,7 +29,7 @@ jobs:
         env:
           TESTCONTAINERS_RYUK_DISABLED: true
       - name: Build and Publish Docker image
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/begrens-tilgang-fullmakt'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -40,7 +40,7 @@ jobs:
   deploy-dev:
     name: Deploy to dev
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/begrens-tilgang-fullmakt'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
