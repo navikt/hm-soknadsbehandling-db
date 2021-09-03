@@ -455,7 +455,7 @@ internal class SøknadStorePostgresTest {
 
             assertNotNull(soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo)
             assertEquals(
-                SitteputeValg.LeggesTilSeparat,
+                SitteputeValg.TrengerSittepute,
                 soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.sitteputeValg
             )
             assertEquals(true, soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.skalBrukesIBil)

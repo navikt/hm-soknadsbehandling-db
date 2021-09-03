@@ -248,11 +248,10 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
     return RullestolInfo(
         skalBrukesIBil = rullestolInfoJson["skalBrukesIBil"]?.booleanValue(),
         sitteputeValg = when (rullestolInfoJson["sitteputeValg"]?.textValue()) {
-            "StandardSittepute" -> SitteputeValg.StandardSittepute
-            "LeggesTilSeparat" -> SitteputeValg.LeggesTilSeparat
+            "TrengerSittepute" -> SitteputeValg.TrengerSittepute
             "HarFraFor" -> SitteputeValg.HarFraFor
             null -> null
-            else -> throw RuntimeException("Ugyldig signaturtype")
+            else -> throw RuntimeException("Ugyldig sitteputeValg")
         }
     )
 }
@@ -351,7 +350,7 @@ data class RullestolInfo(
 )
 
 enum class SitteputeValg {
-    StandardSittepute, LeggesTilSeparat, HarFraFor
+    TrengerSittepute, HarFraFor
 }
 
 data class UtlevertInfo(
