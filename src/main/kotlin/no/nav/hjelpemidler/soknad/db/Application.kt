@@ -41,6 +41,7 @@ import no.nav.hjelpemidler.soknad.db.routes.saveSoknad
 import no.nav.hjelpemidler.soknad.db.routes.slettSøknad
 import no.nav.hjelpemidler.soknad.db.routes.slettUtløptSøknad
 import no.nav.hjelpemidler.soknad.db.routes.soknadFinnes
+import no.nav.hjelpemidler.soknad.db.routes.validerSøknadsidOgStatusVenterGodkjenning
 import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
@@ -92,6 +93,7 @@ fun Application.module() {
                 hentSoknad(store, ordreStore, infotrygdStore)
                 hentSoknaderForBruker(store)
                 hentSoknaderForFormidler(storeFormidler)
+                validerSøknadsidOgStatusVenterGodkjenning(store)
             }
 
             if (Configuration.application.profile == Profile.LOCAL) {
@@ -114,6 +116,7 @@ fun Application.module() {
                 savePapir(store)
                 ordreSisteDøgn(ordreStore)
                 initieltDatasettForForslagsmotorTilbehoer(store)
+                validerSøknadsidOgStatusVenterGodkjenning(store)
             } else {
                 authenticate("aad") {
                     saveSoknad(store)

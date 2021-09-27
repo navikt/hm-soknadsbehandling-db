@@ -424,3 +424,34 @@ internal fun Route.initieltDatasettForForslagsmotorTilbehoer(store: SøknadStore
 
 private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
     call.parameters["soknadsId"]
+
+data class ValiderSøknadsidOgStatusVenterGodkjenningRespons(
+    val resultat: Boolean
+)
+
+internal fun Route.validerSøknadsidOgStatusVenterGodkjenning(store: SøknadStore) {
+    get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val fnr = call.principal<UserPrincipal>()?.getFnr()
+                ?: call.respond(HttpStatusCode.BadRequest, "Fnr mangler i token claim")
+            val soknad = store.hentSoknad(soknadsId)
+
+            when {
+                soknad == null -> {
+                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
+                }
+                soknad.fnrBruker != fnr -> {
+                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
+                }
+                else -> {
+                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(soknad.status == Status.VENTER_GODKJENNING))
+                }
+            }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
+            e.printStackTrace()
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+        }
+    }
+}
