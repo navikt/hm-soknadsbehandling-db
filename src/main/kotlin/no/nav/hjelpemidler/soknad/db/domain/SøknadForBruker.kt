@@ -6,6 +6,7 @@ import java.util.UUID
 
 class SøknadForBruker private constructor(
     val søknadId: UUID,
+    val journalpostId: UUID?,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
     val status: Status,
@@ -20,6 +21,7 @@ class SøknadForBruker private constructor(
     companion object {
         fun new(
             søknadId: UUID,
+            journalpostId: UUID?,
             datoOpprettet: Date,
             datoOppdatert: Date,
             søknad: JsonNode,
@@ -33,6 +35,7 @@ class SøknadForBruker private constructor(
         ) =
             SøknadForBruker(
                 søknadId,
+                journalpostId,
                 datoOpprettet,
                 datoOppdatert,
                 status,
@@ -46,6 +49,7 @@ class SøknadForBruker private constructor(
 
         fun newEmptySøknad(
             søknadId: UUID,
+            journalpostId: UUID?,
             datoOpprettet: Date,
             datoOppdatert: Date,
             status: Status,
@@ -55,7 +59,7 @@ class SøknadForBruker private constructor(
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
         ) =
-            SøknadForBruker(søknadId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital, ordrelinjer, fagsakId)
+            SøknadForBruker(søknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital, ordrelinjer, fagsakId)
     }
 }
 
