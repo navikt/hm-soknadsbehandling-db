@@ -127,7 +127,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SøknadForBruker.newEmptySøknad(
                                 søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.string("JOURNALPOSTID")),
+                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -143,7 +143,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         } else {
                             SøknadForBruker.new(
                                 søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.string("JOURNALPOSTID")),
+                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -366,7 +366,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.string("JOURNALPOSTID")),
+                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -379,7 +379,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
                                 soknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.string("JOURNALPOSTID")),
+                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -568,7 +568,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
 
-    private fun uuidFromStringOrNull(uid: String): UUID? {
+    private fun uuidFromStringOrNull(uid: String?): UUID? {
+        if (uid == null) return null
         try {
             return UUID.fromString(uid)
         } catch (e: Exception) {
