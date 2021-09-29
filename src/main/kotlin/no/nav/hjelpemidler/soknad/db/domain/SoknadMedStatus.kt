@@ -6,6 +6,7 @@ import java.util.UUID
 
 class SoknadMedStatus private constructor(
     val soknadId: UUID,
+    val journalpostId: UUID?,
     val datoOpprettet: Date,
     val datoOppdatert: Date,
     val status: Status,
@@ -14,11 +15,11 @@ class SoknadMedStatus private constructor(
     val er_digital: Boolean
 ) {
     companion object {
-        fun newSøknadUtenFormidlernavn(soknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital)
+        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: UUID?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
+            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital)
 
-        fun newSøknadMedFormidlernavn(soknadId: UUID, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital)
+        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: UUID?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
+            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital)
     }
 }
 
