@@ -569,11 +569,11 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
 
     private fun uuidFromStringOrNull(uid: String?): UUID? {
-        if (uid == null) return null
-        try {
-            return UUID.fromString(uid)
-        } catch (e: IllegalArgumentException) {
-            return null
+        if (uid != null) {
+            try {
+                return UUID.fromString(uid)
+            } catch (e: IllegalArgumentException) {}
         }
+        return null
     }
 }
