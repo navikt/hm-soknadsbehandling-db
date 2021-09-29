@@ -572,7 +572,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         if (uid == null) return null
         try {
             return UUID.fromString(uid)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
             return null
         }
     }
