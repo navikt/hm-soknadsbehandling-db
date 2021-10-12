@@ -14,6 +14,7 @@ import io.ktor.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.UserPrincipal
+import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
@@ -22,6 +23,7 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
 import java.time.LocalDate
 import java.util.UUID
@@ -129,6 +131,19 @@ internal fun Route.lagKnytningMellomFagsakOgSøknad(store: InfotrygdStore) {
     }
 }
 
+internal fun Route.lagKnytningMellomHotsakOgSøknad(store: HotsakStore) {
+    post("/hotsak/sak") {
+        try {
+            val vedtaksresultatData = call.receive<VedtaksresultatHotsakData>()
+            val numRows = store.lagKnytningMellomSakOgSøknad(vedtaksresultatData)
+            call.respond(numRows)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av hotsak-tilknytning: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av hotsak-tilknytning ${e.message}")
+        }
+    }
+}
+
 internal fun Route.lagreVedtaksresultat(store: InfotrygdStore) {
     post("/infotrygd/vedtaksresultat") {
         try {
@@ -142,6 +157,23 @@ internal fun Route.lagreVedtaksresultat(store: InfotrygdStore) {
         } catch (e: Exception) {
             logger.error { "Feilet ved lagring av vedtaksresultat: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat ${e.message}")
+        }
+    }
+}
+
+internal fun Route.lagreVedtaksresultatFraHotsak(store: HotsakStore) {
+    post("/hotsak/vedtaksresultat") {
+        try {
+            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
+            val rowUpdated = store.lagreVedtaksresultat(
+                vedtaksresultatToBeSaved.søknadId,
+                vedtaksresultatToBeSaved.vedtaksresultat,
+                vedtaksresultatToBeSaved.vedtaksdato
+            )
+            call.respond(rowUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av vedtaksresultat fra hotsak: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat fra hotsak ${e.message}")
         }
     }
 }

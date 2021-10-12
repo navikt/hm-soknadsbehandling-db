@@ -38,14 +38,6 @@ internal fun withMigratedDb(test: () -> Unit) =
 internal class PostgresTest {
 
     @Test
-    fun `Migration scripts are applied successfully`() {
-        withCleanDb {
-            val migrations = migrate(DataSource.instance)
-            migrations shouldBe 18
-        }
-    }
-
-    @Test
     fun `JDBC url is set correctly from  config values `() {
         with(hikariConfigFrom(Configuration)) {
             jdbcUrl shouldBe "jdbc:postgresql://host.docker.internal:5434/soknadsbehandling"

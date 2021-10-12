@@ -13,6 +13,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidlerPostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStorePostgres
@@ -30,7 +31,9 @@ import no.nav.hjelpemidler.soknad.db.routes.hentSoknadsdata
 import no.nav.hjelpemidler.soknad.db.routes.hentSøknadIdFraVedtaksresultat
 import no.nav.hjelpemidler.soknad.db.routes.initieltDatasettForForslagsmotorTilbehoer
 import no.nav.hjelpemidler.soknad.db.routes.lagKnytningMellomFagsakOgSøknad
+import no.nav.hjelpemidler.soknad.db.routes.lagKnytningMellomHotsakOgSøknad
 import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultat
+import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultatFraHotsak
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterJournalpostId
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterOppgaveId
 import no.nav.hjelpemidler.soknad.db.routes.oppdaterStatus
@@ -73,6 +76,7 @@ fun Application.module() {
     val storeFormidler = SøknadStoreFormidlerPostgres(ds)
     val ordreStore = OrdreStorePostgres(ds)
     val infotrygdStore = InfotrygdStorePostgres(ds)
+    val hotsakStore = HotsakStorePostgres(ds)
 
     installAuthentication(tokenXConfig, aadConfig, Configuration.application)
 
@@ -111,7 +115,9 @@ fun Application.module() {
                 hentSøknadIdFraVedtaksresultat(infotrygdStore)
                 saveOrdrelinje(ordreStore)
                 lagreVedtaksresultat(infotrygdStore)
+                lagreVedtaksresultatFraHotsak(hotsakStore)
                 lagKnytningMellomFagsakOgSøknad(infotrygdStore)
+                lagKnytningMellomHotsakOgSøknad(hotsakStore)
                 fnrOgJournalpostIdFinnes(store)
                 savePapir(store)
                 ordreSisteDøgn(ordreStore)
@@ -133,7 +139,9 @@ fun Application.module() {
                     hentSøknadIdFraVedtaksresultat(infotrygdStore)
                     saveOrdrelinje(ordreStore)
                     lagreVedtaksresultat(infotrygdStore)
+                    lagreVedtaksresultatFraHotsak(hotsakStore)
                     lagKnytningMellomFagsakOgSøknad(infotrygdStore)
+                    lagKnytningMellomHotsakOgSøknad(hotsakStore)
                     fnrOgJournalpostIdFinnes(store)
                     savePapir(store)
                     ordreSisteDøgn(ordreStore)
