@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
+import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import java.time.LocalDate
@@ -11,7 +12,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal interface HotsakStore {
-    fun lagKnytningMellomSakOgSøknad(vedtaksresultatData: VedtaksresultatHotsakData): Int
+    fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int
     fun lagreVedtaksresultat(
         søknadId: UUID,
         vedtaksresultat: String,
@@ -25,14 +26,14 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
 
-    override fun lagKnytningMellomSakOgSøknad(vedtaksresultatData: VedtaksresultatHotsakData): Int =
+    override fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int =
         time("insert_knytning_mellom_søknad_og_hotsak") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
                         "INSERT INTO V1_HOTSAK_DATA (SOKNADS_ID, SAKSNUMMER, VEDTAKSRESULTAT, VEDTAKSDATO ) VALUES (?,?,?,?) ON CONFLICT DO NOTHING",
-                        vedtaksresultatData.søknadId,
-                        vedtaksresultatData.saksnr,
+                        hotsakTilknytningData.søknadId,
+                        hotsakTilknytningData.saksnr,
                         null,
                         null,
                     ).asUpdate

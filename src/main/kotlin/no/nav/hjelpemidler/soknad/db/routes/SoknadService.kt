@@ -18,6 +18,7 @@ import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
+import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
@@ -134,8 +135,8 @@ internal fun Route.lagKnytningMellomFagsakOgSøknad(store: InfotrygdStore) {
 internal fun Route.lagKnytningMellomHotsakOgSøknad(store: HotsakStore) {
     post("/hotsak/sak") {
         try {
-            val vedtaksresultatData = call.receive<VedtaksresultatHotsakData>()
-            val numRows = store.lagKnytningMellomSakOgSøknad(vedtaksresultatData)
+            val hotsakTilknytningData = call.receive<HotsakTilknytningData>()
+            val numRows = store.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
             call.respond(numRows)
         } catch (e: Exception) {
             logger.error { "Feilet ved lagring av hotsak-tilknytning: ${e.message}. ${e.stackTrace}" }
