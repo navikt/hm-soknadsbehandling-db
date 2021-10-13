@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.soknad.db.db
 
 import io.kotest.matchers.shouldBe
+import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -17,15 +18,14 @@ internal class HotsakStoreTest {
         val fnrBruker = "15084300133"
         val sakId = "1001"
 
-        val vedtaksresultatHotsakData = VedtaksresultatHotsakData(
+        val hotsakTilknytningData = HotsakTilknytningData(
             søknadId,
-            saksnr = sakId,
-            vedtaksresultat = null
+            saksnr = sakId
         )
 
         withMigratedDb {
             HotsakStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomSakOgSøknad(vedtaksresultatHotsakData)
+                this.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
                 val søknad: VedtaksresultatHotsakData? = this.hentVedtaksresultatForSøknad(søknadId)
                 assertEquals("1001", søknad?.saksnr)
                 assertNull(søknad?.vedtaksresultat)
@@ -40,10 +40,9 @@ internal class HotsakStoreTest {
         val sakId = "1002"
 
         // Før vedtak blir gjort
-        val vedtaksresultatHotsakData = VedtaksresultatHotsakData(
+        val hotsakTilknytningData = HotsakTilknytningData(
             søknadId,
-            saksnr = sakId,
-            vedtaksresultat = null
+            saksnr = sakId
         )
 
         // Etter vedtak er gjort
@@ -52,7 +51,7 @@ internal class HotsakStoreTest {
 
         withMigratedDb {
             HotsakStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomSakOgSøknad(vedtaksresultatHotsakData)
+                this.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
             }
             HotsakStorePostgres(DataSource.instance).apply {
                 this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato)
