@@ -20,31 +20,8 @@ import no.nav.hjelpemidler.soknad.db.db.SøknadStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.dataSourceFrom
 import no.nav.hjelpemidler.soknad.db.db.migrate
 import no.nav.hjelpemidler.soknad.db.db.waitForDB
-import no.nav.hjelpemidler.soknad.db.routes.fnrOgJournalpostIdFinnes
-import no.nav.hjelpemidler.soknad.db.routes.hentFnrForSoknad
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknad
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknadOpprettetDato
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknaderForBruker
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknaderForFormidler
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknaderTilGodkjenningEldreEnn
-import no.nav.hjelpemidler.soknad.db.routes.hentSoknadsdata
-import no.nav.hjelpemidler.soknad.db.routes.hentSøknadIdFraVedtaksresultat
-import no.nav.hjelpemidler.soknad.db.routes.initieltDatasettForForslagsmotorTilbehoer
-import no.nav.hjelpemidler.soknad.db.routes.lagKnytningMellomFagsakOgSøknad
-import no.nav.hjelpemidler.soknad.db.routes.lagKnytningMellomHotsakOgSøknad
-import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultat
-import no.nav.hjelpemidler.soknad.db.routes.lagreVedtaksresultatFraHotsak
-import no.nav.hjelpemidler.soknad.db.routes.oppdaterJournalpostId
-import no.nav.hjelpemidler.soknad.db.routes.oppdaterOppgaveId
-import no.nav.hjelpemidler.soknad.db.routes.oppdaterStatus
-import no.nav.hjelpemidler.soknad.db.routes.ordreSisteDøgn
-import no.nav.hjelpemidler.soknad.db.routes.saveOrdrelinje
-import no.nav.hjelpemidler.soknad.db.routes.savePapir
-import no.nav.hjelpemidler.soknad.db.routes.saveSoknad
-import no.nav.hjelpemidler.soknad.db.routes.slettSøknad
-import no.nav.hjelpemidler.soknad.db.routes.slettUtløptSøknad
-import no.nav.hjelpemidler.soknad.db.routes.soknadFinnes
-import no.nav.hjelpemidler.soknad.db.routes.validerSøknadsidOgStatusVenterGodkjenning
+import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
+import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
 import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
@@ -72,7 +49,7 @@ fun Application.module() {
     migrate(Configuration)
 
     val ds: HikariDataSource = dataSourceFrom(Configuration)
-    val store = SøknadStorePostgres(ds)
+    val søknadStore = SøknadStorePostgres(ds)
     val storeFormidler = SøknadStoreFormidlerPostgres(ds)
     val ordreStore = OrdreStorePostgres(ds)
     val infotrygdStore = InfotrygdStorePostgres(ds)
@@ -94,58 +71,14 @@ fun Application.module() {
         route("/api") {
 
             authenticate("tokenX") {
-                hentSoknad(store, ordreStore, infotrygdStore)
-                hentSoknaderForBruker(store)
-                hentSoknaderForFormidler(storeFormidler)
-                validerSøknadsidOgStatusVenterGodkjenning(store)
+                tokenXRoutes(søknadStore, ordreStore, infotrygdStore, storeFormidler)
             }
 
             if (Configuration.application.profile == Profile.LOCAL) {
-                saveSoknad(store)
-                soknadFinnes(store)
-                hentFnrForSoknad(store)
-                slettSøknad(store)
-                slettUtløptSøknad(store)
-                oppdaterStatus(store)
-                hentSoknadsdata(store)
-                hentSoknadOpprettetDato(store)
-                hentSoknaderTilGodkjenningEldreEnn(store)
-                oppdaterJournalpostId(store)
-                oppdaterOppgaveId(store)
-                hentSøknadIdFraVedtaksresultat(infotrygdStore)
-                saveOrdrelinje(ordreStore)
-                lagreVedtaksresultat(infotrygdStore)
-                lagreVedtaksresultatFraHotsak(hotsakStore)
-                lagKnytningMellomFagsakOgSøknad(infotrygdStore)
-                lagKnytningMellomHotsakOgSøknad(hotsakStore)
-                fnrOgJournalpostIdFinnes(store)
-                savePapir(store)
-                ordreSisteDøgn(ordreStore)
-                initieltDatasettForForslagsmotorTilbehoer(store)
-                validerSøknadsidOgStatusVenterGodkjenning(store)
+                azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
             } else {
                 authenticate("aad") {
-                    saveSoknad(store)
-                    soknadFinnes(store)
-                    hentFnrForSoknad(store)
-                    slettSøknad(store)
-                    slettUtløptSøknad(store)
-                    oppdaterStatus(store)
-                    hentSoknadsdata(store)
-                    hentSoknadOpprettetDato(store)
-                    hentSoknaderTilGodkjenningEldreEnn(store)
-                    oppdaterJournalpostId(store)
-                    oppdaterOppgaveId(store)
-                    hentSøknadIdFraVedtaksresultat(infotrygdStore)
-                    saveOrdrelinje(ordreStore)
-                    lagreVedtaksresultat(infotrygdStore)
-                    lagreVedtaksresultatFraHotsak(hotsakStore)
-                    lagKnytningMellomFagsakOgSøknad(infotrygdStore)
-                    lagKnytningMellomHotsakOgSøknad(hotsakStore)
-                    fnrOgJournalpostIdFinnes(store)
-                    savePapir(store)
-                    ordreSisteDøgn(ordreStore)
-                    initieltDatasettForForslagsmotorTilbehoer(store)
+                    azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
                 }
             }
         }

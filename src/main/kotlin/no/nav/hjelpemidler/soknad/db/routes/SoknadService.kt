@@ -30,13 +30,18 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore, infotrygdStore: InfotrygdStore) {
+internal fun Route.tokenXRoutes(
+    søknadStore: SøknadStore,
+    ordreStore: OrdreStore,
+    infotrygdStore: InfotrygdStore,
+    formidlerStore: SøknadStoreFormidler
+) {
     get("/soknad/bruker/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val fnr = call.principal<UserPrincipal>()?.getFnr()
                 ?: call.respond(HttpStatusCode.BadRequest, "Fnr mangler i token claim")
-            val soknad = store.hentSoknad(soknadsId)
+            val soknad = søknadStore.hentSoknad(soknadsId)
 
             when {
                 soknad == null -> {
@@ -64,173 +69,12 @@ internal fun Route.hentSoknad(store: SøknadStore, ordreStore: OrdreStore, infot
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
         }
     }
-}
 
-internal fun Route.hentFnrForSoknad(store: SøknadStore) {
-    get("/soknad/fnr/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val fnrForSoknad = store.hentFnrForSoknad(soknadsId)
-            call.respond(fnrForSoknad)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.saveSoknad(store: SøknadStore) {
-    post("/soknad/bruker") {
-        try {
-            val soknadToBeSaved = call.receive<SoknadData>()
-            store.save(soknadToBeSaved)
-            call.respond("OK")
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.saveOrdrelinje(store: OrdreStore) {
-    post("/ordre") {
-        try {
-            val ordreToBeSaved = call.receive<OrdrelinjeData>()
-            val rowsUpdated = store.save(ordreToBeSaved)
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
-        }
-    }
-}
-
-internal fun Route.savePapir(store: SøknadStore) {
-    post("/soknad/papir") {
-        try {
-            val papirsoknadToBeSaved = call.receive<PapirSøknadData>()
-            val rowsUpdated = store.savePapir(papirsoknadToBeSaved)
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av papirsøknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av papirsøknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.lagKnytningMellomFagsakOgSøknad(store: InfotrygdStore) {
-    post("/infotrygd/fagsak") {
-        try {
-            val vedtaksresultatData = call.receive<VedtaksresultatData>()
-            val numRows = store.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
-            call.respond(numRows)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
-        }
-    }
-}
-
-internal fun Route.lagKnytningMellomHotsakOgSøknad(store: HotsakStore) {
-    post("/hotsak/sak") {
-        try {
-            val hotsakTilknytningData = call.receive<HotsakTilknytningData>()
-            val numRows = store.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
-            call.respond(numRows)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av hotsak-tilknytning: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av hotsak-tilknytning ${e.message}")
-        }
-    }
-}
-
-internal fun Route.lagreVedtaksresultat(store: InfotrygdStore) {
-    post("/infotrygd/vedtaksresultat") {
-        try {
-            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = store.lagreVedtaksresultat(
-                vedtaksresultatToBeSaved.søknadId,
-                vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato
-            )
-            call.respond(rowUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av vedtaksresultat: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat ${e.message}")
-        }
-    }
-}
-
-internal fun Route.lagreVedtaksresultatFraHotsak(store: HotsakStore) {
-    post("/hotsak/vedtaksresultat") {
-        try {
-            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = store.lagreVedtaksresultat(
-                vedtaksresultatToBeSaved.søknadId,
-                vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato
-            )
-            call.respond(rowUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av vedtaksresultat fra hotsak: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat fra hotsak ${e.message}")
-        }
-    }
-}
-
-data class VedtaksresultatDto(
-    val søknadId: UUID,
-    val vedtaksresultat: String,
-    val vedtaksdato: LocalDate
-)
-
-internal fun Route.slettSøknad(store: SøknadStore) {
-    delete("/soknad/bruker") {
-        try {
-            val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = store.slettSøknad(soknadToBeDeleted)
-            call.respond(rowsDeleted)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.slettUtløptSøknad(store: SøknadStore) {
-    delete("/soknad/utlopt/bruker") {
-        try {
-            val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = store.slettUtløptSøknad(soknadToBeDeleted)
-            call.respond(rowsDeleted)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.oppdaterStatus(store: SøknadStore) {
-    put("/soknad/status/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val newStatus = call.receive<Status>()
-            val rowsUpdated = store.oppdaterStatus(soknadsId, newStatus)
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.hentSoknaderForBruker(store: SøknadStore) {
     get("/soknad/bruker") {
-
         val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
 
         try {
-            val soknaderTilGodkjenning = store.hentSoknaderForBruker(fnr)
+            val soknaderTilGodkjenning = søknadStore.hentSoknaderForBruker(fnr)
             call.respond(soknaderTilGodkjenning)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching søknader til godkjenning" }
@@ -239,235 +83,25 @@ internal fun Route.hentSoknaderForBruker(store: SøknadStore) {
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
-}
 
-internal fun Route.hentSoknaderForFormidler(store: SøknadStoreFormidler) {
     get("/soknad/formidler") {
-
         val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
 
         try {
-            val formidlersSøknader = store.hentSøknaderForFormidler(fnr, 4)
+            val formidlersSøknader = formidlerStore.hentSøknaderForFormidler(fnr, 4)
             call.respond(formidlersSøknader)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching formidlers søknader" }
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
-}
 
-internal fun Route.soknadFinnes(store: SøknadStore) {
-    get("/soknad/bruker/finnes/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val soknadFinnes = store.soknadFinnes(soknadsId)
-
-            when {
-                soknadFinnes -> {
-                    call.respond("soknadFinnes" to true)
-                }
-                else -> {
-                    call.respond("soknadFinnes" to false)
-                }
-            }
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
-        }
-    }
-}
-
-internal fun Route.fnrOgJournalpostIdFinnes(store: SøknadStore) {
-    post("/infotrygd/fnr-jounralpost") {
-        try {
-
-            val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
-            val fnrOgJournalpostIdFinnes = store.fnrOgJournalpostIdFinnes(
-                fnrOgJournalpostIdFinnesDto.fnrBruker,
-                fnrOgJournalpostIdFinnesDto.journalpostId
-            )
-
-            when {
-                fnrOgJournalpostIdFinnes -> {
-                    call.respond("fnrOgJournalpostIdFinnes" to true)
-                }
-                else -> {
-                    call.respond("fnrOgJournalpostIdFinnes" to false)
-                }
-            }
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av fnr og journalpost: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av fnr og journalpost ${e.message}")
-        }
-    }
-}
-
-data class FnrOgJournalpostIdFinnesDto(
-    val fnrBruker: String,
-    val journalpostId: Int
-)
-
-internal fun Route.hentSoknadsdata(store: SøknadStore) {
-    get("/soknadsdata/bruker/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val soknad = store.hentSoknadData(soknadsId)
-
-            when (soknad) {
-                null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-                else -> {
-                    call.respond(soknad)
-                }
-            }
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknadsdata: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknadsdata ${e.message}")
-        }
-    }
-}
-
-internal fun Route.hentSøknadIdFraVedtaksresultat(store: InfotrygdStore) {
-    post("/soknad/fra-vedtaksresultat") {
-        try {
-
-            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
-            val soknadId = store.hentSøknadIdFraVedtaksresultat(
-                soknadFraVedtaksresultatDto.fnrBruker,
-                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                soknadFraVedtaksresultatDto.vedtaksdato
-            )
-
-            call.respond(mapOf(Pair("soknadId", soknadId)))
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
-        }
-    }
-}
-
-data class SoknadFraVedtaksresultatDto(
-    val fnrBruker: String,
-    val saksblokkOgSaksnr: String,
-    val vedtaksdato: LocalDate
-)
-
-internal fun Route.hentSoknadOpprettetDato(store: SøknadStore) {
-    get("/soknad/opprettet-dato/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val opprettetDato = store.hentSoknadOpprettetDato(soknadsId)
-
-            when (opprettetDato) {
-                null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-                else -> {
-                    call.respond(opprettetDato)
-                }
-            }
-        } catch (e: Exception) {
-            logger.error { "Feilet ved henting av opprettet dato: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av opprettet dato ${e.message}")
-        }
-    }
-}
-
-internal fun Route.hentSoknaderTilGodkjenningEldreEnn(store: SøknadStore) {
-    get("/soknad/utgaatt/{dager}") {
-
-        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
-
-        try {
-            val soknaderTilGodkjenningEldreEnn = store.hentSoknaderTilGodkjenningEldreEnn(dager)
-            call.respond(soknaderTilGodkjenningEldreEnn)
-        } catch (e: Exception) {
-            logger.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
-            call.respond(HttpStatusCode.InternalServerError, e)
-        }
-    }
-}
-
-internal fun Route.oppdaterJournalpostId(store: SøknadStore) {
-    put("/soknad/journalpost-id/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val newJournalpostId = call.receive<Map<String, String>>()
-            val rowsUpdated = store.oppdaterJournalpostId(
-                soknadsId,
-                newJournalpostId["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            )
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av journalpost-id: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av journalpost-id ${e.message}")
-        }
-    }
-}
-
-internal fun Route.oppdaterOppgaveId(store: SøknadStore) {
-    put("/soknad/oppgave-id/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val newOppgaveId = call.receive<Map<String, String>>()
-            val rowsUpdated = store.oppdaterOppgaveId(
-                soknadsId,
-                newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            )
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av oppgave-id: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av oppgave-id ${e.message}")
-        }
-    }
-}
-
-internal fun Route.ordreSisteDøgn(store: OrdreStore) {
-    get("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val result = store.ordreSisteDøgn(soknadsId)
-            call.respond("ordreSisteDøgn" to result)
-        } catch (e: Exception) {
-            logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Feil ved sjekk om en ordre har blitt oppdatert det siste døgnet ${e.message}"
-            )
-        }
-    }
-}
-
-internal fun Route.initieltDatasettForForslagsmotorTilbehoer(store: SøknadStore) {
-    get("/forslagsmotor/tilbehoer/datasett") {
-        try {
-            call.respond(store.initieltDatasettForForslagsmotorTilbehoer())
-        } catch (e: Exception) {
-            logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
-            e.printStackTrace()
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}"
-            )
-        }
-    }
-}
-
-private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
-    call.parameters["soknadsId"]
-
-data class ValiderSøknadsidOgStatusVenterGodkjenningRespons(
-    val resultat: Boolean
-)
-
-internal fun Route.validerSøknadsidOgStatusVenterGodkjenning(store: SøknadStore) {
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val fnr = call.principal<UserPrincipal>()?.getFnr()
                 ?: call.respond(HttpStatusCode.BadRequest, "Fnr mangler i token claim")
-            val soknad = store.hentSoknad(soknadsId)
+            val soknad = søknadStore.hentSoknad(soknadsId)
 
             when {
                 soknad == null -> {
@@ -487,3 +121,331 @@ internal fun Route.validerSøknadsidOgStatusVenterGodkjenning(store: SøknadStor
         }
     }
 }
+
+internal fun Route.azureAdRoutes(
+    søknadStore: SøknadStore,
+    ordreStore: OrdreStore,
+    infotrygdStore: InfotrygdStore,
+    hotsakStore: HotsakStore
+) {
+    get("/soknad/fnr/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val fnrForSoknad = søknadStore.hentFnrForSoknad(soknadsId)
+            call.respond(fnrForSoknad)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+        }
+    }
+
+    post("/soknad/bruker") {
+        try {
+            val soknadToBeSaved = call.receive<SoknadData>()
+            søknadStore.save(soknadToBeSaved)
+            call.respond("OK")
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av søknad ${e.message}")
+        }
+    }
+
+    post("/ordre") {
+        try {
+            val ordreToBeSaved = call.receive<OrdrelinjeData>()
+            val rowsUpdated = ordreStore.save(ordreToBeSaved)
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
+        }
+    }
+
+    post("/soknad/papir") {
+        try {
+            val papirsoknadToBeSaved = call.receive<PapirSøknadData>()
+            val rowsUpdated = søknadStore.savePapir(papirsoknadToBeSaved)
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av papirsøknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av papirsøknad ${e.message}")
+        }
+    }
+
+    post("/infotrygd/fagsak") {
+        try {
+            val vedtaksresultatData = call.receive<VedtaksresultatData>()
+            val numRows = infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            call.respond(numRows)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
+        }
+    }
+
+    post("/hotsak/sak") {
+        try {
+            val hotsakTilknytningData = call.receive<HotsakTilknytningData>()
+            val numRows = hotsakStore.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
+            call.respond(numRows)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av hotsak-tilknytning: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av hotsak-tilknytning ${e.message}")
+        }
+    }
+
+    post("/infotrygd/vedtaksresultat") {
+        try {
+            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
+            val rowUpdated = infotrygdStore.lagreVedtaksresultat(
+                vedtaksresultatToBeSaved.søknadId,
+                vedtaksresultatToBeSaved.vedtaksresultat,
+                vedtaksresultatToBeSaved.vedtaksdato
+            )
+            call.respond(rowUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av vedtaksresultat: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat ${e.message}")
+        }
+    }
+
+    post("/hotsak/vedtaksresultat") {
+        try {
+            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
+            val rowUpdated = hotsakStore.lagreVedtaksresultat(
+                vedtaksresultatToBeSaved.søknadId,
+                vedtaksresultatToBeSaved.vedtaksresultat,
+                vedtaksresultatToBeSaved.vedtaksdato
+            )
+            call.respond(rowUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved lagring av vedtaksresultat fra hotsak: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat fra hotsak ${e.message}")
+        }
+    }
+
+    delete("/soknad/bruker") {
+        try {
+            val soknadToBeDeleted = call.receive<UUID>()
+            val rowsDeleted = søknadStore.slettSøknad(soknadToBeDeleted)
+            call.respond(rowsDeleted)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
+        }
+    }
+
+    delete("/soknad/utlopt/bruker") {
+        try {
+            val soknadToBeDeleted = call.receive<UUID>()
+            val rowsDeleted = søknadStore.slettUtløptSøknad(soknadToBeDeleted)
+            call.respond(rowsDeleted)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
+        }
+    }
+
+    put("/soknad/status/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val newStatus = call.receive<Status>()
+            val rowsUpdated = søknadStore.oppdaterStatus(soknadsId, newStatus)
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved oppdatering av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av søknad ${e.message}")
+        }
+    }
+
+    get("/soknad/bruker/finnes/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val soknadFinnes = søknadStore.soknadFinnes(soknadsId)
+
+            when {
+                soknadFinnes -> {
+                    call.respond("soknadFinnes" to true)
+                }
+                else -> {
+                    call.respond("soknadFinnes" to false)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+        }
+    }
+
+    post("/infotrygd/fnr-jounralpost") {
+        try {
+
+            val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
+            val fnrOgJournalpostIdFinnes = søknadStore.fnrOgJournalpostIdFinnes(
+                fnrOgJournalpostIdFinnesDto.fnrBruker,
+                fnrOgJournalpostIdFinnesDto.journalpostId
+            )
+
+            when {
+                fnrOgJournalpostIdFinnes -> {
+                    call.respond("fnrOgJournalpostIdFinnes" to true)
+                }
+                else -> {
+                    call.respond("fnrOgJournalpostIdFinnes" to false)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av fnr og journalpost: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av fnr og journalpost ${e.message}")
+        }
+    }
+
+    get("/soknadsdata/bruker/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val soknad = søknadStore.hentSoknadData(soknadsId)
+
+            when (soknad) {
+                null -> {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+                else -> {
+                    call.respond(soknad)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknadsdata: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknadsdata ${e.message}")
+        }
+    }
+
+    post("/soknad/fra-vedtaksresultat") {
+        try {
+
+            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
+            val soknadId = infotrygdStore.hentSøknadIdFraVedtaksresultat(
+                soknadFraVedtaksresultatDto.fnrBruker,
+                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+                soknadFraVedtaksresultatDto.vedtaksdato
+            )
+
+            call.respond(mapOf(Pair("soknadId", soknadId)))
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
+        }
+    }
+
+    get("/soknad/opprettet-dato/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val opprettetDato = søknadStore.hentSoknadOpprettetDato(soknadsId)
+
+            when (opprettetDato) {
+                null -> {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+                else -> {
+                    call.respond(opprettetDato)
+                }
+            }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av opprettet dato: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av opprettet dato ${e.message}")
+        }
+    }
+
+    get("/soknad/utgaatt/{dager}") {
+
+        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
+
+        try {
+            val soknaderTilGodkjenningEldreEnn = søknadStore.hentSoknaderTilGodkjenningEldreEnn(dager)
+            call.respond(soknaderTilGodkjenningEldreEnn)
+        } catch (e: Exception) {
+            logger.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
+            call.respond(HttpStatusCode.InternalServerError, e)
+        }
+    }
+
+    put("/soknad/journalpost-id/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val newJournalpostId = call.receive<Map<String, String>>()
+            val rowsUpdated = søknadStore.oppdaterJournalpostId(
+                soknadsId,
+                newJournalpostId["journalpostId"] ?: throw Exception("journalpostId mangler i body")
+            )
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved oppdatering av journalpost-id: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av journalpost-id ${e.message}")
+        }
+    }
+
+    put("/soknad/oppgave-id/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val newOppgaveId = call.receive<Map<String, String>>()
+            val rowsUpdated = søknadStore.oppdaterOppgaveId(
+                soknadsId,
+                newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
+            )
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved oppdatering av oppgave-id: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av oppgave-id ${e.message}")
+        }
+    }
+
+    get("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val result = ordreStore.ordreSisteDøgn(soknadsId)
+            call.respond("ordreSisteDøgn" to result)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Feil ved sjekk om en ordre har blitt oppdatert det siste døgnet ${e.message}"
+            )
+        }
+    }
+
+    get("/forslagsmotor/tilbehoer/datasett") {
+        try {
+            call.respond(søknadStore.initieltDatasettForForslagsmotorTilbehoer())
+        } catch (e: Exception) {
+            logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
+            e.printStackTrace()
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}"
+            )
+        }
+    }
+}
+
+private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
+    call.parameters["soknadsId"]
+
+data class ValiderSøknadsidOgStatusVenterGodkjenningRespons(
+    val resultat: Boolean
+)
+
+data class VedtaksresultatDto(
+    val søknadId: UUID,
+    val vedtaksresultat: String,
+    val vedtaksdato: LocalDate
+)
+
+data class FnrOgJournalpostIdFinnesDto(
+    val fnrBruker: String,
+    val journalpostId: Int
+)
+
+data class SoknadFraVedtaksresultatDto(
+    val fnrBruker: String,
+    val saksblokkOgSaksnr: String,
+    val vedtaksdato: LocalDate
+)
