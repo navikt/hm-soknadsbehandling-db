@@ -10,7 +10,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
@@ -29,8 +28,6 @@ import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
 
-private val logg = KotlinLogging.logger {}
-
 internal interface SøknadStore {
     fun save(soknadData: SoknadData): Int
     fun savePapir(soknadData: PapirSøknadData): Int
@@ -46,9 +43,9 @@ internal interface SøknadStore {
     fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
     fun soknadFinnes(soknadsId: UUID): Boolean
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
-    fun papirsoknadFinnes(journalpostId: Int): Boolean
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel>
+    fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -500,29 +497,6 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
 
-    override fun papirsoknadFinnes(journalpostId: Int): Boolean {
-        @Language("PostgreSQL") val statement =
-            """
-                SELECT SOKNADS_ID
-                FROM V1_SOKNAD
-                WHERE JOURNALPOSTID = ?
-            """
-
-        val uuid = time("soknad_eksisterer") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        journalpostId,
-                    ).map {
-                        UUID.fromString(it.string("SOKNADS_ID"))
-                    }.asSingle
-                )
-            }
-        }
-        return uuid != null
-    }
-
     override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel> {
         @Language("PostgreSQL") val statement =
             """
@@ -548,6 +522,35 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
         return result
+    }
+
+    override fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String> {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT soknad.soknads_id
+                FROM V1_SOKNAD AS soknad
+                LEFT JOIN V1_STATUS AS status
+                ON status.ID = (
+                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                )
+                WHERE status.STATUS IN (?, ?) 
+                    AND (soknad.CREATED + interval '$dager day') < now() 
+                    AND soknad.oppgaveid IS NULL
+            """
+
+        return time("godkjente_soknader_uten_oppgave") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                        Status.GODKJENT_MED_FULLMAKT.name,
+                        Status.GODKJENT.name,
+                    ).map {
+                        it.string("SOKNADS_ID")
+                    }.asList
+                )
+            }
+        }
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
