@@ -336,6 +336,42 @@ internal class SøknadStorePostgresTest {
     }
 
     @Test
+    fun `hent godkjente soknader uten oppgave`() {
+        withMigratedDb {
+
+            val id1 = UUID.randomUUID()
+            val id2 = UUID.randomUUID()
+
+            SøknadStorePostgres(DataSource.instance).apply {
+                this.save(mockSøknad(id1, Status.GODKJENT))
+
+                this.save(mockSøknad(id2, Status.GODKJENT_MED_FULLMAKT))
+
+                val session = sessionOf(DataSource.instance)
+                session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '2 day') WHERE SOKNADS_ID = '$id1' ").asExecute)
+
+                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                    .also { it.size shouldBe 1 }
+
+                session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '3 day') WHERE SOKNADS_ID = '$id2' ").asExecute)
+
+                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                    .also { it.size shouldBe 2 }
+
+                session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '1 day') WHERE SOKNADS_ID = '$id1' ").asExecute)
+
+                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                    .also { it.size shouldBe 1 }
+
+                session.run(queryOf("UPDATE V1_SOKNAD SET oppgaveid = '12345' WHERE SOKNADS_ID = '$id2' ").asExecute)
+
+                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                    .also { it.size shouldBe 0 }
+            }
+        }
+    }
+
+    @Test
     fun `Oppdater journalpostId og ikke overskriv eksisterende journalpostId`() {
         val id = UUID.randomUUID()
         val journalpostId = "453645864"

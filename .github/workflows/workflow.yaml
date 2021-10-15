@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - refactoring
+      - DIGIHOT-565-endepunkt-for-godkjente-søknader-uten-oppgave-4
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
