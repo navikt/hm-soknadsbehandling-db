@@ -536,6 +536,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 WHERE status.STATUS IN (?, ?) 
                     AND (soknad.CREATED + interval '$dager day') < now() 
                     AND soknad.oppgaveid IS NULL
+                    AND soknad.created > '2021-04-13' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
             """
 
         return time("godkjente_soknader_uten_oppgave") {
