@@ -263,7 +263,7 @@ private fun tilbehor(hjelpemiddel: JsonNode): List<Tilbehor> {
 private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolInfo? {
     val elRullestolinfoJson = hjelpemiddel["elektriskRullestolInfo"] ?: return null
     return ElektriskRullestolInfo(
-        godkjenningsKurs = elRullestolinfoJson["godkjenningsKurs"]?.booleanValue(),
+        godkjenningskurs = elRullestolinfoJson["godkjenningskurs"]?.booleanValue(),
         kanBetjeneManuellStyring = elRullestolinfoJson["kanBetjeneManuellStyring"]?.booleanValue(),
         ferdesSikkertITrafikk = elRullestolinfoJson["ferdesSikkertITrafikk"]?.booleanValue(),
         nedsattGangfunksjon = elRullestolinfoJson["nedsattGangfunksjon"]?.booleanValue(),
@@ -407,7 +407,7 @@ enum class UtlevertType {
 }
 
 class ElektriskRullestolInfo(
-    val godkjenningsKurs: Boolean?,
+    val godkjenningskurs: Boolean?,
     val kanBetjeneManuellStyring: Boolean?,
     val ferdesSikkertITrafikk: Boolean?,
     val nedsattGangfunksjon: Boolean?,
