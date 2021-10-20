@@ -271,7 +271,7 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
         oppbevaringInfo = elRullestolinfoJson["oppbevaringInfo"]?.textValue(),
         kjentMedForsikring = elRullestolinfoJson["kjentMedForsikring"]?.booleanValue(),
         harSpesialsykkel = elRullestolinfoJson["harSpesialsykkel"]?.booleanValue(),
-        plasseringAvHendel = when (elRullestolinfoJson["godkjenningsKurs"]?.textValue()) {
+        plasseringAvHendel = when (elRullestolinfoJson["plasseringAvHendel"]?.textValue()) {
             "Høyre" -> HendelPlassering.Høyre
             "Venstre" -> HendelPlassering.Venstre
             null -> null
