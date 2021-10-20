@@ -59,7 +59,19 @@ class SøknadForBruker private constructor(
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
         ) =
-            SøknadForBruker(søknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, fnrBruker, null, er_digital, ordrelinjer, fagsakId)
+            SøknadForBruker(
+                søknadId,
+                journalpostId,
+                datoOpprettet,
+                datoOppdatert,
+                status,
+                fullmakt,
+                fnrBruker,
+                null,
+                er_digital,
+                ordrelinjer,
+                fagsakId
+            )
     }
 }
 
@@ -213,6 +225,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             kanIkkeTilsvarande = it["kanIkkeTilsvarande"].booleanValue(),
             navn = it["navn"]?.textValue(),
             rullestolInfo = rullestolinfo(it),
+            elektriskRullestolInfo = elektriskRullestolInfo(it),
             utlevertInfo = utlevertInfo(it)
         )
         hjelpemidler.add(hjelpemiddel)
@@ -245,6 +258,26 @@ private fun tilbehor(hjelpemiddel: JsonNode): List<Tilbehor> {
         )
     }
     return tilbehorListe
+}
+
+private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolInfo? {
+    val elRullestolinfoJson = hjelpemiddel["elektriskRullestolInfo"] ?: return null
+    return ElektriskRullestolInfo(
+        godkjenningsKurs = elRullestolinfoJson["godkjenningsKurs"]?.booleanValue(),
+        kanBetjeneManuellStyring = elRullestolinfoJson["kanBetjeneManuellStyring"]?.booleanValue(),
+        ferdesSikkertITrafikk = elRullestolinfoJson["ferdesSikkertITrafikk"]?.booleanValue(),
+        nedsattGangfunksjon = elRullestolinfoJson["nedsattGangfunksjon"]?.booleanValue(),
+        oppbevaringOgLagring = elRullestolinfoJson["oppbevaringOgLagring"]?.booleanValue(),
+        oppbevaringInfo = elRullestolinfoJson["oppbevaringInfo"]?.textValue(),
+        kjentMedForsikring = elRullestolinfoJson["kjentMedForsikring"]?.booleanValue(),
+        harSpesialsykkel = elRullestolinfoJson["harSpesialsykkel"]?.booleanValue(),
+        plasseringAvHendel = when (elRullestolinfoJson["godkjenningsKurs"]?.textValue()) {
+            "Høyre" -> HendelPlassering.Høyre
+            "Venstre" -> HendelPlassering.Venstre
+            null -> null
+            else -> throw RuntimeException("Ugyldig hendelplassering")
+        }
+    )
 }
 
 private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
@@ -347,6 +380,7 @@ class Hjelpemiddel(
     val kanIkkeTilsvarande: Boolean,
     val navn: String?,
     val rullestolInfo: RullestolInfo?,
+    val elektriskRullestolInfo: ElektriskRullestolInfo?,
     val utlevertInfo: UtlevertInfo?
 )
 
@@ -370,6 +404,22 @@ enum class UtlevertType {
     Korttidslån,
     Overført,
     Annet
+}
+
+class ElektriskRullestolInfo(
+    val godkjenningsKurs: Boolean?,
+    val kanBetjeneManuellStyring: Boolean?,
+    val ferdesSikkertITrafikk: Boolean?,
+    val nedsattGangfunksjon: Boolean?,
+    val oppbevaringOgLagring: Boolean?,
+    val oppbevaringInfo: String?,
+    val kjentMedForsikring: Boolean?,
+    val harSpesialsykkel: Boolean?,
+    val plasseringAvHendel: HendelPlassering?
+)
+
+enum class HendelPlassering {
+    Høyre, Venstre
 }
 
 class Levering(
