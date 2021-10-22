@@ -429,13 +429,16 @@ internal fun Route.azureAdRoutes(
 
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
-            logger.info("DEBUG: Start fetching dataset in seperate IO context")
             var result: List<ForslagsmotorTilbehoer_Hjelpemiddel>?
+
+            // The following withContext moves execution off onto another thread so that ktor can continue answering
+            // other clients (eg. kubernetes liveness tests). Without this the app would be assumed dead and killed by
+            // Kubernetes.
             withContext(Dispatchers.IO) {
                 result = søknadStore.initieltDatasettForForslagsmotorTilbehoer()
             }
+
             val finalResult = result ?: listOf()
-            logger.info("DEBUG: End fetching dataset in seperate IO context. Length: ${finalResult.count()}")
             call.respond(finalResult)
         } catch (e: Exception) {
             logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
