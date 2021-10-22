@@ -13,7 +13,6 @@ import io.ktor.routing.post
 import io.ktor.routing.put
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.UserPrincipal
@@ -435,8 +434,9 @@ internal fun Route.azureAdRoutes(
             withContext(Dispatchers.IO) {
                 result = søknadStore.initieltDatasettForForslagsmotorTilbehoer()
             }
-            logger.info("DEBUG: End fetching dataset in seperate IO context. Length: ${result.count()}")
-            call.respond(result!!)
+            val finalResult = result ?: listOf()
+            logger.info("DEBUG: End fetching dataset in seperate IO context. Length: ${finalResult.count()}")
+            call.respond(finalResult)
         } catch (e: Exception) {
             logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
             e.printStackTrace()
