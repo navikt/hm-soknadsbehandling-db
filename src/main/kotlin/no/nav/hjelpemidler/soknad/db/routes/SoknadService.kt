@@ -12,12 +12,16 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.put
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.UserPrincipal
 import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -426,7 +430,13 @@ internal fun Route.azureAdRoutes(
 
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
-            call.respond(søknadStore.initieltDatasettForForslagsmotorTilbehoer())
+            logger.info("DEBUG: Start fetching dataset in seperate IO context")
+            var result: List<ForslagsmotorTilbehoer_Hjelpemiddel>?
+            withContext(Dispatchers.IO) {
+                result = søknadStore.initieltDatasettForForslagsmotorTilbehoer()
+            }
+            logger.info("DEBUG: End fetching dataset in seperate IO context. Length: ${result.count()}")
+            call.respond(result!!)
         } catch (e: Exception) {
             logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
             e.printStackTrace()
