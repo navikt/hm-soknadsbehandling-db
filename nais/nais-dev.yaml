@@ -49,11 +49,11 @@ spec:
         - application: hm-grunndata-api
   resources:
     limits:
+      cpu: 800m
+      memory: 2024Mi
+    requests:
       cpu: 500m
       memory: 1024Mi
-    requests:
-      cpu: 200m
-      memory: 512Mi
   secureLogs:
     enabled: true
   gcp:
