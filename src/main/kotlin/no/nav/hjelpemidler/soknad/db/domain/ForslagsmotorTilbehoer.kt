@@ -1,10 +1,13 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import java.util.UUID
+
 data class ForslagsmotorTilbehoer_Soknad(
     val soknad: ForslagsmotorTilbehoer_Hjelpemidler,
 )
 
 data class ForslagsmotorTilbehoer_Hjelpemidler(
+    val id: UUID,
     val hjelpemidler: ForslagsmotorTilbehoer_HjelpemiddelListe,
 )
 

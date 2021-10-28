@@ -11,7 +11,8 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
@@ -44,7 +45,7 @@ internal interface SøknadStore {
     fun soknadFinnes(soknadsId: UUID): Boolean
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel>
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
     fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
 }
 
@@ -497,7 +498,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemiddel> {
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler> {
         @Language("PostgreSQL") val statement =
             """
                 SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
@@ -509,17 +510,22 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")).soknad.hjelpemidler.hjelpemiddelListe
+                        objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")).soknad
                     }.asList
                 )
             }
         }
 
-        val result = mutableListOf<ForslagsmotorTilbehoer_Hjelpemiddel>()
-        for (rOuter in res) {
-            for (rInner in rOuter) {
-                if (rInner.tilbehorListe?.isNotEmpty() == true) result.add(rInner)
-            }
+        val result = mutableListOf<ForslagsmotorTilbehoer_Hjelpemidler>()
+        for (hjelpemidler in res) {
+            result.add(
+                ForslagsmotorTilbehoer_Hjelpemidler(
+                    hjelpemidler.id,
+                    ForslagsmotorTilbehoer_HjelpemiddelListe(
+                        hjelpemidler.hjelpemidler.hjelpemiddelListe.filter { it.tilbehorListe?.isNotEmpty() ?: false }.toTypedArray(),
+                    ),
+                )
+            )
         }
         return result
     }

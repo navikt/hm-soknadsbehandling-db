@@ -20,7 +20,7 @@ import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemiddel
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -429,7 +429,7 @@ internal fun Route.azureAdRoutes(
 
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
-            var result: List<ForslagsmotorTilbehoer_Hjelpemiddel>?
+            var result: List<ForslagsmotorTilbehoer_Hjelpemidler>?
 
             // The following withContext moves execution off onto another thread so that ktor can continue answering
             // other clients (eg. kubernetes liveness tests). Without this the app would be assumed dead and killed by
