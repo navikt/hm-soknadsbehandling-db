@@ -11,6 +11,3 @@ UPDATE V1_STATUS SET status='VEDTAKSRESULTAT_AVSLÅTT'
 
 UPDATE V1_INFOTRYGD_DATA SET vedtaksresultat='I' WHERE vedtaksresultat = 'I ' OR vedtaksresultat = ' I';
 UPDATE V1_INFOTRYGD_DATA SET vedtaksresultat='A' WHERE vedtaksresultat = 'A ' OR vedtaksresultat = ' A';
-
--- Since it hasnt been ran since V19__ADD_HOTSAK_TABLE
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cloudsqliamuser;
