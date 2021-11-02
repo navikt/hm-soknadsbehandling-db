@@ -30,6 +30,12 @@ type Produkt {
   artikkelId: String
   artikkelbeskrivelse: String
   artikkelnavn: String
+  artikkelnr: String
+  avtalepostId: String
+  avtalepostbeskrivelse: String
+  avtalepostnr: String
+  avtalepostrangering: Int
+  avtaleposttittel: String
   blobType: String
   blobUrlLite: String
   blobUrlStort: String
@@ -42,7 +48,6 @@ type Produkt {
   isokode: String
   isotekst: String
   isotittel: String
-  postrangering: Int
   produktId: String
   produktbeskrivelse: String
   produktnavn: String

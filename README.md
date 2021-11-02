@@ -6,8 +6,7 @@ Api foran database som brukes av søknadsbehandling og brukers/formidlers søkna
 
 # Oppdatering av klientkode for Hjelpemiddeldatabasen
 
-Kjør hm-grunndata-api lokalt (endre evt. også URL i build.gradle.kts). Kjør så følgende kommando for å generere
-`src/main/resources/hmdb/schema.graphql`.
+Kjør følgende kommando for å generere `src/main/resources/hmdb/schema.graphql`.
 
 ```bash
 $ ./gradlew graphqlIntrospectSchema
