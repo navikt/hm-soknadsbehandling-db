@@ -332,7 +332,7 @@ class Bruker(
     val bruksarena: Bruksarena,
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
-    val kroppsmaal: Kroppsmaal?
+    val kroppsmaal: Kroppsmaal?,
 )
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT }
@@ -344,7 +344,7 @@ data class Kroppsmaal(
     val laarlengde: Int?,
     val legglengde: Int?,
     val hoyde: Int?,
-    val kroppsvekt: Int?
+    val kroppsvekt: Int?,
 )
 
 class Formidler(
@@ -363,7 +363,7 @@ class Oppfolgingsansvarlig(
     val arbeidssted: String,
     val stilling: String,
     val telefon: String,
-    val ansvarFor: String
+    val ansvarFor: String,
 )
 
 class Hjelpemiddel(
@@ -381,12 +381,12 @@ class Hjelpemiddel(
     val navn: String?,
     val rullestolInfo: RullestolInfo?,
     val elektriskRullestolInfo: ElektriskRullestolInfo?,
-    val utlevertInfo: UtlevertInfo?
+    val utlevertInfo: UtlevertInfo?,
 )
 
 data class RullestolInfo(
     val skalBrukesIBil: Boolean?,
-    val sitteputeValg: SitteputeValg?
+    val sitteputeValg: SitteputeValg?,
 )
 
 enum class SitteputeValg {
@@ -396,7 +396,7 @@ enum class SitteputeValg {
 data class UtlevertInfo(
     val utlevertType: UtlevertType?,
     val overførtFraBruker: String?,
-    val annenKommentar: String?
+    val annenKommentar: String?,
 )
 
 enum class UtlevertType {
@@ -415,7 +415,7 @@ class ElektriskRullestolInfo(
     val oppbevaringInfo: String?,
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,
-    val plasseringAvHendel: HendelPlassering?
+    val plasseringAvHendel: HendelPlassering?,
 )
 
 enum class HendelPlassering {
@@ -426,13 +426,13 @@ class Levering(
     val kontaktPerson: KontaktPerson,
     val leveringsmaate: Leveringsmaate,
     val adresse: String?,
-    val merknad: String?
+    val merknad: String?,
 )
 
 class KontaktPerson(
     val navn: String? = null,
     val telefon: String? = null,
-    val kontaktpersonType: KontaktpersonType
+    val kontaktpersonType: KontaktpersonType,
 )
 
 enum class Leveringsmaate {
@@ -445,13 +445,13 @@ enum class KontaktpersonType {
 
 class HjelpemiddelVilkar(
     val vilkaarTekst: String,
-    val tilleggsInfo: String?
+    val tilleggsInfo: String?,
 )
 
 class Tilbehor(
     val hmsnr: String,
     val antall: Int?,
-    val navn: String
+    val navn: String,
 )
 
 data class SøknadForBrukerOrdrelinje(
@@ -465,10 +465,10 @@ data class SøknadForBrukerOrdrelinje(
     // val artikkelBeskrivelse: String, <=> artikkelNavn
     // val serieNr: String?,
 
-    var hmdbBeriket: Boolean,
-    var hmdbProduktNavn: String?,
-    var hmdbBeskrivelse: String?,
-    var hmdbKategori: String?,
-    var hmdbBilde: String?,
-    var hmdbURL: String?,
+    var hmdbBeriket: Boolean = false,
+    var hmdbProduktNavn: String? = null,
+    var hmdbBeskrivelse: String? = null,
+    var hmdbKategori: String? = null,
+    var hmdbBilde: String? = null,
+    var hmdbURL: String? = null,
 )

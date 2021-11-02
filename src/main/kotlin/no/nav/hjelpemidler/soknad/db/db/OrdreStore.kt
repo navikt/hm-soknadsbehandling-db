@@ -5,13 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
-import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
@@ -96,28 +97,31 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         artikkelBeskrivelse = it.string("ARTIKKELBESKRIVELSE"),
                         artikkelNr = it.string("ARTIKKELNR"),
                         datoUtsendelse = it.localDateOrNull("CREATED").toString(),
-                        hmdbBeriket = false,
-                        hmdbProduktNavn = null,
-                        hmdbBeskrivelse = null,
-                        hmdbKategori = null,
-                        hmdbBilde = null,
-                        hmdbURL = null,
                     )
-                    val extra = Hjelpemiddeldatabase.findByHmsNr(ordrelinje.artikkelNr.toInt())
-                    if (extra != null) {
-                        ordrelinje.hmdbBeriket = true
-                        ordrelinje.hmdbProduktNavn = extra.artname
-                        ordrelinje.hmdbBeskrivelse = extra.pshortdesc
-                        ordrelinje.hmdbKategori = extra.isotitle
-                        ordrelinje.hmdbBilde = extra.blobfileURL
-                        if (extra.prodid != null && extra.artid != null) {
-                            ordrelinje.hmdbURL = "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${extra.prodid}&art0=${extra.artid}&nart=1"
-                        }
-                    }
-                    ordrelinje
+                    berikOrdrelinje(ordrelinje)
                 }.asList
             )
         }
+    }
+
+    private fun berikOrdrelinje(ordrelinje: SøknadForBrukerOrdrelinje): SøknadForBrukerOrdrelinje = runBlocking {
+        HjelpemiddeldatabaseClient
+            .hentProdukterMedHmsnr(ordrelinje.artikkelNr)
+            .firstOrNull()?.let { produkt ->
+                ordrelinje.apply {
+                    hmdbBeriket = true
+                    hmdbProduktNavn = produkt.artikkelnavn
+                    hmdbBeskrivelse = produkt.produktbeskrivelse
+                    hmdbKategori = produkt.isotittel
+                    hmdbBilde = produkt.blobUrlLite
+
+                    if (produkt.produktId != null && produkt.artikkelId != null) {
+                        hmdbURL =
+                            "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${produkt.produktId}&art0=${produkt.artikkelId}&nart=1"
+                    }
+                }
+            }
+        ordrelinje
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
