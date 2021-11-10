@@ -18,14 +18,15 @@ object HjelpemiddeldatabaseClient {
             serializer = GraphQLClientJacksonSerializer()
         )
 
-    suspend fun hentProdukterMedHmsnr(hmsnr: String): List<Produkt> {
+     suspend fun hentProdukterMedHmsnr(hmsnr: String): List<Produkt> {
         val request = HentProdukterMedHmsnr(variables = HentProdukterMedHmsnr.Variables(hmsnr = hmsnr))
-        val response = client.execute(request)
         return try {
+            val response = client.execute(request)
             when {
                 response.errors != null -> {
                     logg.warn("Feil under henting av data fra hjelpemiddeldatabasen, hmsnr=$hmsnr, errors=${response.errors?.map { it.message }}")
                     emptyList()
+                    // fixme -> feil hardt i dev?
                 }
                 response.data != null -> response.data?.produkter ?: emptyList()
                 else -> emptyList()
