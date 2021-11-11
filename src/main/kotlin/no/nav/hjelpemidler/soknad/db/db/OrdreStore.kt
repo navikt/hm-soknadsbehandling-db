@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -21,7 +20,7 @@ import kotlin.time.ExperimentalTime
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
     fun ordreSisteDøgn(soknadsId: UUID): Boolean
-    fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
+    suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
 internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
@@ -79,8 +78,8 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
     }
 
     @ExperimentalTime
-    override fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
-        return using(sessionOf(ds)) { session ->
+    override suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
+        val ordrelinjer = using(sessionOf(ds)) { session ->
             session.run(
                 queryOf(
                     """
@@ -90,7 +89,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                     """.trimIndent(),
                     soknadsId,
                 ).map {
-                    val ordrelinje = SøknadForBrukerOrdrelinje(
+                    SøknadForBrukerOrdrelinje(
                         antall = it.double("ANTALL"),
                         antallEnhet = "STK",
                         kategori = it.string("PRODUKTGRUPPE"),
@@ -98,30 +97,18 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         artikkelNr = it.string("ARTIKKELNR"),
                         datoUtsendelse = it.localDateOrNull("CREATED").toString(),
                     )
-                    berikOrdrelinje(ordrelinje)
                 }.asList
             )
         }
-    }
 
-    private fun berikOrdrelinje(ordrelinje: SøknadForBrukerOrdrelinje): SøknadForBrukerOrdrelinje = runBlocking {
-        HjelpemiddeldatabaseClient
-            .hentProdukterMedHmsnr(ordrelinje.artikkelNr)
-            .firstOrNull()?.let { produkt ->
-                ordrelinje.apply {
-                    hmdbBeriket = true
-                    hmdbProduktNavn = produkt.artikkelnavn
-                    hmdbBeskrivelse = produkt.produktbeskrivelse
-                    hmdbKategori = produkt.isotittel
-                    hmdbBilde = produkt.blobUrlLite
+        val produkter = HjelpemiddeldatabaseClient
+            .hentProdukterMedHmsnrs(ordrelinjer.map { it.artikkelNr }.toSet())
+            .groupBy { it.hmsnr }
+            .mapValues { it.value.first() }
 
-                    if (produkt.produktId != null && produkt.artikkelId != null) {
-                        hmdbURL =
-                            "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${produkt.produktId}&art0=${produkt.artikkelId}&nart=1"
-                    }
-                }
-            }
-        ordrelinje
+        return ordrelinjer.map {
+            it.berik(produkter[it.artikkelNr])
+        }
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =

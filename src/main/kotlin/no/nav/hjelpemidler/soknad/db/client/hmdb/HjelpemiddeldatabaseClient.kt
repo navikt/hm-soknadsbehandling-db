@@ -6,7 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnr.Produkt
+import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.net.URL
 
 object HjelpemiddeldatabaseClient {
@@ -18,21 +18,26 @@ object HjelpemiddeldatabaseClient {
             serializer = GraphQLClientJacksonSerializer()
         )
 
-     suspend fun hentProdukterMedHmsnr(hmsnr: String): List<Produkt> {
-        val request = HentProdukterMedHmsnr(variables = HentProdukterMedHmsnr.Variables(hmsnr = hmsnr))
+    suspend fun hentProdukterMedHmsnrs(hmsnrs: Set<String>): List<Produkt> {
+        logg.debug { "Henter produkter med hmsnrs=$hmsnrs fra hjelpemiddeldatabasen" }
+        val request = HentProdukterMedHmsnrs(variables = HentProdukterMedHmsnrs.Variables(hmsnrs = hmsnrs.toList()))
         return try {
             val response = client.execute(request)
             when {
                 response.errors != null -> {
-                    logg.warn("Feil under henting av data fra hjelpemiddeldatabasen, hmsnr=$hmsnr, errors=${response.errors?.map { it.message }}")
+                    logg.error { "Feil under henting av data fra hjelpemiddeldatabasen, hmsnrs=$hmsnrs, errors=${response.errors?.map { it.message }}" }
                     emptyList()
                     // fixme -> feil hardt i dev?
                 }
-                response.data != null -> response.data?.produkter ?: emptyList()
+                response.data != null -> {
+                    val produkter = response.data?.produkter ?: emptyList()
+                    logg.debug { "Hentet ${produkter.size} produkter fra hjelpemiddeldatabasen" }
+                    produkter
+                }
                 else -> emptyList()
             }
         } catch (e: Exception) {
-            logg.warn("Feil under henting av data fra hjelpemiddeldatabasen, hmsnr=$hmsnr", e)
+            logg.error(e) { "Feil under henting av data fra hjelpemiddeldatabasen, hmsnrs=$hmsnrs" }
             return emptyList()
         }
     }
