@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
@@ -79,26 +81,28 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
 
     @ExperimentalTime
     override suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
-        val ordrelinjer = using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    """
+        val ordrelinjer = withContext(Dispatchers.IO) {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        """
                         SELECT ARTIKKELNR, DATA ->> 'artikkelbeskrivelse' AS ARTIKKELBESKRIVELSE, ANTALL, PRODUKTGRUPPE, CREATED
                         FROM V1_OEBS_DATA
                         WHERE SOKNADS_ID = ?
-                    """.trimIndent(),
-                    soknadsId,
-                ).map {
-                    SøknadForBrukerOrdrelinje(
-                        antall = it.double("ANTALL"),
-                        antallEnhet = "STK",
-                        kategori = it.string("PRODUKTGRUPPE"),
-                        artikkelBeskrivelse = it.string("ARTIKKELBESKRIVELSE"),
-                        artikkelNr = it.string("ARTIKKELNR"),
-                        datoUtsendelse = it.localDateOrNull("CREATED").toString(),
-                    )
-                }.asList
-            )
+                        """.trimIndent(),
+                        soknadsId,
+                    ).map {
+                        SøknadForBrukerOrdrelinje(
+                            antall = it.double("ANTALL"),
+                            antallEnhet = "STK",
+                            kategori = it.string("PRODUKTGRUPPE"),
+                            artikkelBeskrivelse = it.string("ARTIKKELBESKRIVELSE"),
+                            artikkelNr = it.string("ARTIKKELNR"),
+                            datoUtsendelse = it.localDateOrNull("CREATED").toString(),
+                        )
+                    }.asList
+                )
+            }
         }
 
         val produkter = HjelpemiddeldatabaseClient
