@@ -1,7 +1,9 @@
+import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktor_version = "1.4.0"
+val ktor_version = Ktor.version
 val logback_version: String by project
 val influxdb_version: String by project
 val influxdb_aiven_version: String by project
@@ -9,6 +11,7 @@ val influxdb_aiven_version: String by project
 plugins {
     application
     kotlin("jvm") version Kotlin.version
+    id(GraphQL.graphql) version GraphQL.version
     id(Spotless.spotless) version Spotless.version
     id(Shadow.shadow) version Shadow.version
 }
@@ -38,12 +41,12 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_12
-    targetCompatibility = JavaVersion.VERSION_12
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {
-    api("ch.qos.logback:logback-classic:1.2.3")
+    api("ch.qos.logback:logback-classic:1.2.6")
     api("net.logstash.logback:logstash-logback-encoder:6.6") {
         exclude("com.fasterxml.jackson.core")
     }
@@ -70,14 +73,20 @@ dependencies {
     implementation("org.influxdb:influxdb-java:$influxdb_version")
     implementation("com.influxdb:influxdb-client-kotlin:$influxdb_aiven_version")
 
-    testImplementation(Junit5.api)
+    implementation(GraphQL.ktorClient) {
+        exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
+        exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
+        exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
+    }
+    implementation(GraphQL.clientJackson)
+
+    testImplementation(Kotlin.testJUnit5)
     testImplementation(KoTest.assertions)
     testImplementation(KoTest.runner)
     testImplementation(Ktor.ktorTest)
     testImplementation(Mockk.mockk)
     testImplementation(TestContainers.postgresql)
     testImplementation(Wiremock.standalone)
-    testRuntimeOnly(Junit5.engine)
 }
 
 spotless {
@@ -90,9 +99,9 @@ spotless {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs = listOf()
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "11"
 }
 
 tasks.withType<Test> {
@@ -108,7 +117,7 @@ tasks.withType<Test> {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "7.0.2"
+    gradleVersion = "7.2"
 }
 
 tasks.named("shadowJar") {
@@ -122,4 +131,17 @@ tasks.named("jar") {
 tasks.named("compileKotlin") {
     dependsOn("spotlessApply")
     dependsOn("spotlessCheck")
+}
+
+graphql {
+    client {
+        schemaFile = file("src/main/resources/hmdb/schema.graphql")
+        queryFileDirectory = "src/main/resources/hmdb"
+        packageName = "no.nav.hjelpemidler.soknad.db.client.hmdb"
+    }
+}
+
+val graphqlIntrospectSchema by tasks.getting(GraphQLIntrospectSchemaTask::class) {
+    endpoint.set("https://hm-grunndata-api.dev.intern.nav.no/graphql")
+    outputFile.set(file("src/main/resources/hmdb/schema.graphql"))
 }

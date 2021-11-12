@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
-import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
@@ -20,7 +22,7 @@ import kotlin.time.ExperimentalTime
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
     fun ordreSisteDøgn(soknadsId: UUID): Boolean
-    fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
+    suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
 internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
@@ -78,45 +80,38 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
     }
 
     @ExperimentalTime
-    override fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    """
+    override suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
+        val ordrelinjer = withContext(Dispatchers.IO) {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        """
                         SELECT ARTIKKELNR, DATA ->> 'artikkelbeskrivelse' AS ARTIKKELBESKRIVELSE, ANTALL, PRODUKTGRUPPE, CREATED
                         FROM V1_OEBS_DATA
                         WHERE SOKNADS_ID = ?
-                    """.trimIndent(),
-                    soknadsId,
-                ).map {
-                    val ordrelinje = SøknadForBrukerOrdrelinje(
-                        antall = it.double("ANTALL"),
-                        antallEnhet = "STK",
-                        kategori = it.string("PRODUKTGRUPPE"),
-                        artikkelBeskrivelse = it.string("ARTIKKELBESKRIVELSE"),
-                        artikkelNr = it.string("ARTIKKELNR"),
-                        datoUtsendelse = it.localDateOrNull("CREATED").toString(),
-                        hmdbBeriket = false,
-                        hmdbProduktNavn = null,
-                        hmdbBeskrivelse = null,
-                        hmdbKategori = null,
-                        hmdbBilde = null,
-                        hmdbURL = null,
-                    )
-                    val extra = Hjelpemiddeldatabase.findByHmsNr(ordrelinje.artikkelNr.toInt())
-                    if (extra != null) {
-                        ordrelinje.hmdbBeriket = true
-                        ordrelinje.hmdbProduktNavn = extra.artname
-                        ordrelinje.hmdbBeskrivelse = extra.pshortdesc
-                        ordrelinje.hmdbKategori = extra.isotitle
-                        ordrelinje.hmdbBilde = extra.blobfileURL
-                        if (extra.prodid != null && extra.artid != null) {
-                            ordrelinje.hmdbURL = "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${extra.prodid}&art0=${extra.artid}&nart=1"
-                        }
-                    }
-                    ordrelinje
-                }.asList
-            )
+                        """.trimIndent(),
+                        soknadsId,
+                    ).map {
+                        SøknadForBrukerOrdrelinje(
+                            antall = it.double("ANTALL"),
+                            antallEnhet = "STK",
+                            kategori = it.string("PRODUKTGRUPPE"),
+                            artikkelBeskrivelse = it.string("ARTIKKELBESKRIVELSE"),
+                            artikkelNr = it.string("ARTIKKELNR"),
+                            datoUtsendelse = it.localDateOrNull("CREATED").toString(),
+                        )
+                    }.asList
+                )
+            }
+        }
+
+        val produkter = HjelpemiddeldatabaseClient
+            .hentProdukterMedHmsnrs(ordrelinjer.map { it.artikkelNr }.toSet())
+            .groupBy { it.hmsnr }
+            .mapValues { it.value.first() }
+
+        return ordrelinjer.map {
+            it.berik(produkter[it.artikkelNr])
         }
     }
 

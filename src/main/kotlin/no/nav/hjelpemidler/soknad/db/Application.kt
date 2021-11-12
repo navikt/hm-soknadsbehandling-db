@@ -22,7 +22,6 @@ import no.nav.hjelpemidler.soknad.db.db.migrate
 import no.nav.hjelpemidler.soknad.db.db.waitForDB
 import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
 import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
-import no.nav.hjelpemidler.soknad.db.service.hmdb.Hjelpemiddeldatabase
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
 import kotlin.time.ExperimentalTime
@@ -38,9 +37,6 @@ fun Application.module() {
 
     val tokenXConfig = runBlocking { loadTokenXConfig() }
     val aadConfig = runBlocking { loadAadConfig() }
-
-    // Last ned hjelpemiddeldatabase datasett for beriking av ordrelinjer
-    Hjelpemiddeldatabase.loadDatabase()
 
     if (!waitForDB(10.minutes, Configuration)) {
         throw Exception("database never became available within the deadline")

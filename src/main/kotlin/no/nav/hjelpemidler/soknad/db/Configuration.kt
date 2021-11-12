@@ -27,7 +27,7 @@ private val localProperties = ConfigurationMap(
         "INFLUX_USER" to "user",
         "INFLUX_PASSWORD" to "password",
 
-        "GRUNNDATA_API_URL" to "http://host.docker.internal",
+        "GRUNNDATA_API_URL" to "https://hm-grunndata-api.dev.intern.nav.no",
     )
 )
 private val devProperties = ConfigurationMap(
