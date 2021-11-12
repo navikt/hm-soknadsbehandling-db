@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - graphql_hmdb_client
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
