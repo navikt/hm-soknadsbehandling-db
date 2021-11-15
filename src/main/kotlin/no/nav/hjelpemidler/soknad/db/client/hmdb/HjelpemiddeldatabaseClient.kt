@@ -19,6 +19,7 @@ object HjelpemiddeldatabaseClient {
         )
 
     suspend fun hentProdukterMedHmsnrs(hmsnrs: Set<String>): List<Produkt> {
+        if (hmsnrs.isEmpty()) return emptyList()
         logg.debug { "Henter produkter med hmsnrs=$hmsnrs fra hjelpemiddeldatabasen" }
         val request = HentProdukterMedHmsnrs(variables = HentProdukterMedHmsnrs.Variables(hmsnrs = hmsnrs.toList()))
         return try {
