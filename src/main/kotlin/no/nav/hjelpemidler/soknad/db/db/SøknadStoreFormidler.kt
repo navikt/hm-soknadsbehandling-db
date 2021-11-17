@@ -11,12 +11,12 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal interface SøknadStoreFormidler {
-    fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterSisteStatus: Int): List<SoknadForFormidler>
+    fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler>
 }
 
 internal class SøknadStoreFormidlerPostgres(private val ds: DataSource) : SøknadStoreFormidler {
 
-    override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterSisteStatus: Int): List<SoknadForFormidler> {
+    override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler> {
         @Language("PostgreSQL") val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
@@ -31,7 +31,7 @@ internal class SøknadStoreFormidlerPostgres(private val ds: DataSource) : Søkn
                 WHERE soknad.FNR_INNSENDER = ?
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
-                    OR (status.CREATED + interval '$ukerEtterSisteStatus week') > now()
+                    OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
                 )
                 ORDER BY soknad.UPDATED DESC
             """
