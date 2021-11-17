@@ -511,7 +511,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoer_Hjelpemidler>(it.string("DATA"))
+                        ForslagsmotorTilbehoer_Hjelpemidler(
+                            soknad = objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")),
+                            created = it.localDateTime("CREATED"),
+                        )
                     }.asList
                 )
             }
