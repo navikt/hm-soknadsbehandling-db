@@ -1,12 +1,14 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import java.time.LocalDateTime
 import java.util.UUID
 
-data class ForslagsmotorTilbehoer_Soknad(
-    val soknad: ForslagsmotorTilbehoer_Hjelpemidler,
+data class ForslagsmotorTilbehoer_Hjelpemidler(
+    val soknad: ForslagsmotorTilbehoer_Soknad,
+    var created: LocalDateTime? = null,
 )
 
-data class ForslagsmotorTilbehoer_Hjelpemidler(
+data class ForslagsmotorTilbehoer_Soknad(
     val id: UUID,
     val hjelpemidler: ForslagsmotorTilbehoer_HjelpemiddelListe,
 )

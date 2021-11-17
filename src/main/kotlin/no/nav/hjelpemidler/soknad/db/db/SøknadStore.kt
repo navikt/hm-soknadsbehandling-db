@@ -501,33 +501,35 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT DATA FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
+                SELECT DATA, CREATED FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
             """
 
-        val res = time("initieltDatasettForForslagsmotorTilbehoer") {
+        val soknader = time("initieltDatasettForForslagsmotorTilbehoer") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
                         statement,
                     ).map {
-                        objectMapper.readValue<ForslagsmotorTilbehoer_Soknad>(it.string("DATA")).soknad
+                        val hjelpemiddel = objectMapper.readValue<ForslagsmotorTilbehoer_Hjelpemidler>(it.string("DATA"))
+                        hjelpemiddel.created = it.localDateTime("CREATED")
+                        hjelpemiddel
                     }.asList
                 )
             }
         }
 
-        val result = mutableListOf<ForslagsmotorTilbehoer_Hjelpemidler>()
-        for (hjelpemidler in res) {
-            result.add(
-                ForslagsmotorTilbehoer_Hjelpemidler(
-                    hjelpemidler.id,
-                    ForslagsmotorTilbehoer_HjelpemiddelListe(
-                        hjelpemidler.hjelpemidler.hjelpemiddelListe.filter { it.tilbehorListe?.isNotEmpty() ?: false }.toTypedArray(),
+        // Filter out products with no accessories (ca. 2/3 of the cases)
+        return soknader.map { soknad ->
+            ForslagsmotorTilbehoer_Hjelpemidler(
+                soknad = ForslagsmotorTilbehoer_Soknad(
+                    id = soknad.soknad.id,
+                    hjelpemidler = ForslagsmotorTilbehoer_HjelpemiddelListe(
+                        hjelpemiddelListe = soknad.soknad.hjelpemidler.hjelpemiddelListe.filter { it.tilbehorListe?.isNotEmpty() ?: false }.toTypedArray(),
                     ),
-                )
+                ),
+                created = soknad.created,
             )
         }
-        return result
     }
 
     override fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String> {
