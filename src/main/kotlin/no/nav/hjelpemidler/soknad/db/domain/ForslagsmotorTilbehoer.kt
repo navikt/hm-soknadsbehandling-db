@@ -5,7 +5,7 @@ import java.util.UUID
 
 data class ForslagsmotorTilbehoer_Hjelpemidler(
     val soknad: ForslagsmotorTilbehoer_Soknad,
-    val created: LocalDateTime,
+    var created: LocalDateTime? = null,
 )
 
 data class ForslagsmotorTilbehoer_Soknad(
