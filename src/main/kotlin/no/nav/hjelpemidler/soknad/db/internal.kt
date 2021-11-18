@@ -13,13 +13,12 @@ import javax.sql.DataSource
 
 fun Route.internal(ds: DataSource) {
     get("/is_alive") {
-        if (ds.connection.isClosed) {
-            return@get call.respondText("NOT ALIVE", ContentType.Text.Plain, HttpStatusCode.ServiceUnavailable)
-        }
+
         call.respondText("ALIVE", ContentType.Text.Plain)
     }
     get("/is_ready") {
 
+        call.respondText("READY", ContentType.Text.Plain)
     }
     get("/metrics") {
         val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: emptySet()
