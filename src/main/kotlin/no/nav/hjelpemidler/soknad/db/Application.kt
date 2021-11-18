@@ -63,7 +63,7 @@ fun Application.module() {
     }
 
     routing {
-        internal()
+        internal(ds)
         route("/api") {
 
             authenticate("tokenX") {
