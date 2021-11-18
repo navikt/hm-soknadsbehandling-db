@@ -19,17 +19,7 @@ fun Route.internal(ds: DataSource) {
         call.respondText("ALIVE", ContentType.Text.Plain)
     }
     get("/is_ready") {
-        // Let's check if the datasource is still valid and working
-        var dbConnectionValid = false
-        ds.connection.use { connection ->
-            if (connection.isValid(20)) {
-                dbConnectionValid = true
-            }
-        }
-        if (!dbConnectionValid) {
-            return@get call.respondText("NOT READY", ContentType.Text.Plain, HttpStatusCode.ServiceUnavailable)
-        }
-        call.respondText("READY", ContentType.Text.Plain)
+
     }
     get("/metrics") {
         val names = call.request.queryParameters.getAll("name[]")?.toSet() ?: emptySet()
