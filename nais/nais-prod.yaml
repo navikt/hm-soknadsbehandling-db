@@ -15,11 +15,8 @@ spec:
     pool: nav-prod # just to get the SSL certificate required influxDB on GCP?
   liveness:
     path: /is_alive
-    initialDelay: 30
-    periodSeconds: 5
   readiness:
     path: /is_ready
-    initialDelay: 30
   port: 8080
   prometheus:
     enabled: true
