@@ -16,10 +16,11 @@ spec:
   liveness:
     path: /is_alive
     initialDelay: 30
-    periodSeconds: 5
+    timeout: 100
   readiness:
     path: /is_ready
     initialDelay: 30
+    timeout: 100
   port: 8080
   prometheus:
     enabled: true
