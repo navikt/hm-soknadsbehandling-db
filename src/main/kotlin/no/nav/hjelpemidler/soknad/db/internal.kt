@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.ktor.application.call
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
 import io.ktor.response.respondTextWriter
 import io.ktor.routing.Route
