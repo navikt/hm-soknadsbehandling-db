@@ -212,6 +212,21 @@ internal fun Route.azureAdRoutes(
         }
     }
 
+    post("/soknad/hotsak/fra-saknummer") {
+        try {
+            val soknadFraHotsakNummerDto = call.receive<SoknadFraHotsakNummerDto>()
+            val soknadId = hotsakStore.hentSøknadsIdForHotsakNummer(
+                soknadFraHotsakNummerDto.saksnummer,
+            )
+
+            call.respond(Pair("soknadId", soknadId))
+            logger.info("Fant søknadsid $soknadId fra HOTSAK nummer ${soknadFraHotsakNummerDto.saksnummer}")
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad fra HOTSAK data: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra HOTSAK data ${e.message}")
+        }
+    }
+
     post("/hotsak/vedtaksresultat") {
         try {
             val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
@@ -474,3 +489,5 @@ data class SoknadFraVedtaksresultatDto(
     val saksblokkOgSaksnr: String,
     val vedtaksdato: LocalDate
 )
+
+data class SoknadFraHotsakNummerDto(val fnrBruker: String, val saksnummer: String)

@@ -65,6 +65,11 @@ internal class HotsakStoreTest {
                 assertEquals("I", søknad?.vedtaksresultat)
                 assertEquals(LocalDate.of(2021, 5, 31).toString(), søknad?.vedtaksdato.toString())
             }
+
+            HotsakStorePostgres(DataSource.instance).apply {
+                val funnetSøknadsId = this.hentSøknadsIdForHotsakNummer("1002")
+                assertEquals(funnetSøknadsId, søknadId)
+            }
         }
     }
 }
