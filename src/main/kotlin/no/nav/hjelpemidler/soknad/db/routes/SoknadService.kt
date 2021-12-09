@@ -218,9 +218,9 @@ internal fun Route.azureAdRoutes(
             val soknadId = hotsakStore.hentSøknadsIdForHotsakNummer(
                 soknadFraHotsakNummerDto.saksnummer,
             )
-
-            call.respond(Pair("soknadId", soknadId))
             logger.info("Fant søknadsid $soknadId fra HOTSAK nummer ${soknadFraHotsakNummerDto.saksnummer}")
+            call.respond(Pair("soknadId", soknadId))
+
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra HOTSAK data: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra HOTSAK data ${e.message}")
