@@ -490,4 +490,4 @@ data class SoknadFraVedtaksresultatDto(
     val vedtaksdato: LocalDate
 )
 
-data class SoknadFraHotsakNummerDto(val fnrBruker: String, val saksnummer: String)
+data class SoknadFraHotsakNummerDto(val saksnummer: String)
