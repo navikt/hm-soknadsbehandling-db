@@ -7,7 +7,7 @@ import java.util.UUID
 
 class SoknadMedStatus private constructor(
     val soknadId: UUID,
-    val journalpostId: BigInteger?,
+    val journalpostId: String?,
     val datoOpprettet: Date,
     val datoOppdatert: Date,
     val status: Status,
@@ -16,10 +16,10 @@ class SoknadMedStatus private constructor(
     val er_digital: Boolean
 ) {
     companion object {
-        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: BigInteger?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
+        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
             SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital)
 
-        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: BigInteger?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
+        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
             SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital)
     }
 }

@@ -364,7 +364,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = it.bigDecimalOrNull("JOURNALPOSTID")?.toBigInteger(),
+                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -377,7 +377,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
                                 soknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = it.bigDecimalOrNull("JOURNALPOSTID")?.toBigInteger(),
+                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
