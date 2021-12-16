@@ -182,6 +182,7 @@ private fun signaturType(søknad: JsonNode): SignaturType {
     return when (brukerNode["signatur"].textValue()) {
         "BRUKER_BEKREFTER" -> SignaturType.BRUKER_BEKREFTER
         "FULLMAKT" -> SignaturType.FULLMAKT
+        "FRITAK_FRA_FULLMAKT" -> SignaturType.FRITAK_FRA_FULLMAKT
         else -> throw RuntimeException("Ugyldig signaturtype")
     }
 }
@@ -336,7 +337,7 @@ class Bruker(
     val kroppsmaal: Kroppsmaal?,
 )
 
-enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT }
+enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT }
 enum class Bruksarena { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
 
