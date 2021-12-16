@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
-import java.math.BigInteger
 import java.util.Date
 import java.util.UUID
 
