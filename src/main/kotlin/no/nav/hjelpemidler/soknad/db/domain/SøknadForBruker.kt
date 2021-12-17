@@ -15,6 +15,7 @@ class SøknadForBruker private constructor(
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
     val er_digital: Boolean,
+    soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
     var fagsakId: String?,
 ) {
@@ -31,6 +32,7 @@ class SøknadForBruker private constructor(
             kommunenavn: String?,
             fnrBruker: String,
             er_digital: Boolean,
+            soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
         ) =
@@ -44,6 +46,7 @@ class SøknadForBruker private constructor(
                 fnrBruker,
                 Søknadsdata(søknad, kommunenavn),
                 er_digital,
+                soknadGjelder,
                 ordrelinjer,
                 fagsakId,
             )
@@ -57,6 +60,7 @@ class SøknadForBruker private constructor(
             fullmakt: Boolean,
             fnrBruker: String,
             er_digital: Boolean,
+            soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
         ) =
@@ -70,6 +74,7 @@ class SøknadForBruker private constructor(
                 fnrBruker,
                 null,
                 er_digital,
+                soknadGjelder,
                 ordrelinjer,
                 fagsakId
             )
