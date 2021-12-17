@@ -92,7 +92,8 @@ internal fun mockSøknad(id: UUID, status: Status = Status.VENTER_GODKJENNING) =
     ),
     status = status,
     kommunenavn = null,
-    er_digital = true
+    er_digital = true,
+    soknadGjelder = null,
 )
 
 internal fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GODKJENNING) = SoknadData(
@@ -222,5 +223,6 @@ internal fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GO
     ),
     status = status,
     kommunenavn = null,
-    er_digital = true
+    er_digital = true,
+    soknadGjelder = null,
 )

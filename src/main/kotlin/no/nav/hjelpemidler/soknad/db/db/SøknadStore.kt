@@ -448,7 +448,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     // Add the new Søknad into the Søknad table
                     transaction.run(
                         queryOf(
-                            "INSERT INTO V1_SOKNAD (SOKNADS_ID, FNR_BRUKER, NAVN_BRUKER, FNR_INNSENDER, DATA, KOMMUNENAVN, ER_DIGITAL, SOKNAD_GJELDER) VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+                            "INSERT INTO V1_SOKNAD (SOKNADS_ID, FNR_BRUKER, NAVN_BRUKER, FNR_INNSENDER, DATA, KOMMUNENAVN, ER_DIGITAL, SOKNAD_GJELDER) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
                             soknadData.soknadId,
                             soknadData.fnrBruker,
                             soknadData.navnBruker,
@@ -459,7 +459,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             },
                             soknadData.kommunenavn,
                             true,
-                            soknadData.soknadGjelder,
+                            soknadData.soknadGjelder ?: "Søknad om hjelpemidler",
                         ).asUpdate
                     )
                 }

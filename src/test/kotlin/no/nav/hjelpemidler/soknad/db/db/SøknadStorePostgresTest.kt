@@ -205,7 +205,8 @@ internal class SøknadStorePostgresTest {
                         ),
                         status = Status.VENTER_GODKJENNING,
                         kommunenavn = null,
-                        er_digital = true
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
@@ -228,8 +229,8 @@ internal class SøknadStorePostgresTest {
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
                         kommunenavn = null,
-                        er_digital = true
-
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 ).also {
                     it shouldBe 1
@@ -306,8 +307,8 @@ internal class SøknadStorePostgresTest {
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.VENTER_GODKJENNING,
                         kommunenavn = null,
-                        er_digital = true
-
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 ).also {
                     it shouldBe 1
@@ -401,7 +402,8 @@ internal class SøknadStorePostgresTest {
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
                         kommunenavn = null,
-                        er_digital = true
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 )
             }
@@ -435,7 +437,8 @@ internal class SøknadStorePostgresTest {
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.GODKJENT_MED_FULLMAKT,
                         kommunenavn = null,
-                        er_digital = true
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 )
             }

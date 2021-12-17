@@ -72,8 +72,8 @@ internal class SøknadStoreFormidlerTest {
                         ObjectMapper().readTree(""" {"key": "value"} """),
                         status = Status.SLETTET,
                         kommunenavn = null,
-                        er_digital = true
-
+                        er_digital = true,
+                        soknadGjelder = null,
                     )
                 ).also {
                     it shouldBe 1
