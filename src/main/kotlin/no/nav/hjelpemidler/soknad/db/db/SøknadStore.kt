@@ -101,7 +101,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknad(soknadsId: UUID): SøknadForBruker? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -135,6 +135,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 },
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
+                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
                             )
@@ -155,6 +156,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 kommunenavn = it.stringOrNull("KOMMUNENAVN"),
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
+                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
                             )
@@ -188,7 +190,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknadData(soknadsId: UUID): SoknadData? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, soknad.FNR_INNSENDER, soknad.DATA, soknad.KOMMUNENAVN, soknad.ER_DIGITAL, status.STATUS
+                SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, soknad.FNR_INNSENDER, soknad.DATA, soknad.KOMMUNENAVN, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
@@ -214,7 +216,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 it.string("DATA")
                             ),
                             kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                            er_digital = it.boolean("ER_DIGITAL")
+                            er_digital = it.boolean("ER_DIGITAL"),
+                            soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                         )
                     }.asSingle
                 )
@@ -339,7 +342,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, status.STATUS,
+                SELECT soknad.SOKNADS_ID, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS,
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -372,7 +375,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
                                     else -> it.sqlTimestamp("created")
                                 },
-                                er_digital = it.boolean("ER_DIGITAL")
+                                er_digital = it.boolean("ER_DIGITAL"),
+                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                             )
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
@@ -388,7 +392,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 søknad = JacksonMapper.objectMapper.readTree(
                                     it.string("DATA")
                                 ),
-                                er_digital = it.boolean("ER_DIGITAL")
+                                er_digital = it.boolean("ER_DIGITAL"),
+                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                             )
                         }
                     }.asList
@@ -443,7 +448,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     // Add the new Søknad into the Søknad table
                     transaction.run(
                         queryOf(
-                            "INSERT INTO V1_SOKNAD (SOKNADS_ID, FNR_BRUKER, NAVN_BRUKER, FNR_INNSENDER, DATA, KOMMUNENAVN, ER_DIGITAL) VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+                            "INSERT INTO V1_SOKNAD (SOKNADS_ID, FNR_BRUKER, NAVN_BRUKER, FNR_INNSENDER, DATA, KOMMUNENAVN, ER_DIGITAL, SOKNAD_GJELDER) VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
                             soknadData.soknadId,
                             soknadData.fnrBruker,
                             soknadData.navnBruker,
@@ -453,7 +458,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 value = soknadToJsonString(soknadData.soknad)
                             },
                             soknadData.kommunenavn,
-                            true
+                            true,
+                            soknadData.soknadGjelder,
                         ).asUpdate
                     )
                 }

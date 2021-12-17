@@ -11,5 +11,6 @@ internal data class SoknadData(
     val soknad: JsonNode,
     val status: Status,
     val kommunenavn: String?,
-    val er_digital: Boolean
+    val er_digital: Boolean,
+    val soknadGjelder: String?,
 )

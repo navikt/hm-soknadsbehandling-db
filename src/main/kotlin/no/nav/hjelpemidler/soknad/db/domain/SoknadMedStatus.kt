@@ -12,14 +12,15 @@ class SoknadMedStatus private constructor(
     val status: Status,
     val fullmakt: Boolean,
     val formidlerNavn: String?,
-    val er_digital: Boolean
+    val er_digital: Boolean,
+    val soknadGjelder: String?,
 ) {
     companion object {
-        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital)
+        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean, soknadGjelder: String?) =
+            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, soknadGjelder)
 
-        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean) =
-            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital)
+        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean, soknadGjelder: String?) =
+            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, soknadGjelder)
     }
 }
 
