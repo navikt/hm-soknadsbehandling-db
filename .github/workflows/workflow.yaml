@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - lagre-og-visfrem-soknadGjelder-brukerbekreftelseoppg
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
 jobs:
