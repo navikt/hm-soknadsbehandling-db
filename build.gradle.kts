@@ -46,7 +46,7 @@ java {
 }
 
 dependencies {
-    api("ch.qos.logback:logback-classic:1.2.6")
+    api("ch.qos.logback:logback-classic:1.2.7")
     api("net.logstash.logback:logstash-logback-encoder:6.6") {
         exclude("com.fasterxml.jackson.core")
     }

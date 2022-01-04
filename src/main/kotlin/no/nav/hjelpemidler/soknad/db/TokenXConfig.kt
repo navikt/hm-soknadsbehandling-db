@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.request.get
-import io.ktor.util.KtorExperimentalAPI
 
 data class TokenXConfig(
     val metadata: Metadata,
@@ -14,7 +13,6 @@ data class TokenXConfig(
     )
 }
 
-@KtorExperimentalAPI
 suspend fun loadTokenXConfig(): TokenXConfig {
 
     val jwksUri = System.getenv("TOKEN_X_WELL_KNOWN_URL") ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - snyk-2022-01-04
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
 jobs:
