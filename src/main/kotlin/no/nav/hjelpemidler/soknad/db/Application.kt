@@ -11,7 +11,6 @@ import io.ktor.jackson.JacksonConverter
 import io.ktor.request.path
 import io.ktor.routing.route
 import io.ktor.routing.routing
-import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
@@ -30,9 +29,7 @@ import kotlin.time.minutes
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @ExperimentalTime
-@KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
 fun Application.module() {
 
     val tokenXConfig = runBlocking { loadTokenXConfig() }
