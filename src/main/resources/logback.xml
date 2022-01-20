@@ -20,6 +20,9 @@
     <logger name="no.nav.hjelpemidler.soknad.db" level="DEBUG" />
     <logger name="io.ktor.auth" level="TRACE" />
 
+    <logger name="logging.level.com.zaxxer.hikari.HikariConfig" level="DEBUG" />
+    <logger name="logging.level.com.zaxxer.hikari" level="DEBUG" />
+
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog" />
     </logger>
