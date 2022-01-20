@@ -23,6 +23,9 @@
     <logger name="logging.level.com.zaxxer.hikari.HikariConfig" level="DEBUG" />
     <logger name="logging.level.com.zaxxer.hikari" level="DEBUG" />
 
+    <logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" />
+    <logger name="com.zaxxer.hikari" level="DEBUG" />
+
     <logger name="tjenestekall" level="DEBUG" additivity="false">
         <appender-ref ref="secureLog" />
     </logger>
