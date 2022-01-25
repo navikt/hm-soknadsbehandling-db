@@ -20,6 +20,7 @@ internal interface InfotrygdStore {
     ): Int
 
     fun hentSøknadIdFraVedtaksresultat(fnrBruker: String, saksblokkOgSaksnr: String, vedtaksdato: LocalDate): UUID?
+    fun hentSøknadIdFraVedtaksresultatV2(fnrBruker: String, saksblokkOgSaksnr: String): List<InfotrygdStorePostgres.SøknadIdFraVedtaksresultat>
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData?
     fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData?
 }
@@ -97,6 +98,35 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
         }
         return uuids[0]
     }
+
+    // Brukt for å matche Oebs-data mot eit Infotrygd-resultat i alternativ flyt
+    override fun hentSøknadIdFraVedtaksresultatV2(
+        fnrBruker: String,
+        saksblokkOgSaksnr: String,
+    ): List<SøknadIdFraVedtaksresultat> {
+        return time("hent_søknadid_fra_resultat") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        "SELECT SOKNADS_ID, VEDTAKSDATO FROM V1_INFOTRYGD_DATA WHERE FNR_BRUKER = ? AND SAKSBLOKK = ? AND SAKSNR = ?",
+                        fnrBruker,
+                        saksblokkOgSaksnr.first(),
+                        saksblokkOgSaksnr.takeLast(2),
+                    ).map {
+                        SøknadIdFraVedtaksresultat(
+                            UUID.fromString(it.string("SOKNADS_ID")),
+                            it.localDateOrNull("VEDTAKS_DATO"),
+                        )
+                    }.asList
+                )
+            }
+        }
+    }
+
+    data class SøknadIdFraVedtaksresultat(
+        val uuid: UUID,
+        val vedtaksDato: LocalDate?,
+    )
 
     override fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData? {
         return time("hent_søknadid_fra_resultat") {

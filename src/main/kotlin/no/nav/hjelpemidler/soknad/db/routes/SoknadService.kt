@@ -339,7 +339,6 @@ internal fun Route.azureAdRoutes(
 
     post("/soknad/fra-vedtaksresultat") {
         try {
-
             val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
             val soknadId = infotrygdStore.hentSøknadIdFraVedtaksresultat(
                 soknadFraVedtaksresultatDto.fnrBruker,
@@ -348,6 +347,23 @@ internal fun Route.azureAdRoutes(
             )
 
             call.respond(mapOf(Pair("soknadId", soknadId)))
+
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
+        }
+    }
+
+    post("/soknad/fra-vedtaksresultat-v2") {
+        try {
+            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
+            val resultater = infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
+                soknadFraVedtaksresultatDto.fnrBruker,
+                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+            )
+
+            call.respond(resultater)
+
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
