@@ -124,7 +124,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
     }
 
     data class SøknadIdFraVedtaksresultat(
-        val uuid: UUID,
+        val søknadId: UUID,
         val vedtaksDato: LocalDate?,
     )
 

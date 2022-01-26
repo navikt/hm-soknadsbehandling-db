@@ -356,7 +356,7 @@ internal fun Route.azureAdRoutes(
 
     post("/soknad/fra-vedtaksresultat-v2") {
         try {
-            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
+            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatV2Dto>()
             val resultater = infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
                 soknadFraVedtaksresultatDto.fnrBruker,
                 soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
@@ -504,6 +504,11 @@ data class SoknadFraVedtaksresultatDto(
     val fnrBruker: String,
     val saksblokkOgSaksnr: String,
     val vedtaksdato: LocalDate
+)
+
+data class SoknadFraVedtaksresultatV2Dto(
+    val fnrBruker: String,
+    val saksblokkOgSaksnr: String,
 )
 
 data class SoknadFraHotsakNummerDto(val saksnummer: String)
