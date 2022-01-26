@@ -115,7 +115,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                     ).map {
                         SøknadIdFraVedtaksresultat(
                             UUID.fromString(it.string("SOKNADS_ID")),
-                            it.localDateOrNull("VEDTAKS_DATO"),
+                            it.localDateOrNull("VEDTAKSDATO"),
                         )
                     }.asList
                 )
