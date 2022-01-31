@@ -8,15 +8,12 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
-import javax.sql.DataSource
 
-fun Route.internal(ds: DataSource) {
+fun Route.internal() {
     get("/is_alive") {
-
         call.respondText("ALIVE", ContentType.Text.Plain)
     }
     get("/is_ready") {
-
         call.respondText("READY", ContentType.Text.Plain)
     }
     get("/metrics") {

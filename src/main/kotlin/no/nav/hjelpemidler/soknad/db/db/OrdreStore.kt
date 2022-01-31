@@ -17,7 +17,6 @@ import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
-import kotlin.time.ExperimentalTime
 
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
@@ -79,7 +78,6 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
         return result != null
     }
 
-    @ExperimentalTime
     override suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
         val ordrelinjer = withContext(Dispatchers.IO) {
             using(sessionOf(ds)) { session ->

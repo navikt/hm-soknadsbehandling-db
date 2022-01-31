@@ -6,24 +6,25 @@ import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.Profile
 import org.flywaydb.core.Flyway
-import java.lang.Exception
+import org.flywaydb.core.api.output.MigrateResult
 import java.net.Socket
 import java.time.LocalDateTime
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
 private val logger = KotlinLogging.logger {}
 
 @ExperimentalTime
 internal fun waitForDB(timeout: Duration, config: Configuration): Boolean {
-    val deadline = LocalDateTime.now().plusSeconds(timeout.inSeconds.toLong())
+    val deadline = LocalDateTime.now().plusSeconds(timeout.inWholeSeconds)
     while (true) {
         try {
             Socket(config.database.host, config.database.port.toInt())
             return true
         } catch (e: Exception) {
             logger.info("Database not available yet, waiting...")
-            Thread.sleep(1000 * 2)
+            Thread.sleep(2.seconds.inWholeMilliseconds)
         }
         if (LocalDateTime.now().isAfter(deadline)) break
     }
@@ -50,7 +51,7 @@ internal fun dataSourceFrom(config: Configuration): HikariDataSource = when (con
     else -> HikariDataSource(hikariConfigFrom(config))
 }
 
-internal fun migrate(dataSource: HikariDataSource, initSql: String = ""): Int =
+internal fun migrate(dataSource: HikariDataSource, initSql: String = ""): MigrateResult =
     Flyway.configure().dataSource(dataSource).initSql(initSql).load().migrate()
 
 internal fun clean(dataSource: HikariDataSource) = Flyway.configure().dataSource(dataSource).load().clean()

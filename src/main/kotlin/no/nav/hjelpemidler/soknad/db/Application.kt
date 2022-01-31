@@ -23,8 +23,8 @@ import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
 import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
-import kotlin.time.minutes
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -41,12 +41,12 @@ fun Application.module() {
 
     migrate(Configuration)
 
-    val ds: HikariDataSource = dataSourceFrom(Configuration)
-    val søknadStore = SøknadStorePostgres(ds)
-    val storeFormidler = SøknadStoreFormidlerPostgres(ds)
-    val ordreStore = OrdreStorePostgres(ds)
-    val infotrygdStore = InfotrygdStorePostgres(ds)
-    val hotsakStore = HotsakStorePostgres(ds)
+    val dataSource: HikariDataSource = dataSourceFrom(Configuration)
+    val søknadStore = SøknadStorePostgres(dataSource)
+    val storeFormidler = SøknadStoreFormidlerPostgres(dataSource)
+    val ordreStore = OrdreStorePostgres(dataSource)
+    val infotrygdStore = InfotrygdStorePostgres(dataSource)
+    val hotsakStore = HotsakStorePostgres(dataSource)
 
     installAuthentication(tokenXConfig, aadConfig, Configuration.application)
 
@@ -60,18 +60,20 @@ fun Application.module() {
     }
 
     routing {
-        internal(ds)
+        internal()
         route("/api") {
-
             authenticate("tokenX") {
                 tokenXRoutes(søknadStore, ordreStore, infotrygdStore, storeFormidler)
             }
 
-            if (Configuration.application.profile == Profile.LOCAL) {
-                azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
-            } else {
-                authenticate("aad") {
+            when (Configuration.application.profile) {
+                Profile.LOCAL -> {
                     azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
+                }
+                else -> {
+                    authenticate("aad") {
+                        azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
+                    }
                 }
             }
         }

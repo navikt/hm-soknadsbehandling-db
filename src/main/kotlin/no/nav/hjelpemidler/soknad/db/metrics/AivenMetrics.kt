@@ -24,7 +24,7 @@ class AivenMetrics {
         influxPassword.toCharArray(),
         influxDatabaseName,
         "default_retention_policy"
-    )
+    ).makeWriteApi()
 
     fun writeEvent(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) = runBlocking {
         // TODO: Get nanoseconds
@@ -34,7 +34,7 @@ class AivenMetrics {
             .addFields(fields)
             .time(Instant.now().toEpochMilli(), WritePrecision.MS)
 
-        client.writeApi.writePoint(point)
+        client.writePoint(point)
         logg.info("Skriv point-objekt til Aiven: ${point.toLineProtocol()}")
     }
 
