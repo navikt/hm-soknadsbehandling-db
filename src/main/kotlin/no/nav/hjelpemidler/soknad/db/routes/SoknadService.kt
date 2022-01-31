@@ -347,7 +347,6 @@ internal fun Route.azureAdRoutes(
             )
 
             call.respond(mapOf(Pair("soknadId", soknadId)))
-
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
@@ -363,7 +362,6 @@ internal fun Route.azureAdRoutes(
             )
 
             call.respond(resultater)
-
         } catch (e: Exception) {
             logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
             call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
