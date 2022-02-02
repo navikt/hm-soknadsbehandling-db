@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 internal class SøknadStoreFormidlerTest {
@@ -25,8 +26,33 @@ internal class SøknadStoreFormidlerTest {
                 )
             }
             SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val formidlersSøknad = this.hentSøknaderForFormidler("12345678910", 4)[0]
+                val formidlersSøknad = this.hentSøknaderForFormidler("12345678910")[0]
                 assertEquals("fornavn etternavn", formidlersSøknad.navnBruker)
+            }
+        }
+    }
+
+    @Test
+    fun `Formidler kan kun hente søknad hen selv har sendt inn`() {
+        val soknadsId = UUID.randomUUID()
+        val fnrFormidler = "12345678910"
+        val fnrAnnenFormidler = "10987654321"
+        withMigratedDb {
+            SøknadStorePostgres(DataSource.instance).apply {
+                this.save(
+                    mockSøknad(soknadsId, fnrInnsender = fnrFormidler)
+                )
+                this.save(
+                    mockSøknad(UUID.randomUUID(), fnrInnsender = fnrAnnenFormidler)
+                )
+            }
+            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
+                val formidlersSoknader = this.hentSøknaderForFormidler("12345678910")
+                assertEquals(1, formidlersSoknader.size)
+
+                val formidlersSoknad = this.hentSøknadForFormidler("12345678910", soknadsId)
+                assertEquals(soknadsId, formidlersSoknad!!.søknadId)
+                assertNotNull(formidlersSoknad.søknadsdata)
             }
         }
     }
@@ -49,7 +75,7 @@ internal class SøknadStoreFormidlerTest {
                 }
 
                 SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                    val formidlersSøknad = this.hentSøknaderForFormidler("12345678910", 4)[0]
+                    val formidlersSøknad = this.hentSøknaderForFormidler("12345678910")[0]
                     assertEquals("fornavn etternavn", formidlersSøknad.navnBruker)
                 }
             }
@@ -119,7 +145,7 @@ internal class SøknadStoreFormidlerTest {
                 }
             }
             SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val søknader = this.hentSøknaderForFormidler("12345678910", 4)
+                val søknader = this.hentSøknaderForFormidler("12345678910")
                 assertTrue { søknader[0].fullmakt }
             }
         }
@@ -151,7 +177,7 @@ internal class SøknadStoreFormidlerTest {
                 }
             }
             SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val søknader = this.hentSøknaderForFormidler("12345678910", 4)
+                val søknader = this.hentSøknaderForFormidler("12345678910")
                 assertFalse { søknader[0].fullmakt }
             }
         }

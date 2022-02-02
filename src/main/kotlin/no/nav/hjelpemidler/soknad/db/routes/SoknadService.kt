@@ -91,8 +91,28 @@ internal fun Route.tokenXRoutes(
         val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
 
         try {
-            val formidlersSøknader = formidlerStore.hentSøknaderForFormidler(fnr, 4)
+            val formidlersSøknader = formidlerStore.hentSøknaderForFormidler(fnr)
             call.respond(formidlersSøknader)
+        } catch (e: Exception) {
+            logger.error(e) { "Error on fetching formidlers søknader" }
+            call.respond(HttpStatusCode.InternalServerError, e)
+        }
+    }
+
+    get("/soknad/formidler/{soknadsId}") {
+        val soknadsId = UUID.fromString(soknadsId())
+        val fnrFormidler = call.principal<UserPrincipal>()?.getFnr() ?: return@get call.respond(
+            HttpStatusCode.Unauthorized,
+            "Fnr mangler i token claim"
+        )
+
+        try {
+            val formidlersSoknad = formidlerStore.hentSøknadForFormidler(fnrFormidler, soknadsId)
+            if (formidlersSoknad == null) {
+                call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
+            } else {
+                call.respond(formidlersSoknad)
+            }
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching formidlers søknader" }
             call.respond(HttpStatusCode.InternalServerError, e)
@@ -423,7 +443,10 @@ internal fun Route.azureAdRoutes(
             call.respond(godkjenteSoknaderUtenOppgave)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching godkjente søknader uten oppgave" }
-            call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av godkjente søknader uten oppgave: ${e.message}")
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                "Feil ved henting av godkjente søknader uten oppgave: ${e.message}"
+            )
         }
     }
 
