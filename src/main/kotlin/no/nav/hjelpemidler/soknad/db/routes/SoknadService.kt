@@ -227,6 +227,21 @@ internal fun Route.azureAdRoutes(
         }
     }
 
+    post("/soknad/hotsak/har-vedtak/fra-søknadid") {
+        try {
+            val soknadId = call.receive<HarVedtakFraHotsakSøknadIdDto>().søknadId
+            val harVedtak = hotsakStore.harVedtakForSøknadId(
+                soknadId,
+            )
+            logger.info("Fant harVedtak $harVedtak fra HOTSAK med søknadId $soknadId")
+
+            soknadId.let { call.respond(mapOf("harVedtak" to harVedtak)) }
+        } catch (e: Exception) {
+            logger.error { "Feilet ved henting av harVedtak fra HOTSAK data: ${e.message}. ${e.stackTrace}" }
+            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av harVedtak fra HOTSAK data ${e.message}")
+        }
+    }
+
     post("/hotsak/vedtaksresultat") {
         try {
             val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
@@ -510,3 +525,5 @@ data class SoknadFraVedtaksresultatV2Dto(
 )
 
 data class SoknadFraHotsakNummerDto(val saksnummer: String)
+
+data class HarVedtakFraHotsakSøknadIdDto(val søknadId: UUID)
