@@ -233,6 +233,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             navn = it["navn"]?.textValue(),
             rullestolInfo = rullestolinfo(it),
             elektriskRullestolInfo = elektriskRullestolInfo(it),
+            personlofterInfo = personlofterInfo(it),
             utlevertInfo = utlevertInfo(it)
         )
         hjelpemidler.add(hjelpemiddel)
@@ -300,6 +301,11 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
             else -> throw RuntimeException("Ugyldig sitteputeValg")
         }
     )
+}
+
+private fun personlofterInfo(hjelpemiddel: JsonNode): PersonlofterInfo? {
+    val personlofterInfoJson = hjelpemiddel["personlofterInfo"] ?: return null
+    return PersonlofterInfo(harBehovForSeilEllerSele = personlofterInfoJson["harBehovForSeilEllerSele"].booleanValue())
 }
 
 private fun utlevertInfo(hjelpemiddel: JsonNode): UtlevertInfo? {
@@ -388,12 +394,17 @@ class Hjelpemiddel(
     val navn: String?,
     val rullestolInfo: RullestolInfo?,
     val elektriskRullestolInfo: ElektriskRullestolInfo?,
+    val personlofterInfo: PersonlofterInfo?,
     val utlevertInfo: UtlevertInfo?,
 )
 
 data class RullestolInfo(
     val skalBrukesIBil: Boolean?,
     val sitteputeValg: SitteputeValg?,
+)
+
+data class PersonlofterInfo(
+    val harBehovForSeilEllerSele: Boolean,
 )
 
 enum class SitteputeValg {
