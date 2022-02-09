@@ -494,6 +494,20 @@ internal fun Route.azureAdRoutes(
         }
     }
 
+    get("/soknad/ordre/har-ordre/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val result = ordreStore.harOrdre(soknadsId)
+            call.respond("harOrdre" to result)
+        } catch (e: Exception) {
+            logger.error { "Feilet ved sjekk om en søknad har ordre: ${e.message}. ${e.stackTrace}" }
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Feil ved sjekk om en søknad har ordre: ${e.message}"
+            )
+        }
+    }
+
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
             var result: List<ForslagsmotorTilbehoer_Hjelpemidler>?

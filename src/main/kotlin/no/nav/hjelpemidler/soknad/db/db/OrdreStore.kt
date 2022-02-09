@@ -21,6 +21,7 @@ import javax.sql.DataSource
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
     fun ordreSisteDøgn(soknadsId: UUID): Boolean
+    fun harOrdre(soknadsId: UUID): Boolean
     suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
@@ -63,6 +64,30 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             """.trimIndent()
 
         val result = time("order_siste_doegn") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        query,
+                        soknadsId
+                    ).map {
+                        true
+                    }.asSingle
+                )
+            }
+        }
+
+        return result != null
+    }
+
+    override fun harOrdre(soknadsId: UUID): Boolean {
+        val query =
+            """
+            SELECT 1
+            FROM V1_OEBS_DATA
+            WHERE SOKNADS_ID = ?
+            """.trimIndent()
+
+        val result = time("har_ordre") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
