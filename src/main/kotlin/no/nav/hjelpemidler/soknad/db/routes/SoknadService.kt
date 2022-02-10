@@ -109,6 +109,7 @@ internal fun Route.tokenXRoutes(
         try {
             val formidlersSoknad = formidlerStore.hentSøknadForFormidler(fnrFormidler, soknadsId)
             if (formidlersSoknad == null) {
+                logger.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
                 call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
             } else {
                 call.respond(formidlersSoknad)
