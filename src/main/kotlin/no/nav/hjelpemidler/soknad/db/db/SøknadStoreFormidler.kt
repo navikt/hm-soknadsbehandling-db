@@ -45,6 +45,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
                 WHERE soknad.FNR_INNSENDER = ?
+                AND soknad.created > '2021-05-07'
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
@@ -94,6 +95,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
                 )
                 WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId
+                AND soknad.created > '2021-05-07'
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
