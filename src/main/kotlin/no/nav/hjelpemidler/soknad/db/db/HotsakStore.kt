@@ -22,6 +22,7 @@ internal interface HotsakStore {
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatHotsakData?
     fun hentSøknadsIdForHotsakNummer(saksnummer: String): UUID?
     fun harVedtakForSøknadId(søknadId: UUID): Boolean
+    fun hentFagsakIdForSøknad(søknadId: UUID): String?
 }
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -106,6 +107,19 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                 }.asSingle
             )
         } ?: false
+    }
+
+    override fun hentFagsakIdForSøknad(søknadId: UUID): String? {
+        return using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    "SELECT SAKSNUMMER FROM V1_HOTSAK_DATA WHERE SOKNADS_ID = ?",
+                    søknadId,
+                ).map {
+                    it.string("SAKSNUMMER")
+                }.asSingle
+            )
+        }
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =

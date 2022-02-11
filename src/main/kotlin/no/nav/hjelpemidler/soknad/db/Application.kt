@@ -63,7 +63,7 @@ fun Application.module() {
         internal()
         route("/api") {
             authenticate("tokenX") {
-                tokenXRoutes(søknadStore, ordreStore, infotrygdStore, storeFormidler)
+                tokenXRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore, storeFormidler)
             }
 
             when (Configuration.application.profile) {

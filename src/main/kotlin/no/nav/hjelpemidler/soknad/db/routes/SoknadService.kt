@@ -37,6 +37,7 @@ internal fun Route.tokenXRoutes(
     søknadStore: SøknadStore,
     ordreStore: OrdreStore,
     infotrygdStore: InfotrygdStore,
+    hotsakStore: HotsakStore,
     formidlerStore: SøknadStoreFormidler
 ) {
     get("/soknad/bruker/{soknadsId}") {
@@ -61,6 +62,9 @@ internal fun Route.tokenXRoutes(
                     val fagsakData = infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId)
                     if (fagsakData != null) {
                         soknad.fagsakId = fagsakData.fagsakId
+                    }else{
+                        val fagsakData = hotsakStore.hentFagsakIdForSøknad(soknad.søknadId)
+                        if (fagsakData != null) soknad.fagsakId = fagsakData
                     }
 
                     call.respond(soknad)
