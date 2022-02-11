@@ -62,7 +62,7 @@ internal fun Route.tokenXRoutes(
                     val fagsakData = infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId)
                     if (fagsakData != null) {
                         soknad.fagsakId = fagsakData.fagsakId
-                    }else{
+                    } else {
                         val fagsakData = hotsakStore.hentFagsakIdForSøknad(soknad.søknadId)
                         if (fagsakData != null) soknad.fagsakId = fagsakData
                     }
