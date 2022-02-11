@@ -108,7 +108,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD AS soknad 
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
-                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE soknad.SOKNADS_ID = ? AND status.STATUS <> ?
             """
@@ -194,7 +194,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
-                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE soknad.SOKNADS_ID = ?
             """
@@ -349,7 +349,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
-                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE soknad.FNR_BRUKER = ? AND status.STATUS <> ?
                 ORDER BY soknad.CREATED DESC
@@ -409,7 +409,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
-                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE status.STATUS = ? AND (soknad.CREATED + interval '$dager day') < now()
                 ORDER BY soknad.CREATED DESC
@@ -469,7 +469,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     private fun checkIfLastStatusMatches(session: Session, soknadsId: UUID, status: Status): Boolean {
         val result = session.run(
             queryOf(
-                "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = ?)",
+                "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = ? ORDER BY created DESC LIMIT 1)",
                 soknadsId
             ).map {
                 it.stringOrNull("STATUS")
@@ -545,7 +545,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
-                    SELECT MAX(ID) FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID
+                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE status.STATUS IN (?, ?) 
                     AND (soknad.CREATED + interval '$dager day') < now() 
