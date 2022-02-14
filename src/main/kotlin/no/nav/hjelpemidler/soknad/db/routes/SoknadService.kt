@@ -113,7 +113,7 @@ internal fun Route.tokenXRoutes(
                 val digest = md.digest(bytes)
                 val hash = digest.fold("", { str, it -> str + "%02x".format(it) })
                 val firstTen = datoer.take(10).joinToString { it.toString() }
-                logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash datoOpprettet(første 10): $firstTen")
+                logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(første 10): $firstTen.")
             }
 
             call.respond(formidlersSøknader)
