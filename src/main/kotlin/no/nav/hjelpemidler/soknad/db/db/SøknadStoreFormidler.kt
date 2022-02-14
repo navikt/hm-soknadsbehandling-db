@@ -50,6 +50,13 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
                 )
+                AND NOT (
+                    -- Hvis vi har stått fast i status positivt vedtak i fire uker, og vedtaket kom før de siste fiksene våre så fjerner vi de fra formidleroversikten.
+                    -- Dette trengs pga. hvordan vi har kastet ordrelinjer som ikke kunne knyttes til sak, og da ble man hengende igjen for alltid.
+                    status.STATUS IN ('VEDTAKSRESULTAT_INNVILGET', 'VEDTAKSRESULTAT_MUNTLIG_INNVILGET', 'VEDTAKSRESULTAT_DELVIS_INNVILGET')
+                    AND status.CREATED < '2022-02-14' -- Dagen etter vi lanserte de siste fiksene
+                    AND status.CREATED < (now() - interval '4 week') -- Vises i maks fire uker etter vedtak
+                )
                 ORDER BY soknad.UPDATED DESC
             """
 
@@ -99,6 +106,13 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
+                )
+                AND NOT (
+                    -- Hvis vi har stått fast i status positivt vedtak i fire uker, og vedtaket kom før de siste fiksene våre så fjerner vi de fra formidleroversikten.
+                    -- Dette trengs pga. hvordan vi har kastet ordrelinjer som ikke kunne knyttes til sak, og da ble man hengende igjen for alltid.
+                    status.STATUS IN ('VEDTAKSRESULTAT_INNVILGET', 'VEDTAKSRESULTAT_MUNTLIG_INNVILGET', 'VEDTAKSRESULTAT_DELVIS_INNVILGET')
+                    AND status.CREATED < '2022-02-14' -- Dagen etter vi lanserte de siste fiksene
+                    AND status.CREATED < (now() - interval '4 week') -- Vises i maks fire uker etter vedtak
                 )
             """
 
