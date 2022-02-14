@@ -112,7 +112,7 @@ internal fun Route.tokenXRoutes(
                 val md = MessageDigest.getInstance("SHA-256")
                 val digest = md.digest(bytes)
                 val hash = digest.fold("", { str, it -> str + "%02x".format(it) }).take(10)
-                val lastTen = datoer.takeLast(10).joinToString { it.toString() }
+                val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
                 logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
             }
 
