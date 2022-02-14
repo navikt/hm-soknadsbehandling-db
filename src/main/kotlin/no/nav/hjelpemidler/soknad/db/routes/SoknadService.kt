@@ -101,14 +101,19 @@ internal fun Route.tokenXRoutes(
 
             // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
             val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
-            val bytes = fnr.toByteArray()
-            val md = MessageDigest.getInstance("SHA-256")
-            val digest = md.digest(bytes)
-            val hash = digest.fold("", { str, it -> str + "%02x".format(it) })
+            val datoer = mutableListOf<Date>()
             formidlersSøknader.forEach {
                 if (it.datoOpprettet.before(olderThan6mo)) {
-                    logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash soknadDatoOpprettet=${it.datoOpprettet}")
+                    datoer.add(it.datoOpprettet)
                 }
+            }
+            if (datoer.isNotEmpty()) {
+                val bytes = fnr.toByteArray()
+                val md = MessageDigest.getInstance("SHA-256")
+                val digest = md.digest(bytes)
+                val hash = digest.fold("", { str, it -> str + "%02x".format(it) })
+                val firstTen = datoer.take(10).joinToString { it.toString() }
+                logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash datoOpprettet(første 10): $firstTen")
             }
 
             call.respond(formidlersSøknader)
