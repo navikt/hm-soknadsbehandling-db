@@ -28,7 +28,9 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
+import java.security.MessageDigest
 import java.time.LocalDate
+import java.util.Date
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -96,6 +98,19 @@ internal fun Route.tokenXRoutes(
 
         try {
             val formidlersSøknader = formidlerStore.hentSøknaderForFormidler(fnr)
+
+            // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
+            val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
+            val bytes = fnr.toByteArray()
+            val md = MessageDigest.getInstance("SHA-256")
+            val digest = md.digest(bytes)
+            val hash = digest.fold("", { str, it -> str + "%02x".format(it) })
+            formidlersSøknader.forEach {
+                if (it.datoOpprettet.before(olderThan6mo)) {
+                    logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash soknadDatoOpprettet=${it.datoOpprettet}")
+                }
+            }
+
             call.respond(formidlersSøknader)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching formidlers søknader" }
