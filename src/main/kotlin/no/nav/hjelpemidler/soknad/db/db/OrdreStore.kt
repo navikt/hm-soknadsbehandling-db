@@ -32,7 +32,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        "INSERT INTO V1_OEBS_DATA (SOKNADS_ID, OEBS_ID, FNR_BRUKER, SERVICEFORESPOERSEL, ORDRENR, ORDRELINJE, DELORDRELINJE, ARTIKKELNR, ANTALL, ENHET, PRODUKTGRUPPE, PRODUKTGRUPPENR, DATA) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+                        "INSERT INTO V1_OEBS_DATA (SOKNADS_ID, OEBS_ID, FNR_BRUKER, SERVICEFORESPOERSEL, ORDRENR, ORDRELINJE, DELORDRELINJE, ARTIKKELNR, ANTALL, ENHET, PRODUKTGRUPPE, PRODUKTGRUPPENR, HJELPEMIDDELTYPE, DATA) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
                         ordrelinje.søknadId,
                         ordrelinje.oebsId,
                         ordrelinje.fnrBruker,
@@ -45,6 +45,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         ordrelinje.enhet,
                         ordrelinje.produktgruppe,
                         ordrelinje.produktgruppeNr,
+                        ordrelinje.hjelpemiddeltype,
                         PGobject().apply {
                             type = "jsonb"
                             value = ordrelinjeToJsonString(ordrelinje.data)
@@ -60,7 +61,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             """
             SELECT 1
             FROM V1_OEBS_DATA 
-            WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ?
+            WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ? AND HJELPEMIDDELTYPE <> 'Del'
             """.trimIndent()
 
         val result = time("order_siste_doegn") {
@@ -84,7 +85,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             """
             SELECT 1
             FROM V1_OEBS_DATA
-            WHERE SOKNADS_ID = ?
+            WHERE SOKNADS_ID = ? AND HJELPEMIDDELTYPE <> 'Del'
             """.trimIndent()
 
         val result = time("har_ordre") {
@@ -111,7 +112,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         """
                         SELECT ARTIKKELNR, DATA ->> 'artikkelbeskrivelse' AS ARTIKKELBESKRIVELSE, ANTALL, PRODUKTGRUPPE, CREATED
                         FROM V1_OEBS_DATA
-                        WHERE SOKNADS_ID = ?
+                        WHERE SOKNADS_ID = ? AND HJELPEMIDDELTYPE <> 'Del'
                         """.trimIndent(),
                         soknadsId,
                     ).map {
