@@ -509,7 +509,7 @@ internal fun Route.azureAdRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val result = ordreStore.ordreSisteDøgn(soknadsId)
-            call.respond("ordreSisteDøgn" to result)
+            call.respond(result)
         } catch (e: Exception) {
             logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
             call.respond(
@@ -523,7 +523,7 @@ internal fun Route.azureAdRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val result = ordreStore.harOrdre(soknadsId)
-            call.respond("harOrdre" to result)
+            call.respond(result)
         } catch (e: Exception) {
             logger.error { "Feilet ved sjekk om en søknad har ordre: ${e.message}. ${e.stackTrace}" }
             call.respond(

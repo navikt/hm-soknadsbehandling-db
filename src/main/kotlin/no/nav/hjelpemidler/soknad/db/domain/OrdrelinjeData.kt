@@ -16,5 +16,6 @@ internal data class OrdrelinjeData(
     val enhet: String,
     val produktgruppe: String,
     val produktgruppeNr: String,
+    val hjelpemiddeltype: String,
     val data: JsonNode,
 )

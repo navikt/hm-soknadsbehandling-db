@@ -23,6 +23,7 @@ internal class OrdreStoreTest {
             enhet = "STK",
             produktgruppe = "Manuelle armdrevne rullestoler",
             produktgruppeNr = "012345",
+            hjelpemiddeltype = "Hjelpemiddel",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
         withMigratedDb {
@@ -47,6 +48,7 @@ internal class OrdreStoreTest {
             enhet = "STK",
             produktgruppe = "Manuelle armdrevne rullestoler",
             produktgruppeNr = "012345",
+            hjelpemiddeltype = "Hjelpemiddel",
             data = ObjectMapper().readTree(""" {"key": "value"} """),
         )
         withMigratedDb {
