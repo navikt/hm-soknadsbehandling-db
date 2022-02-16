@@ -11,6 +11,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
+import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
@@ -20,8 +21,8 @@ import javax.sql.DataSource
 
 internal interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
-    fun ordreSisteDøgn(soknadsId: UUID): Boolean
-    fun harOrdre(soknadsId: UUID): Boolean
+    fun ordreSisteDøgn(soknadsId: UUID): HarOrdre
+    fun harOrdre(soknadsId: UUID): HarOrdre
     suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
@@ -56,12 +57,14 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
         }
     }
 
-    override fun ordreSisteDøgn(soknadsId: UUID): Boolean {
+    override fun ordreSisteDøgn(soknadsId: UUID): HarOrdre {
         val query =
             """
-            SELECT 1
+            SELECT HJELPEMIDDELTYPE
             FROM V1_OEBS_DATA 
-            WHERE  created > NOW() - '24 hours'::interval AND SOKNADS_ID = ? AND HJELPEMIDDELTYPE <> 'Del'
+            WHERE created > NOW() - '24 hours'::interval
+            AND SOKNADS_ID = ?
+            GROUP BY HJELPEMIDDELTYPE
             """.trimIndent()
 
         val result = time("order_siste_doegn") {
@@ -71,21 +74,25 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         query,
                         soknadsId
                     ).map {
-                        true
-                    }.asSingle
+                        it.string("HJELPEMIDDELTYPE")
+                    }.asList
                 )
             }
         }
 
-        return result != null
+        return HarOrdre(
+            harOrdreAvTypeHjelpemidler = result.any { it != "Del" },
+            harOrdreAvTypeDel = result.any { it == "Del" },
+        )
     }
 
-    override fun harOrdre(soknadsId: UUID): Boolean {
+    override fun harOrdre(soknadsId: UUID): HarOrdre {
         val query =
             """
-            SELECT 1
+            SELECT HJELPEMIDDELTYPE
             FROM V1_OEBS_DATA
-            WHERE SOKNADS_ID = ? AND HJELPEMIDDELTYPE <> 'Del'
+            WHERE SOKNADS_ID = ?
+            GROUP BY HJELPEMIDDELTYPE
             """.trimIndent()
 
         val result = time("har_ordre") {
@@ -95,13 +102,16 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         query,
                         soknadsId
                     ).map {
-                        true
-                    }.asSingle
+                        it.string("HJELPEMIDDELTYPE")
+                    }.asList
                 )
             }
         }
 
-        return result != null
+        return HarOrdre(
+            harOrdreAvTypeHjelpemidler = result.any { it != "Del" },
+            harOrdreAvTypeDel = result.any { it == "Del" },
+        )
     }
 
     override suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje> {
