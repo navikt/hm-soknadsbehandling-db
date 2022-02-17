@@ -136,6 +136,7 @@ internal fun Route.tokenXRoutes(
                 logger.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
                 call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
             } else {
+                logger.info { "Formidler hentet ut søknad $soknadsId" }
                 call.respond(formidlersSoknad)
             }
         } catch (e: Exception) {
