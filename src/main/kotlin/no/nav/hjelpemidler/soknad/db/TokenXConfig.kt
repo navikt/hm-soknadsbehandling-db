@@ -16,7 +16,7 @@ data class TokenXConfig(
 suspend fun loadTokenXConfig(): TokenXConfig {
 
     val jwksUri = System.getenv("TOKEN_X_WELL_KNOWN_URL") ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"
-    val clientId = System.getenv("TOKEN_X_CLIENT_ID") ?: "local:hm-soknadsbehandling-db"
+    val clientId = System.getenv("TOKEN_X_CLIENT_ID") ?: "local"
 
     return TokenXConfig(
         metadata = httpClient().get(jwksUri),
