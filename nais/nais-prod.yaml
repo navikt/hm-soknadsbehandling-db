@@ -34,6 +34,7 @@ spec:
         - application: hm-dinehjelpemidler
         - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
+        - application: hm-hjelpemiddelstatistikk
         - application: hm-soknadsbehandling
           namespace: teamdigihot
           cluster: prod-gcp
