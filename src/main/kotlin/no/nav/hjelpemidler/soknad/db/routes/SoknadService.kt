@@ -40,7 +40,7 @@ internal fun Route.tokenXRoutes(
     ordreStore: OrdreStore,
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
-    formidlerStore: SøknadStoreFormidler
+    formidlerStore: SøknadStoreFormidler,
 ) {
     get("/soknad/bruker/{soknadsId}") {
         try {
@@ -73,9 +73,8 @@ internal fun Route.tokenXRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            e.printStackTrace()
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 
@@ -164,9 +163,8 @@ internal fun Route.tokenXRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            e.printStackTrace()
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 }
@@ -175,7 +173,7 @@ internal fun Route.azureAdRoutes(
     søknadStore: SøknadStore,
     ordreStore: OrdreStore,
     infotrygdStore: InfotrygdStore,
-    hotsakStore: HotsakStore
+    hotsakStore: HotsakStore,
 ) {
     get("/soknad/fnr/{soknadsId}") {
         try {
@@ -183,8 +181,8 @@ internal fun Route.azureAdRoutes(
             val fnrForSoknad = søknadStore.hentFnrForSoknad(soknadsId)
             call.respond(fnrForSoknad)
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 
@@ -194,8 +192,8 @@ internal fun Route.azureAdRoutes(
             søknadStore.save(soknadToBeSaved)
             call.respond("OK")
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av søknad ${e.message}")
+            logger.error(e) { "Feilet ved lagring av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av søknad")
         }
     }
 
@@ -205,8 +203,8 @@ internal fun Route.azureAdRoutes(
             val rowsUpdated = ordreStore.save(ordreToBeSaved)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
+            logger.error(e) { "Feilet ved lagring av ordrelinje" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
         }
     }
 
@@ -216,8 +214,8 @@ internal fun Route.azureAdRoutes(
             val rowsUpdated = søknadStore.savePapir(papirsoknadToBeSaved)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av papirsøknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av papirsøknad ${e.message}")
+            logger.error(e) { "Feilet ved lagring av papirsøknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av papirsøknad")
         }
     }
 
@@ -227,8 +225,8 @@ internal fun Route.azureAdRoutes(
             val numRows = infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
             call.respond(numRows)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av ordrelinje: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av ordrelinje ${e.message}")
+            logger.error(e) { "Feilet ved lagring av ordrelinje" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
         }
     }
 
@@ -238,8 +236,8 @@ internal fun Route.azureAdRoutes(
             val numRows = hotsakStore.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
             call.respond(numRows)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av hotsak-tilknytning: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av hotsak-tilknytning ${e.message}")
+            logger.error(e) { "Feilet ved lagring av hotsak-tilknytning" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av hotsak-tilknytning")
         }
     }
 
@@ -253,8 +251,8 @@ internal fun Route.azureAdRoutes(
             )
             call.respond(rowUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av vedtaksresultat: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat ${e.message}")
+            logger.error(e) { "Feilet ved lagring av vedtaksresultat" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat")
         }
     }
 
@@ -268,8 +266,8 @@ internal fun Route.azureAdRoutes(
 
             soknadId.let { call.respond(mapOf("soknadId" to soknadId)) }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad fra HOTSAK data: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra HOTSAK data ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad fra HOTSAK data" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra HOTSAK data")
         }
     }
 
@@ -283,8 +281,8 @@ internal fun Route.azureAdRoutes(
 
             soknadId.let { call.respond(mapOf("harVedtak" to harVedtak)) }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av harVedtak fra HOTSAK data: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av harVedtak fra HOTSAK data ${e.message}")
+            logger.error(e) { "Feilet ved henting av harVedtak fra HOTSAK data" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av harVedtak fra HOTSAK data")
         }
     }
 
@@ -298,8 +296,8 @@ internal fun Route.azureAdRoutes(
             )
             call.respond(rowUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved lagring av vedtaksresultat fra hotsak: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved lagring av vedtaksresultat fra hotsak ${e.message}")
+            logger.error(e) { "Feilet ved lagring av vedtaksresultat fra hotsak" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat fra hotsak")
         }
     }
 
@@ -309,8 +307,8 @@ internal fun Route.azureAdRoutes(
             val rowsDeleted = søknadStore.slettSøknad(soknadToBeDeleted)
             call.respond(rowsDeleted)
         } catch (e: Exception) {
-            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved sletting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
         }
     }
 
@@ -320,8 +318,8 @@ internal fun Route.azureAdRoutes(
             val rowsDeleted = søknadStore.slettUtløptSøknad(soknadToBeDeleted)
             call.respond(rowsDeleted)
         } catch (e: Exception) {
-            logger.error { "Feilet ved sletting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved sletting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved sletting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
         }
     }
 
@@ -332,8 +330,8 @@ internal fun Route.azureAdRoutes(
             val rowsUpdated = søknadStore.oppdaterStatus(soknadsId, newStatus)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av søknad ${e.message}")
+            logger.error(e) { "Feilet ved oppdatering av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
         }
     }
 
@@ -351,8 +349,8 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 
@@ -374,8 +372,8 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av fnr og journalpost: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av fnr og journalpost ${e.message}")
+            logger.error(e) { "Feilet ved henting av fnr og journalpost" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av fnr og journalpost")
         }
     }
 
@@ -393,8 +391,8 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknadsdata: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknadsdata ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknadsdata" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknadsdata")
         }
     }
 
@@ -409,8 +407,8 @@ internal fun Route.azureAdRoutes(
 
             call.respond(mapOf(Pair("soknadId", soknadId)))
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
         }
     }
 
@@ -424,8 +422,8 @@ internal fun Route.azureAdRoutes(
 
             call.respond(resultater)
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av søknad fra vedtaksdata: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av søknad fra vedtaksdata ${e.message}")
+            logger.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
         }
     }
 
@@ -443,8 +441,8 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error { "Feilet ved henting av opprettet dato: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved henting av opprettet dato ${e.message}")
+            logger.error(e) { "Feilet ved henting av opprettet dato" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av opprettet dato")
         }
     }
 
@@ -486,8 +484,8 @@ internal fun Route.azureAdRoutes(
             )
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av journalpost-id: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av journalpost-id ${e.message}")
+            logger.error(e) { "Feilet ved oppdatering av journalpost-id" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av journalpost-id")
         }
     }
 
@@ -501,8 +499,8 @@ internal fun Route.azureAdRoutes(
             )
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error { "Feilet ved oppdatering av oppgave-id: ${e.message}. ${e.stackTrace}" }
-            call.respond(HttpStatusCode.BadRequest, "Feil ved oppdatering av oppgave-id ${e.message}")
+            logger.error(e) { "Feilet ved oppdatering av oppgave-id" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av oppgave-id")
         }
     }
 
@@ -512,10 +510,10 @@ internal fun Route.azureAdRoutes(
             val result = ordreStore.ordreSisteDøgn(soknadsId)
             call.respond(result)
         } catch (e: Exception) {
-            logger.error { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet: ${e.message}. ${e.stackTrace}" }
+            logger.error(e) { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                "Feil ved sjekk om en ordre har blitt oppdatert det siste døgnet ${e.message}"
+                "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet"
             )
         }
     }
@@ -526,10 +524,10 @@ internal fun Route.azureAdRoutes(
             val result = ordreStore.harOrdre(soknadsId)
             call.respond(result)
         } catch (e: Exception) {
-            logger.error { "Feilet ved sjekk om en søknad har ordre: ${e.message}. ${e.stackTrace}" }
+            logger.error(e) { "Feilet ved sjekk om en søknad har ordre" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                "Feil ved sjekk om en søknad har ordre: ${e.message}"
+                "Feilet ved sjekk om en søknad har ordre"
             )
         }
     }
@@ -548,11 +546,10 @@ internal fun Route.azureAdRoutes(
             val finalResult = result ?: listOf()
             call.respond(finalResult)
         } catch (e: Exception) {
-            logger.error { "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}. ${e.stackTrace}" }
-            e.printStackTrace()
+            logger.error(e) { "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør" }
             call.respond(
                 HttpStatusCode.InternalServerError,
-                "Feilet uthenting av initielt datasett for forslagsmotor for tilbehør: ${e.message}"
+                "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør"
             )
         }
     }
@@ -562,24 +559,24 @@ private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
     call.parameters["soknadsId"]
 
 data class ValiderSøknadsidOgStatusVenterGodkjenningRespons(
-    val resultat: Boolean
+    val resultat: Boolean,
 )
 
 data class VedtaksresultatDto(
     val søknadId: UUID,
     val vedtaksresultat: String,
-    val vedtaksdato: LocalDate
+    val vedtaksdato: LocalDate,
 )
 
 data class FnrOgJournalpostIdFinnesDto(
     val fnrBruker: String,
-    val journalpostId: Int
+    val journalpostId: Int,
 )
 
 data class SoknadFraVedtaksresultatDto(
     val fnrBruker: String,
     val saksblokkOgSaksnr: String,
-    val vedtaksdato: LocalDate
+    val vedtaksdato: LocalDate,
 )
 
 data class SoknadFraVedtaksresultatV2Dto(

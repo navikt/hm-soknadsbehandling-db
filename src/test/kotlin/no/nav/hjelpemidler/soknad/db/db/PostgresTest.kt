@@ -7,10 +7,12 @@ import kotliquery.sessionOf
 import no.nav.hjelpemidler.soknad.db.Configuration
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.wait.strategy.Wait
 
 internal object PostgresContainer {
     val instance by lazy {
         PostgreSQLContainer<Nothing>("postgres:13.1").apply {
+            waitingFor(Wait.forListeningPort())
             start()
         }
     }
@@ -19,6 +21,7 @@ internal object PostgresContainer {
 internal object DataSource {
     val instance: HikariDataSource by lazy {
         HikariDataSource().apply {
+            driverClassName = PostgresContainer.instance.driverClassName
             username = PostgresContainer.instance.username
             password = PostgresContainer.instance.password
             jdbcUrl = PostgresContainer.instance.jdbcUrl
