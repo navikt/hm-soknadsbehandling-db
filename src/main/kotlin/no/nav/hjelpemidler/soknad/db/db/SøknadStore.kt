@@ -209,7 +209,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         SoknadData(
                             fnrBruker = it.string("FNR_BRUKER"),
                             navnBruker = it.string("NAVN_BRUKER"),
-                            fnrInnsender = it.string("FNR_INNSENDER"),
+                            fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
                             soknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             status = Status.valueOf(it.string("STATUS")),
                             soknad = JacksonMapper.objectMapper.readTree(
