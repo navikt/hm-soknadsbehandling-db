@@ -1,14 +1,19 @@
 package no.nav.hjelpemidler.soknad.db.db
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.Row
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.Profile
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
+import org.intellij.lang.annotations.Language
 import java.net.Socket
 import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -30,6 +35,32 @@ internal fun waitForDB(timeout: Duration, config: Configuration): Boolean {
     }
     return false
 }
+
+fun Row.uuid(columnLabel: String): UUID = string(columnLabel).let {
+    UUID.fromString(it)
+}
+
+fun Row.uuidOrNull(columnLabel: String): UUID? = runCatching {
+    stringOrNull(columnLabel)?.let {
+        UUID.fromString(it)
+    }
+}.getOrNull()
+
+fun Row.jsonNode(columnLabel: String): JsonNode =
+    when (val content = stringOrNull(columnLabel)) {
+        null -> JacksonMapper.objectMapper.nullNode()
+        else -> JacksonMapper.objectMapper.readTree(content)
+    }
+
+fun Row.jsonNodeOrNull(columnLabel: String): JsonNode? = stringOrNull(columnLabel)?.let {
+    JacksonMapper.objectMapper.readTree(it)
+}
+
+fun Row.jsonNodeOrDefault(columnLabel: String, @Language("JSON") defaultContent: String): JsonNode =
+    when (val content = stringOrNull(columnLabel)) {
+        null -> JacksonMapper.objectMapper.readTree(defaultContent)
+        else -> JacksonMapper.objectMapper.readTree(content)
+    }
 
 internal fun migrate(config: Configuration) =
     HikariDataSource(hikariConfigFrom(config)).use { migrate(it) }

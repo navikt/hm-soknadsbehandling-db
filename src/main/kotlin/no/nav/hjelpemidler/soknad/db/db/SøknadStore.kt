@@ -10,7 +10,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
@@ -50,7 +49,6 @@ internal interface SøknadStore {
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
-
     override fun soknadFinnes(soknadsId: UUID): Boolean {
         @Language("PostgreSQL") val statement =
             """
@@ -90,7 +88,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         fnrBruker,
                         journalpostId,
                     ).map {
-                        UUID.fromString(it.string("SOKNADS_ID"))
+                        it.uuid("SOKNADS_ID")
                     }.asSingle
                 )
             }
@@ -124,8 +122,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SøknadForBruker.newEmptySøknad(
-                                søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
+                                søknadId = it.uuid("SOKNADS_ID"),
+                                journalpostId = it.uuidOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -141,8 +139,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             )
                         } else {
                             SøknadForBruker.new(
-                                søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                                journalpostId = uuidFromStringOrNull(it.stringOrNull("JOURNALPOSTID")),
+                                søknadId = it.uuid("SOKNADS_ID"),
+                                journalpostId = it.uuidOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -150,9 +148,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
                                     else -> it.sqlTimestamp("created")
                                 },
-                                søknad = JacksonMapper.objectMapper.readTree(
-                                    it.stringOrNull("DATA") ?: "{}"
-                                ),
+                                søknad = it.jsonNodeOrDefault("DATA", "{}"),
                                 kommunenavn = it.stringOrNull("KOMMUNENAVN"),
                                 fnrBruker = it.string("FNR_BRUKER"),
                                 er_digital = it.boolean("ER_DIGITAL"),
@@ -210,11 +206,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             fnrBruker = it.string("FNR_BRUKER"),
                             navnBruker = it.string("NAVN_BRUKER"),
                             fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
-                            soknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                            soknadId = it.uuid("SOKNADS_ID"),
                             status = Status.valueOf(it.string("STATUS")),
-                            soknad = JacksonMapper.objectMapper.readTree(
-                                it.string("DATA")
-                            ),
+                            soknad = it.jsonNodeOrDefault("DATA", "{}"),
                             kommunenavn = it.stringOrNull("KOMMUNENAVN"),
                             er_digital = it.boolean("ER_DIGITAL"),
                             soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
@@ -366,7 +360,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
-                                soknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                                soknadId = it.uuid("SOKNADS_ID"),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -380,7 +374,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             )
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
-                                soknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                                soknadId = it.uuid("SOKNADS_ID"),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -389,9 +383,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
                                     else -> it.sqlTimestamp("created")
                                 },
-                                søknad = JacksonMapper.objectMapper.readTree(
-                                    it.string("DATA")
-                                ),
+                                søknad = it.jsonNodeOrDefault("DATA", "{}"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                             )
@@ -423,7 +415,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         Status.VENTER_GODKJENNING.name,
                     ).map {
                         UtgåttSøknad(
-                            søknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                            søknadId = it.uuid("SOKNADS_ID"),
                             status = Status.valueOf(it.string("STATUS")),
                             fnrBruker = it.string("FNR_BRUKER")
                         )
@@ -516,7 +508,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                     ).map {
-                        val hjelpemiddel = objectMapper.readValue<ForslagsmotorTilbehoer_Hjelpemidler>(it.string("DATA"))
+                        val hjelpemiddel =
+                            objectMapper.readValue<ForslagsmotorTilbehoer_Hjelpemidler>(it.string("DATA"))
                         hjelpemiddel.created = it.localDateTime("CREATED")
                         hjelpemiddel
                     }.asList
@@ -530,7 +523,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 soknad = ForslagsmotorTilbehoer_Soknad(
                     id = soknad.soknad.id,
                     hjelpemidler = ForslagsmotorTilbehoer_HjelpemiddelListe(
-                        hjelpemiddelListe = soknad.soknad.hjelpemidler.hjelpemiddelListe.filter { it.tilbehorListe?.isNotEmpty() ?: false }.toTypedArray(),
+                        hjelpemiddelListe = soknad.soknad.hjelpemidler.hjelpemiddelListe.filter {
+                            it.tilbehorListe?.isNotEmpty() ?: false
+                        }.toTypedArray(),
                     ),
                 ),
                 created = soknad.created,
@@ -585,13 +580,4 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
-
-    private fun uuidFromStringOrNull(uid: String?): UUID? {
-        if (uid != null) {
-            try {
-                return UUID.fromString(uid)
-            } catch (e: IllegalArgumentException) {}
-        }
-        return null
-    }
 }
