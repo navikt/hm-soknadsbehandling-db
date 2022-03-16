@@ -69,6 +69,9 @@ spec:
           - name: soknadsbehandling-v4-db-dev
             envVarPrefix: DB
         cascadingDelete: false
+    bigQueryDatasets:
+      - name: hm_soknadsbehandling_v1_dataset_dev
+        permission: READWRITE
   env:
     - name: PORT
       value: "8080"

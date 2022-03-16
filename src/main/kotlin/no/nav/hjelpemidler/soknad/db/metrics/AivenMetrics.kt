@@ -1,11 +1,13 @@
 package no.nav.hjelpemidler.soknad.db.metrics
 
+import com.google.cloud.bigquery.DatasetId
 import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.domain.WritePrecision
 import com.influxdb.client.write.Point
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.Profile
 import java.time.Instant
 
 private val logg = KotlinLogging.logger {}
@@ -17,6 +19,10 @@ class AivenMetrics {
     private val influxDatabaseName = Configuration.application.INFLUX_DATABASE_NAME ?: "defaultdb"
     private val influxUser = Configuration.application.INFLUX_USER ?: "user"
     private val influxPassword = Configuration.application.INFLUX_PASSWORD ?: "password"
+    private val bigQueryClient: BigQueryClient = when (Configuration.application.profile) {
+        Profile.LOCAL -> LocalBigQueryClient()
+        else -> DefaultBigQueryClient(DatasetId.of(Configuration.bigQuery.projectId, Configuration.bigQuery.datasetId))
+    }
 
     private val client = InfluxDBClientFactory.createV1(
         "$influxHost:$influxPort",
@@ -35,6 +41,7 @@ class AivenMetrics {
             .time(Instant.now().toEpochMilli(), WritePrecision.MS)
 
         client.writePoint(point)
+        bigQueryClient.hendelseOpprettet(measurement, fields, tags)
         logg.info("Skriv point-objekt til Aiven: ${point.toLineProtocol()}")
     }
 

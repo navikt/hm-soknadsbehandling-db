@@ -14,6 +14,9 @@ private val logg = KotlinLogging.logger {}
 
 class Metrics {
 
+    private val aivenMetrics = AivenMetrics()
+    private val sensuMetrics = SensuMetrics()
+
     fun measureElapsedTimeBetweenStatusChanges(session: Session, soknadsId: UUID, status: Status) {
         runBlocking {
             launch(Job()) {
@@ -56,8 +59,8 @@ class Metrics {
 
                 val finalMetricFieldName = if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
 
-                AivenMetrics().registerElapsedTime(finalMetricFieldName, timeDifference)
-                SensuMetrics().registerElapsedTime(finalMetricFieldName, timeDifference)
+                aivenMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
+                sensuMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
             logg.error { "Feil ved sending av tid mellom status metrikker: ${e.message}. ${e.stackTrace}" }
@@ -92,7 +95,7 @@ class Metrics {
                     val metricsToSend = result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
 
                     if (!metricsToSend.isEmpty())
-                        AivenMetrics().registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+                        aivenMetrics.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
                 } catch (e: Exception) {
                     logg.error { "Feil ved sending antall per status metrikker: ${e.message}. ${e.stackTrace}" }
                 }

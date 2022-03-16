@@ -78,6 +78,9 @@ dependencies {
     }
     implementation(graphqlKotlin("client-jackson"))
 
+    // BigQuery
+    implementation("com.google.cloud:google-cloud-bigquery:2.10.0")
+
     // Test
     testImplementation(kotlin("test"))
     testImplementation(ktor("server-test-host"))

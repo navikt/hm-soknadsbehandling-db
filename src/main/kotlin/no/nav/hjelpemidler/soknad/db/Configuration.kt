@@ -28,6 +28,8 @@ private val localProperties = ConfigurationMap(
         "INFLUX_PASSWORD" to "password",
 
         "GRUNNDATA_API_URL" to "https://hm-grunndata-api.dev.intern.nav.no",
+        "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_local",
+        "GCP_TEAM_PROJECT_ID" to "teamdigihot",
     )
 )
 private val devProperties = ConfigurationMap(
@@ -37,6 +39,7 @@ private val devProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_dev",
     )
 )
 private val prodProperties = ConfigurationMap(
@@ -46,6 +49,7 @@ private val prodProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_prod",
     )
 )
 
@@ -58,31 +62,38 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
 }
 
 internal object Configuration {
+    val config = config()
     val database: Database = Database()
     val application: Application = Application()
+    val bigQuery: BigQuery = BigQuery()
 
     data class Database(
-        val host: String = config()[Key("db.host", stringType)],
-        val port: String = config()[Key("db.port", stringType)],
-        val name: String = config()[Key("db.database", stringType)],
-        val user: String? = config().getOrNull(Key("db.username", stringType)),
-        val password: String? = config().getOrNull(Key("db.password", stringType))
+        val host: String = config[Key("db.host", stringType)],
+        val port: String = config[Key("db.port", stringType)],
+        val name: String = config[Key("db.database", stringType)],
+        val user: String? = config.getOrNull(Key("db.username", stringType)),
+        val password: String? = config.getOrNull(Key("db.password", stringType))
     )
 
     data class Application(
-        val id: String = config().getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
-        val profile: Profile = config()[Key("application.profile", stringType)].let { Profile.valueOf(it) },
-        val userclaim: String = config()[Key("userclaim", stringType)],
-        val sensu: String? = config()[Key("sensu", stringType)],
-        val NAIS_APP_NAME: String? = config()[Key("NAIS_APP_NAME", stringType)],
-        val NAIS_CLUSTER_NAME: String? = config()[Key("NAIS_CLUSTER_NAME", stringType)],
-        val NAIS_NAMESPACE: String? = config()[Key("NAIS_NAMESPACE", stringType)],
-        val INFLUX_HOST: String? = config()[Key("INFLUX_HOST", stringType)],
-        val INFLUX_PORT: String? = config()[Key("INFLUX_PORT", stringType)],
-        val INFLUX_DATABASE_NAME: String? = config()[Key("INFLUX_DATABASE_NAME", stringType)],
-        val INFLUX_USER: String? = config()[Key("INFLUX_USER", stringType)],
-        val INFLUX_PASSWORD: String? = config()[Key("INFLUX_PASSWORD", stringType)],
-        val grunndataApiURL: String = config()[Key("GRUNNDATA_API_URL", stringType)],
+        val id: String = config.getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
+        val profile: Profile = config[Key("application.profile", stringType)].let { Profile.valueOf(it) },
+        val userclaim: String = config[Key("userclaim", stringType)],
+        val sensu: String? = config[Key("sensu", stringType)],
+        val NAIS_APP_NAME: String? = config[Key("NAIS_APP_NAME", stringType)],
+        val NAIS_CLUSTER_NAME: String? = config[Key("NAIS_CLUSTER_NAME", stringType)],
+        val NAIS_NAMESPACE: String? = config[Key("NAIS_NAMESPACE", stringType)],
+        val INFLUX_HOST: String? = config[Key("INFLUX_HOST", stringType)],
+        val INFLUX_PORT: String? = config[Key("INFLUX_PORT", stringType)],
+        val INFLUX_DATABASE_NAME: String? = config[Key("INFLUX_DATABASE_NAME", stringType)],
+        val INFLUX_USER: String? = config[Key("INFLUX_USER", stringType)],
+        val INFLUX_PASSWORD: String? = config[Key("INFLUX_PASSWORD", stringType)],
+        val grunndataApiURL: String = config[Key("GRUNNDATA_API_URL", stringType)],
+    )
+
+    data class BigQuery(
+        val projectId: String = config[Key("GCP_TEAM_PROJECT_ID", stringType)],
+        val datasetId: String = config[Key("BIGQUERY_DATASET_ID", stringType)],
     )
 }
 
