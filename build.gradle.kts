@@ -56,7 +56,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:8.4.3")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.6.1")
-    implementation("org.postgresql:postgresql:42.3.1")
+    implementation("org.postgresql:postgresql:42.3.3")
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:2.1.21")
@@ -68,7 +68,7 @@ dependencies {
 
     // InfluxDB
     implementation("org.influxdb:influxdb-java:2.22")
-    implementation("com.influxdb:influxdb-client-kotlin:4.1.0")
+    implementation("com.influxdb:influxdb-client-kotlin:4.3.0")
 
     // GraphQL Client
     implementation(graphqlKotlin("ktor-client")) {
