@@ -34,40 +34,46 @@ class DefaultBigQueryClient(datasetId: DatasetId) : BigQueryClient {
     init {
         when (bq.getTable(tableId)) {
             null -> {
-                val schema = Schema.of(listOf(
-                    Field.newBuilder("opprettet", StandardSQLTypeName.DATETIME)
-                        .setMode(Field.Mode.REQUIRED)
-                        .build(),
-                    Field.newBuilder("navn", StandardSQLTypeName.STRING)
-                        .setMode(Field.Mode.REQUIRED)
-                        .build(),
-                    Field
-                        .newBuilder(
-                            "data", StandardSQLTypeName.STRUCT,
-                            Field.newBuilder("navn", StandardSQLTypeName.STRING)
-                                .setMode(Field.Mode.REQUIRED)
-                                .build(),
-                            Field.newBuilder("verdi", StandardSQLTypeName.STRING)
-                                .setMode(Field.Mode.REQUIRED)
-                                .build(),
-                        )
-                        .setMode(Field.Mode.REPEATED)
-                        .build(),
-                    Field.newBuilder("tidsstempel", StandardSQLTypeName.TIMESTAMP)
-                        .setMode(Field.Mode.REQUIRED)
-                        .build(),
-                ))
+                val schema = Schema.of(
+                    listOf(
+                        Field.newBuilder("opprettet", StandardSQLTypeName.DATETIME)
+                            .setMode(Field.Mode.REQUIRED)
+                            .build(),
+                        Field.newBuilder("navn", StandardSQLTypeName.STRING)
+                            .setMode(Field.Mode.REQUIRED)
+                            .build(),
+                        Field
+                            .newBuilder(
+                                "data", StandardSQLTypeName.STRUCT,
+                                Field.newBuilder("navn", StandardSQLTypeName.STRING)
+                                    .setMode(Field.Mode.REQUIRED)
+                                    .build(),
+                                Field.newBuilder("verdi", StandardSQLTypeName.STRING)
+                                    .setMode(Field.Mode.REQUIRED)
+                                    .build(),
+                            )
+                            .setMode(Field.Mode.REPEATED)
+                            .build(),
+                        Field.newBuilder("tidsstempel", StandardSQLTypeName.TIMESTAMP)
+                            .setMode(Field.Mode.REQUIRED)
+                            .build(),
+                    )
+                )
 
                 val tableInfo = TableInfo.of(
                     tableId,
                     StandardTableDefinition.newBuilder()
                         .setSchema(schema)
-                        .setTimePartitioning(TimePartitioning.newBuilder(TimePartitioning.Type.MONTH)
-                            .setField("opprettet")
-                            .build())
-                        .setClustering(Clustering.newBuilder()
-                            .setFields(listOf("opprettet"))
-                            .build())
+                        .setTimePartitioning(
+                            TimePartitioning.newBuilder(TimePartitioning.Type.MONTH)
+                                .setField("opprettet")
+                                .build()
+                        )
+                        .setClustering(
+                            Clustering.newBuilder()
+                                .setFields(listOf("opprettet"))
+                                .build()
+                        )
                         .build()
                 )
                 bq.create(tableInfo)

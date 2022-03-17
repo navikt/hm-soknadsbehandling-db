@@ -20,15 +20,54 @@ class Metrics {
     fun measureElapsedTimeBetweenStatusChanges(session: Session, soknadsId: UUID, status: Status) {
         runBlocking {
             launch(Job()) {
-                recordForStatus(session, soknadsId, status, TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT, listOf(Status.VENTER_GODKJENNING), listOf(Status.GODKJENT))
-                recordForStatus(session, soknadsId, status, TID_FRA_GODKJENT_TIL_JOURNALFORT, listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT), listOf(Status.ENDELIG_JOURNALFØRT))
-                recordForStatus(session, soknadsId, status, TID_FRA_JOURNALFORT_TIL_VEDTAK, listOf(Status.ENDELIG_JOURNALFØRT), listOf(Status.VEDTAKSRESULTAT_ANNET, Status.VEDTAKSRESULTAT_AVSLÅTT, Status.VEDTAKSRESULTAT_DELVIS_INNVILGET, Status.VEDTAKSRESULTAT_INNVILGET, Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET))
-                recordForStatus(session, soknadsId, status, TID_FRA_VEDTAK_TIL_UTSENDING, listOf(Status.VEDTAKSRESULTAT_ANNET, Status.VEDTAKSRESULTAT_AVSLÅTT, Status.VEDTAKSRESULTAT_DELVIS_INNVILGET, Status.VEDTAKSRESULTAT_INNVILGET, Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET), listOf(Status.UTSENDING_STARTET))
+                recordForStatus(session,
+                    soknadsId,
+                    status,
+                    TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
+                    listOf(Status.VENTER_GODKJENNING),
+                    listOf(Status.GODKJENT))
+                recordForStatus(session,
+                    soknadsId,
+                    status,
+                    TID_FRA_GODKJENT_TIL_JOURNALFORT,
+                    listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
+                    listOf(Status.ENDELIG_JOURNALFØRT))
+                recordForStatus(session,
+                    soknadsId,
+                    status,
+                    TID_FRA_JOURNALFORT_TIL_VEDTAK,
+                    listOf(Status.ENDELIG_JOURNALFØRT),
+                    listOf(
+                        Status.VEDTAKSRESULTAT_ANNET,
+                        Status.VEDTAKSRESULTAT_AVSLÅTT,
+                        Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                        Status.VEDTAKSRESULTAT_INNVILGET,
+                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                    ))
+                recordForStatus(session,
+                    soknadsId,
+                    status,
+                    TID_FRA_VEDTAK_TIL_UTSENDING,
+                    listOf(
+                        Status.VEDTAKSRESULTAT_ANNET,
+                        Status.VEDTAKSRESULTAT_AVSLÅTT,
+                        Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                        Status.VEDTAKSRESULTAT_INNVILGET,
+                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                    ),
+                    listOf(Status.UTSENDING_STARTET))
             }
         }
     }
 
-    private fun recordForStatus(session: Session, soknadsId: UUID, status: Status, metricFieldName: String, validStartStatuses: List<Status>, validEndStatuses: List<Status>) {
+    private fun recordForStatus(
+        session: Session,
+        soknadsId: UUID,
+        status: Status,
+        metricFieldName: String,
+        validStartStatuses: List<Status>,
+        validEndStatuses: List<Status>,
+    ) {
         try {
             if (status in validEndStatuses) {
                 data class StatusRow(val STATUS: Status, val CREATED: Timestamp, val ER_DIGITAL: Boolean)
@@ -57,13 +96,14 @@ class Metrics {
 
                 val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
 
-                val finalMetricFieldName = if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
+                val finalMetricFieldName =
+                    if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
 
                 aivenMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
                 sensuMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
-            logg.error { "Feil ved sending av tid mellom status metrikker: ${e.message}. ${e.stackTrace}" }
+            logg.error(e) { "Feil ved sending av tid mellom status-metrikker" }
         }
     }
 
@@ -92,7 +132,8 @@ class Metrics {
                         }.asList
                     )
 
-                    val metricsToSend = result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
+                    val metricsToSend =
+                        result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
 
                     if (!metricsToSend.isEmpty())
                         aivenMetrics.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
@@ -104,7 +145,8 @@ class Metrics {
     }
 
     companion object {
-        const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT = "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
+        const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT =
+            "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
         const val TID_FRA_GODKJENT_TIL_JOURNALFORT = "hm-soknadsbehandling.event.tid_fra_godkjent_til_journalfort"
         const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_journalfort_til_vedtak"
         const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
