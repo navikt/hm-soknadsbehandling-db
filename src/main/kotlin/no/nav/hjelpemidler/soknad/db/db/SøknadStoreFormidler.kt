@@ -47,7 +47,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 WHERE soknad.FNR_INNSENDER = ?
                 AND soknad.created > '2021-05-07'
                 AND (
-                    status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
+                    status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
                 )
                 AND NOT (
@@ -104,7 +104,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId
                 AND soknad.created > '2021-05-07'
                 AND (
-                    status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
+                    status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
                 )
                 AND NOT (

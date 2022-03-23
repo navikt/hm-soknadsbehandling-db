@@ -42,7 +42,8 @@ class Metrics {
                         Status.VEDTAKSRESULTAT_AVSLÅTT,
                         Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
                         Status.VEDTAKSRESULTAT_INNVILGET,
-                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                        Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                     ))
                 recordForStatus(session,
                     soknadsId,
@@ -53,7 +54,8 @@ class Metrics {
                         Status.VEDTAKSRESULTAT_AVSLÅTT,
                         Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
                         Status.VEDTAKSRESULTAT_INNVILGET,
-                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                        Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                     ),
                     listOf(Status.UTSENDING_STARTET))
             }
