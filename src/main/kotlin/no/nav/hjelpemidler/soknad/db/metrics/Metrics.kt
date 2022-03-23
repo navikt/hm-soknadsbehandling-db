@@ -20,19 +20,24 @@ class Metrics {
     fun measureElapsedTimeBetweenStatusChanges(session: Session, soknadsId: UUID, status: Status) {
         runBlocking {
             launch(Job()) {
-                recordForStatus(session,
+                recordForStatus(
+                    session,
                     soknadsId,
                     status,
                     TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
                     listOf(Status.VENTER_GODKJENNING),
-                    listOf(Status.GODKJENT))
-                recordForStatus(session,
+                    listOf(Status.GODKJENT)
+                )
+                recordForStatus(
+                    session,
                     soknadsId,
                     status,
                     TID_FRA_GODKJENT_TIL_JOURNALFORT,
                     listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
-                    listOf(Status.ENDELIG_JOURNALFØRT))
-                recordForStatus(session,
+                    listOf(Status.ENDELIG_JOURNALFØRT)
+                )
+                recordForStatus(
+                    session,
                     soknadsId,
                     status,
                     TID_FRA_JOURNALFORT_TIL_VEDTAK,
@@ -44,8 +49,10 @@ class Metrics {
                         Status.VEDTAKSRESULTAT_INNVILGET,
                         Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
                         Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
-                    ))
-                recordForStatus(session,
+                    )
+                )
+                recordForStatus(
+                    session,
                     soknadsId,
                     status,
                     TID_FRA_VEDTAK_TIL_UTSENDING,
@@ -57,7 +64,8 @@ class Metrics {
                         Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
                         Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                     ),
-                    listOf(Status.UTSENDING_STARTET))
+                    listOf(Status.UTSENDING_STARTET)
+                )
             }
         }
     }
