@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.db
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -27,20 +26,20 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
     override fun lagStatistikkForPrisforhandletTilbehoer(soknad: SoknadData) {
         try {
             // Hent ut nødvendig info fra søknad data
-            data class Tilbehoer (
+            data class Tilbehoer(
                 val hmsnr: String,
             )
 
-            data class Hjelpemiddel (
+            data class Hjelpemiddel(
                 val hmsNr: String,
                 val tilbehorListe: List<Tilbehoer>,
             )
 
-            data class HjelpemiddelListe (
+            data class HjelpemiddelListe(
                 val hjelpemiddelListe: List<Hjelpemiddel>,
             )
 
-            data class Hjelpemidler (
+            data class Hjelpemidler(
                 val hjelpemidler: HjelpemiddelListe,
             )
 
