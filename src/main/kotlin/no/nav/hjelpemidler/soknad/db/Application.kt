@@ -13,6 +13,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
+import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidlerPostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStorePostgres
@@ -47,6 +48,7 @@ fun Application.module() {
     val ordreStore = OrdreStorePostgres(dataSource)
     val infotrygdStore = InfotrygdStorePostgres(dataSource)
     val hotsakStore = HotsakStorePostgres(dataSource)
+    val midlertidigPrisforhandletTilbehoerStorePostgres = MidlertidigPrisforhandletTilbehoerStorePostgres(dataSource)
 
     installAuthentication(tokenXConfig, aadConfig, Configuration.application)
 
@@ -68,11 +70,11 @@ fun Application.module() {
 
             when (Configuration.application.profile) {
                 Profile.LOCAL -> {
-                    azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
+                    azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore, midlertidigPrisforhandletTilbehoerStorePostgres)
                 }
                 else -> {
                     authenticate("aad") {
-                        azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore)
+                        azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore, midlertidigPrisforhandletTilbehoerStorePostgres)
                     }
                 }
             }
