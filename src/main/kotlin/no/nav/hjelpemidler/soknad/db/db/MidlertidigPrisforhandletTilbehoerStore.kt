@@ -49,10 +49,14 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 val hjelpemidler: HjelpemiddelListe,
             )
 
-            val soknadData: Hjelpemidler = objectMapper.readValue(objectMapper.writeValueAsString(soknad.soknad))
+            data class Soknad(
+                val soknad: Hjelpemidler,
+            )
+
+            val soknadData: Soknad = objectMapper.readValue(objectMapper.writeValueAsString(soknad.soknad))
 
             // Filtrer ut søknader uten noen tilbehør, kna data, og loop over det som er igjen
-            val hjelpemidler = soknadData.hjelpemidler.hjelpemiddelListe
+            val hjelpemidler = soknadData.soknad.hjelpemidler.hjelpemiddelListe
                 .filter { it.tilbehorListe.isNotEmpty() }
                 .groupBy { it.hmsNr }
                 .mapValues {
@@ -152,7 +156,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
 
             Oversikt(
                 statistikk = Statistikk(
-                    prisforhandletRatio = (tilfellerPrisforhandlet.toDouble()) / (tilfellerIkkePrisforhandlet.toDouble()),
+                    prisforhandletRatio = (tilfellerPrisforhandlet.toFloat()) / (tilfellerIkkePrisforhandlet.toFloat()),
                     tilfellerPrisforhandlet = tilfellerPrisforhandlet,
                     tilfellerIkkePrisforhandlet = tilfellerIkkePrisforhandlet,
                 ),
@@ -200,7 +204,7 @@ data class Oversikt(
 )
 
 data class Statistikk(
-    val prisforhandletRatio: Double,
+    val prisforhandletRatio: Float,
     val tilfellerPrisforhandlet: Int,
     val tilfellerIkkePrisforhandlet: Int,
 )
