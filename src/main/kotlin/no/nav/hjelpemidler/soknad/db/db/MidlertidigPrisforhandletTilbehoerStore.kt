@@ -18,6 +18,7 @@ private val logger = KotlinLogging.logger {}
 
 internal interface MidlertidigPrisforhandletTilbehoerStore {
     fun lagStatistikkForPrisforhandletTilbehoer(soknad: SoknadData)
+    fun hentOversikt(): Oversikt
 }
 
 internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: DataSource) : MidlertidigPrisforhandletTilbehoerStore {
@@ -101,7 +102,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                     Pair(it, runBlocking { HjelpemiddeldatabaseClient.erPrisforhandletTilbehoer(it.hmsnr_tilbehoer, it.rammeavtaleId, it.leverandorId) })
                 }
 
-                // TODO: Lagre statistikk i databasen, eventuelt også INFLUX?
+                // Lagre statistikk i databasen
                 prisforhandlet.forEach {
                     using(sessionOf(ds)) { session ->
                         session.run(
@@ -127,10 +128,88 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                     }
                 }
             }
-
-            // TODO: Add simple way of extracting the stats
         } catch (e: Exception) {
             logger.error(e) { "Feil når vi forsøkte å lage statistikk for prisforhandlet tilbehør. Denne kan trygt oversees midlertidig siden den bare påvirker statistikk." }
         }
     }
+
+    override fun hentOversikt(): Oversikt {
+        return using(sessionOf(ds)) { session ->
+            val (tilfellerPrisforhandlet, tilfellerIkkePrisforhandlet) = session.run(
+                queryOf(
+                    """
+                        SELECT (
+                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE prisforhandlet
+                        ) AS tilfellerPrisforhandlet, (
+                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE NOT prisforhandlet
+                        ) AS tilfellerIkkePrisforhandlet
+                        ;
+                    """.trimIndent()
+                ).map {
+                    Pair(it.int(0), it.int(1))
+                }.asSingle
+            ) ?: Pair(0, 0)
+
+            Oversikt(
+                statistikk = Statistikk(
+                    prisforhandletRatio = (tilfellerPrisforhandlet.toDouble()) / (tilfellerIkkePrisforhandlet.toDouble()),
+                    tilfellerPrisforhandlet = tilfellerPrisforhandlet,
+                    tilfellerIkkePrisforhandlet = tilfellerIkkePrisforhandlet,
+                ),
+                ikkePrisforhandletKoblinger = session.run(
+                    queryOf(
+                        """
+                            SELECT
+                                hmsnr_hjelpemiddel,
+                                hmsnr_tilbehoer
+                            FROM v1_midlertidig_prisforhandlet_tilbehoer
+                            WHERE
+                                NOT prisforhandlet
+                            ;
+                        """.trimIndent()
+                    ).map {
+                        Hjelpemiddel(
+                            hmsnr = it.string("hmsnr_hjelpemiddel"),
+                            tilbehoer = listOf(
+                                Tilbehoer(
+                                    hmsnr = it.string("hmsnr_tilbehoer"),
+                                )
+                            ),
+                        )
+                    }.asList
+                )
+                    // Combine row results with the same hmsnr_hjelpemiddel into a single result with the combined tilbehoer-list
+                    .groupBy { it.hmsnr }
+                    .map {
+                        Hjelpemiddel(
+                            hmsnr = it.key,
+                            tilbehoer = it.value.fold(mutableListOf<Tilbehoer>()) { a, b ->
+                                a.addAll(b.tilbehoer)
+                                a
+                            },
+                        )
+                    }
+            )
+        }
+    }
 }
+
+data class Oversikt(
+    val statistikk: Statistikk,
+    val ikkePrisforhandletKoblinger: List<Hjelpemiddel>,
+)
+
+data class Statistikk(
+    val prisforhandletRatio: Double,
+    val tilfellerPrisforhandlet: Int,
+    val tilfellerIkkePrisforhandlet: Int,
+)
+
+data class Hjelpemiddel(
+    val hmsnr: String,
+    val tilbehoer: List<Tilbehoer>,
+)
+
+data class Tilbehoer(
+    val hmsnr: String,
+)

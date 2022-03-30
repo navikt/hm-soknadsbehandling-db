@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
+import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
 import io.ktor.features.CallLogging
@@ -9,6 +10,8 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.jackson.JacksonConverter
 import io.ktor.request.path
+import io.ktor.response.respond
+import io.ktor.routing.get
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import kotlinx.coroutines.runBlocking
@@ -77,6 +80,11 @@ fun Application.module() {
                         azureAdRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore, midlertidigPrisforhandletTilbehoerStorePostgres)
                     }
                 }
+            }
+
+            // FIXME: fjern igjen når test er over
+            get("/hentStatistikkOversiktForPrisforhandletTilbehoer") {
+                call.respond(midlertidigPrisforhandletTilbehoerStorePostgres.hentOversikt())
             }
         }
     }
