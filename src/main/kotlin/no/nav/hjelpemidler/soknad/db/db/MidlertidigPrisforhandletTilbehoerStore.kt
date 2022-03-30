@@ -154,45 +154,49 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 }.asSingle
             ) ?: Pair(0, 0)
 
+            val ikkePrisforhandletKoblinger = session.run(
+                queryOf(
+                    """
+                        SELECT
+                            hmsnr_hjelpemiddel,
+                            hmsnr_tilbehoer
+                        FROM v1_midlertidig_prisforhandlet_tilbehoer
+                        WHERE
+                            NOT prisforhandlet
+                        ;
+                    """.trimIndent()
+                ).map {
+                    Hjelpemiddel(
+                        hmsnr = it.string("hmsnr_hjelpemiddel"),
+                        tilbehoer = listOf(
+                            Tilbehoer(
+                                hmsnr = it.string("hmsnr_tilbehoer"),
+                            )
+                        ),
+                    )
+                }.asList
+            )
+                // Combine row results with the same hmsnr_hjelpemiddel into a single result with the combined tilbehoer-list
+                .groupBy { it.hmsnr }
+                .map {
+                    Hjelpemiddel(
+                        hmsnr = it.key,
+                        tilbehoer = it.value.fold(mutableListOf<Tilbehoer>()) { a, b ->
+                            a.addAll(b.tilbehoer)
+                            a
+                        },
+                    )
+                }
+
             Oversikt(
                 statistikk = Statistikk(
                     prisforhandletRatio = tilfellerPrisforhandlet.toFloat() / (tilfellerPrisforhandlet + tilfellerIkkePrisforhandlet).toFloat(),
                     tilfellerPrisforhandlet = tilfellerPrisforhandlet,
                     tilfellerIkkePrisforhandlet = tilfellerIkkePrisforhandlet,
+                    totaltTilfeller = tilfellerPrisforhandlet + tilfellerIkkePrisforhandlet,
+                    antallIkkePrisforhandletKoblinger = ikkePrisforhandletKoblinger.sumOf { it.tilbehoer.count() },
                 ),
-                ikkePrisforhandletKoblinger = session.run(
-                    queryOf(
-                        """
-                            SELECT
-                                hmsnr_hjelpemiddel,
-                                hmsnr_tilbehoer
-                            FROM v1_midlertidig_prisforhandlet_tilbehoer
-                            WHERE
-                                NOT prisforhandlet
-                            ;
-                        """.trimIndent()
-                    ).map {
-                        Hjelpemiddel(
-                            hmsnr = it.string("hmsnr_hjelpemiddel"),
-                            tilbehoer = listOf(
-                                Tilbehoer(
-                                    hmsnr = it.string("hmsnr_tilbehoer"),
-                                )
-                            ),
-                        )
-                    }.asList
-                )
-                    // Combine row results with the same hmsnr_hjelpemiddel into a single result with the combined tilbehoer-list
-                    .groupBy { it.hmsnr }
-                    .map {
-                        Hjelpemiddel(
-                            hmsnr = it.key,
-                            tilbehoer = it.value.fold(mutableListOf<Tilbehoer>()) { a, b ->
-                                a.addAll(b.tilbehoer)
-                                a
-                            },
-                        )
-                    }
+                ikkePrisforhandletKoblinger = ikkePrisforhandletKoblinger,
             )
         }
     }
@@ -207,6 +211,8 @@ data class Statistikk(
     val prisforhandletRatio: Float,
     val tilfellerPrisforhandlet: Int,
     val tilfellerIkkePrisforhandlet: Int,
+    val totaltTilfeller: Int,
+    val antallIkkePrisforhandletKoblinger: Int,
 )
 
 data class Hjelpemiddel(
