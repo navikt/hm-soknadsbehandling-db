@@ -171,6 +171,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                         tilbehoer = listOf(
                             Tilbehoer(
                                 hmsnr = it.string("hmsnr_tilbehoer"),
+                                count = 1,
                             )
                         ),
                     )
@@ -181,12 +182,25 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 .map {
                     Hjelpemiddel(
                         hmsnr = it.key,
-                        tilbehoer = it.value.fold(mutableListOf<Tilbehoer>()) { a, b ->
-                            a.addAll(b.tilbehoer)
-                            a
-                        },
+                        tilbehoer = it.value
+                            // Merge list of lists into a single list of tilbehoer
+                            .fold(mutableListOf<Tilbehoer>()) { a, b ->
+                                a.addAll(b.tilbehoer)
+                                a
+                            }
+                            // Remove duplicates but count how many there were, and sort by count decending
+                            .groupBy { it.hmsnr }
+                            .map {
+                                Tilbehoer(
+                                    hmsnr = it.key,
+                                    count = it.value.count(),
+                                )
+                            }
+                            .sortedByDescending { it.count },
                     )
                 }
+
+            // TODO: DISTINCT hmsnr_tilbehoer og tell tilfeller og sorter decending
 
             Oversikt(
                 statistikk = Statistikk(
@@ -194,7 +208,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                     tilfellerPrisforhandlet = tilfellerPrisforhandlet,
                     tilfellerIkkePrisforhandlet = tilfellerIkkePrisforhandlet,
                     totaltTilfeller = tilfellerPrisforhandlet + tilfellerIkkePrisforhandlet,
-                    antallIkkePrisforhandletKoblinger = ikkePrisforhandletKoblinger.sumOf { it.tilbehoer.count() },
+                    antallIkkePrisforhandletKoblinger = ikkePrisforhandletKoblinger.sumOf { it.tilbehoer.sumOf { it.count } },
                 ),
                 ikkePrisforhandletKoblinger = ikkePrisforhandletKoblinger,
             )
@@ -222,4 +236,5 @@ data class Hjelpemiddel(
 
 data class Tilbehoer(
     val hmsnr: String,
+    val count: Int,
 )
