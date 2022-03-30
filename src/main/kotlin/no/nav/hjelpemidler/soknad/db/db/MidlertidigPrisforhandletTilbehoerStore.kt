@@ -107,14 +107,14 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                         session.run(
                             queryOf(
                                 """
-                                        INSERT INTO v1_midlertidig_prisforhandlet_tilbehoer (
-                                            hmsnr_hjelpemiddel,
-                                            hmsnr_tilbehoer,
-                                            rammeavtale_id,
-                                            leverandor_id,
-                                            prisforhandlet,
-                                            soknads_id
-                                        ) VALUES (?, ?, ?, ?, ?, ?);
+                                    INSERT INTO v1_midlertidig_prisforhandlet_tilbehoer (
+                                        hmsnr_hjelpemiddel,
+                                        hmsnr_tilbehoer,
+                                        rammeavtale_id,
+                                        leverandor_id,
+                                        prisforhandlet,
+                                        soknads_id
+                                    ) VALUES (?, ?, ?, ?, ?, ?);
                                 """.trimIndent(),
                                 hmsnr_hjelpemiddel,
                                 it.first.hmsnr_tilbehoer,
