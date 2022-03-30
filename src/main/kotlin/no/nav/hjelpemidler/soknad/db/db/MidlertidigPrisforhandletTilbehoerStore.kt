@@ -5,7 +5,12 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import kotliquery.using
 import mu.KotlinLogging
+import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import javax.sql.DataSource
 
@@ -45,19 +50,85 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
 
             val soknadData: Hjelpemidler = objectMapper.readValue(objectMapper.writeValueAsString(soknad.soknad))
 
-            // Filtrer ut søknader uten noen tilbehør
-            if (soknadData.hjelpemidler.hjelpemiddelListe.sumOf { it.tilbehorListe.count() } == 0) return
+            // Filtrer ut søknader uten noen tilbehør, kna data, og loop over det som er igjen
+            val hjelpemidler = soknadData.hjelpemidler.hjelpemiddelListe
+                .filter { it.tilbehorListe.isNotEmpty() }
+                .groupBy { it.hmsNr }
+                .mapValues {
+                    it.value
+                        .map { it.tilbehorListe }
+                        // Merge lists
+                        .fold(mutableListOf<Tilbehoer>()) { a, b ->
+                            a.addAll(b)
+                            a
+                        }
+                        // Transform into distinct list of hmsnrs
+                        .groupBy { it.hmsnr }
+                        .map { it.key }
+                }
 
-            // TODO: For hvert tilbehør slå opp rammeavtaleId, og leverandørId
-            // TODO: Slå opp om kombinasjonen hmsnrTilbehoer+rammeavtaleId+leverandørId er prisforhandlet
-            // TODO: Lagre statistikk i databasen, eventuelt også INFLUX?
-            /* using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "",
-                    ).asUpdate
-                )
-            } */
+            val precachedRammeavtaleLeverandor = runBlocking {
+                HjelpemiddeldatabaseClient.hentRammeavtaleIdOgLeverandorIdForProdukter(hjelpemidler.keys.toSet())
+            }
+                .groupBy { it.hmsnr!! }
+                .filter { it.value.isNotEmpty() }
+                .mapValues { it.value.first() }
+
+            hjelpemidler.forEach { hjelpemiddel ->
+                    val hmsnr_hjelpemiddel = hjelpemiddel.key
+                    val tilbehoer = hjelpemiddel.value
+
+                    // Slå opp rammeavtaleId og leverandørId for hjelpemiddel
+                    val rammeavtaleLeverandor = precachedRammeavtaleLeverandor[hmsnr_hjelpemiddel] ?: return
+
+                    // Forbered listen over prisforhandligner vi skal slå opp
+                    data class Prisforhandling(
+                        val hmsnr_tilbehoer: String,
+                        val rammeavtaleId: String,
+                        val leverandorId: String,
+                    )
+
+                    val prisforhandlinger = tilbehoer.map { prisforhandling ->
+                        Prisforhandling(
+                            hmsnr_tilbehoer = prisforhandling,
+                            rammeavtaleId = rammeavtaleLeverandor.rammeavtaleId!!,
+                            leverandorId = rammeavtaleLeverandor.leverandorId!!,
+                        )
+                    }
+
+                    // Slå opp om kombinasjonen hmsnrTilbehoer+rammeavtaleId+leverandørId er prisforhandlet
+                    val prisforhandlet = prisforhandlinger.map { it ->
+                        Pair(it, runBlocking { HjelpemiddeldatabaseClient.erPrisforhandletTilbehoer(it.hmsnr_tilbehoer, it.rammeavtaleId, it.leverandorId) })
+                    }
+
+                    // TODO: Lagre statistikk i databasen, eventuelt også INFLUX?
+                    prisforhandlet.forEach {
+                        using(sessionOf(ds)) { session ->
+                            session.run(
+                                queryOf(
+                                    """
+                                        INSERT INTO v1_midlertidig_prisforhandlet_tilbehoer (
+                                            hmsnr_hjelpemiddel,
+                                            hmsnr_tilbehoer,
+                                            rammeavtale_id,
+                                            leverandor_id,
+                                            prisforhandlet,
+                                            soknads_id
+                                        ) VALUES (?, ?, ?, ?, ?, ?);
+                                    """.trimIndent(),
+                                    hmsnr_hjelpemiddel,
+                                    it.first.hmsnr_tilbehoer,
+                                    it.first.rammeavtaleId,
+                                    it.first.leverandorId,
+                                    it.second,
+                                    soknad.soknadId,
+                                ).asUpdate
+                            )
+                        }
+                    }
+                }
+
+            // TODO: Add simple way of extracting the stats
         } catch (e: Exception) {
             logger.error(e) { "Feil når vi forsøkte å lage statistikk for prisforhandlet tilbehør. Denne kan trygt oversees midlertidig siden den bare påvirker statistikk." }
         }
