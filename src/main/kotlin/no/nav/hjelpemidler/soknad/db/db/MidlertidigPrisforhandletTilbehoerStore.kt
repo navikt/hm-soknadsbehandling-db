@@ -30,6 +30,8 @@ val kjenteRammeavtaler: Map<String, Boolean> = mapOf(
     "8628" to true,
 )
 
+val resetStats = "created > '2022-03-30 15:45:00.0'"
+
 internal interface MidlertidigPrisforhandletTilbehoerStore {
     fun lagStatistikkForPrisforhandletTilbehoer(soknad: SoknadData)
     fun hentOversikt(): Oversikt
@@ -160,9 +162,9 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 queryOf(
                     """
                         SELECT (
-                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE prisforhandlet
+                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE prisforhandlet AND $resetStats
                         ) AS tilfellerPrisforhandlet, (
-                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE NOT prisforhandlet
+                            SELECT count(*) FROM v1_midlertidig_prisforhandlet_tilbehoer WHERE NOT prisforhandlet AND $resetStats
                         ) AS tilfellerIkkePrisforhandlet
                         ;
                     """.trimIndent()
@@ -180,6 +182,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                         FROM v1_midlertidig_prisforhandlet_tilbehoer
                         WHERE
                             NOT prisforhandlet
+                            AND $resetStats
                         ;
                     """.trimIndent()
                 ).map {
@@ -216,8 +219,6 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                             .sortedByDescending { it.count },
                     )
                 }
-
-            // TODO: DISTINCT hmsnr_tilbehoer og tell tilfeller og sorter decending
 
             Oversikt(
                 statistikk = Statistikk(
