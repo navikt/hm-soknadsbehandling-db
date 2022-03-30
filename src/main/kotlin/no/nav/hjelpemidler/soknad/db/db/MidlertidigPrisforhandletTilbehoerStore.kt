@@ -146,7 +146,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                         ;
                     """.trimIndent()
                 ).map {
-                    Pair(it.int(0), it.int(1))
+                    Pair(it.int("tilfellerPrisforhandlet"), it.int("tilfellerIkkePrisforhandlet"))
                 }.asSingle
             ) ?: Pair(0, 0)
 
