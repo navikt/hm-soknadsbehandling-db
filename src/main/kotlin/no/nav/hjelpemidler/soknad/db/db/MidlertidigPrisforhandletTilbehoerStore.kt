@@ -75,38 +75,38 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 .mapValues { it.value.first() }
 
             hjelpemidler.forEach { hjelpemiddel ->
-                    val hmsnr_hjelpemiddel = hjelpemiddel.key
-                    val tilbehoer = hjelpemiddel.value
+                val hmsnr_hjelpemiddel = hjelpemiddel.key
+                val tilbehoer = hjelpemiddel.value
 
-                    // Slå opp rammeavtaleId og leverandørId for hjelpemiddel
-                    val rammeavtaleLeverandor = precachedRammeavtaleLeverandor[hmsnr_hjelpemiddel] ?: return
+                // Slå opp rammeavtaleId og leverandørId for hjelpemiddel
+                val rammeavtaleLeverandor = precachedRammeavtaleLeverandor[hmsnr_hjelpemiddel] ?: return
 
-                    // Forbered listen over prisforhandligner vi skal slå opp
-                    data class Prisforhandling(
-                        val hmsnr_tilbehoer: String,
-                        val rammeavtaleId: String,
-                        val leverandorId: String,
+                // Forbered listen over prisforhandligner vi skal slå opp
+                data class Prisforhandling(
+                    val hmsnr_tilbehoer: String,
+                    val rammeavtaleId: String,
+                    val leverandorId: String,
+                )
+
+                val prisforhandlinger = tilbehoer.map { prisforhandling ->
+                    Prisforhandling(
+                        hmsnr_tilbehoer = prisforhandling,
+                        rammeavtaleId = rammeavtaleLeverandor.rammeavtaleId!!,
+                        leverandorId = rammeavtaleLeverandor.leverandorId!!,
                     )
+                }
 
-                    val prisforhandlinger = tilbehoer.map { prisforhandling ->
-                        Prisforhandling(
-                            hmsnr_tilbehoer = prisforhandling,
-                            rammeavtaleId = rammeavtaleLeverandor.rammeavtaleId!!,
-                            leverandorId = rammeavtaleLeverandor.leverandorId!!,
-                        )
-                    }
+                // Slå opp om kombinasjonen hmsnrTilbehoer+rammeavtaleId+leverandørId er prisforhandlet
+                val prisforhandlet = prisforhandlinger.map { it ->
+                    Pair(it, runBlocking { HjelpemiddeldatabaseClient.erPrisforhandletTilbehoer(it.hmsnr_tilbehoer, it.rammeavtaleId, it.leverandorId) })
+                }
 
-                    // Slå opp om kombinasjonen hmsnrTilbehoer+rammeavtaleId+leverandørId er prisforhandlet
-                    val prisforhandlet = prisforhandlinger.map { it ->
-                        Pair(it, runBlocking { HjelpemiddeldatabaseClient.erPrisforhandletTilbehoer(it.hmsnr_tilbehoer, it.rammeavtaleId, it.leverandorId) })
-                    }
-
-                    // TODO: Lagre statistikk i databasen, eventuelt også INFLUX?
-                    prisforhandlet.forEach {
-                        using(sessionOf(ds)) { session ->
-                            session.run(
-                                queryOf(
-                                    """
+                // TODO: Lagre statistikk i databasen, eventuelt også INFLUX?
+                prisforhandlet.forEach {
+                    using(sessionOf(ds)) { session ->
+                        session.run(
+                            queryOf(
+                                """
                                         INSERT INTO v1_midlertidig_prisforhandlet_tilbehoer (
                                             hmsnr_hjelpemiddel,
                                             hmsnr_tilbehoer,
@@ -115,18 +115,18 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                                             prisforhandlet,
                                             soknads_id
                                         ) VALUES (?, ?, ?, ?, ?, ?);
-                                    """.trimIndent(),
-                                    hmsnr_hjelpemiddel,
-                                    it.first.hmsnr_tilbehoer,
-                                    it.first.rammeavtaleId,
-                                    it.first.leverandorId,
-                                    it.second,
-                                    soknad.soknadId,
-                                ).asUpdate
-                            )
-                        }
+                                """.trimIndent(),
+                                hmsnr_hjelpemiddel,
+                                it.first.hmsnr_tilbehoer,
+                                it.first.rammeavtaleId,
+                                it.first.leverandorId,
+                                it.second,
+                                soknad.soknadId,
+                            ).asUpdate
+                        )
                     }
                 }
+            }
 
             // TODO: Add simple way of extracting the stats
         } catch (e: Exception) {
