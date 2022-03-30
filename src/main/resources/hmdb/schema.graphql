@@ -26,10 +26,18 @@ directive @specifiedBy(
     url: String!
   ) on SCALAR
 
+type GodkjenningsKursDTO {
+  isokode: String!
+  kursId: Int!
+  tittel: String!
+}
+
+"Kombinasjon av produkt/produktserie, artikkel og hjelpemiddel"
 type Produkt {
-  artikkelId: String
+  artikkelId: String!
+  artikkelUrl: String!
   artikkelbeskrivelse: String
-  artikkelnavn: String
+  artikkelnavn: String!
   artikkelnr: String
   avtalepostId: String
   avtalepostbeskrivelse: String
@@ -40,34 +48,51 @@ type Produkt {
   blobUrlLite: String
   blobUrlStort: String
   blobUse: String
+  erIBestillingsordning: Boolean!
   generertAv: String!
   generertDato: LocalDateTime!
   harNavAvtale: Boolean!
   hmsnr: String
   id: ID!
-  isokode: String
-  isotekst: String
-  isotittel: String
+  isokode: String!
+  isokortnavn: String
+  isotekst: String!
+  isotittel: String!
   kategori: String
-  produktId: String
-  produktbeskrivelse: String
-  produktnavn: String
+  leverandorId: String
+  paakrevdGodkjenningskurs: GodkjenningsKursDTO
+  produktId: String!
+  produktUrl: String!
+  produktbeskrivelse: String!
+  produktnavn: String!
+  rammeavtaleId: String
+  rammeavtaleSlutt: LocalDate
+  rammeavtaleStart: LocalDate
   tekniskeData: [TekniskeDataTriple!]!
+  tekniskeDataSomTekst: String!
   tilgjengeligForDigitalSoknad: Boolean!
-  versjon: Int!
+}
+
+type ProduktPage {
+  hasMore: Boolean!
+  items: [Produkt!]!
+  numberOfItems: Int!
 }
 
 type Query {
-  "Finn produkter basert på søkeord"
-  finnProdukter(filter: ProduktfilterInput!, sokeord: String!): [Produkt!]!
+  "Sjekk om et tilbehør er prisforhandlet"
+  erPrisforhandletTilbehoer(hmsnr: String!, leverandorId: String!, rammeavtaleId: String!): Boolean!
   "Hent produkter"
-  hentAlleProdukter(filter: ProduktfilterInput!): [Produkt!]!
+  hentAlleProdukter(filter: ProduktfilterInput!): ProduktPage!
   "Hent produkter med hmsnr"
   hentProdukterMedHmsnr(hmsnr: String!): [Produkt!]!
   "Hent produkter med hmsnrs"
   hentProdukterMedHmsnrs(hmsnrs: [String!]!): [Produkt!]!
+  "Hent produkter som er tilgjengelige for digital søknad"
+  sortiment: [Produkt!]!
 }
 
+"Teknisk datum med ledetekst, verdi og evt. enhet"
 type TekniskeDataTriple {
   enhet: String
   tekst: String
@@ -75,11 +100,13 @@ type TekniskeDataTriple {
   visningstekst(separator: String): String!
 }
 
+"class java.time.LocalDate"
+scalar LocalDate
+
 "class java.time.LocalDateTime"
 scalar LocalDateTime
 
 input ProduktfilterInput {
   limit: Int
   offset: Int
-  tilgjengeligForDigitalSoknad: Boolean
 }

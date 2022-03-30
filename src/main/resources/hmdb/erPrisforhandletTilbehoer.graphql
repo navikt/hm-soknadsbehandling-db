@@ -1,0 +1,3 @@
+query ErPrisforhandletTilbehoer($hmsnr: String!, $rammeavtaleId: String!, $leverandorId: String!) {
+  prisforhandlet: erPrisforhandletTilbehoer(hmsnr: $hmsnr, rammeavtaleId: $rammeavtaleId, leverandorId: $leverandorId)
+}
