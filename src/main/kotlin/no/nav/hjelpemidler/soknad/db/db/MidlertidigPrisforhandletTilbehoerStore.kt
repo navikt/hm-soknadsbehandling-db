@@ -156,7 +156,7 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
 
             Oversikt(
                 statistikk = Statistikk(
-                    prisforhandletRatio = (tilfellerPrisforhandlet.toFloat()) / (tilfellerIkkePrisforhandlet.toFloat()),
+                    prisforhandletRatio = tilfellerPrisforhandlet.toFloat() / (tilfellerPrisforhandlet + tilfellerIkkePrisforhandlet).toFloat(),
                     tilfellerPrisforhandlet = tilfellerPrisforhandlet,
                     tilfellerIkkePrisforhandlet = tilfellerIkkePrisforhandlet,
                 ),
