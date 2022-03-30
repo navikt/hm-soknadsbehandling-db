@@ -16,6 +16,20 @@ import javax.sql.DataSource
 
 private val logger = KotlinLogging.logger {}
 
+val kjenteRammeavtaler: Map<String, Boolean> = mapOf(
+    "8607" to true,
+    "8594" to true,
+    "4200" to true,
+    "8654" to true,
+    "6427" to true,
+    "4289" to true,
+    "8617" to true,
+    "8672" to true,
+    "4361" to true,
+    "8590" to true,
+    "8628" to true,
+)
+
 internal interface MidlertidigPrisforhandletTilbehoerStore {
     fun lagStatistikkForPrisforhandletTilbehoer(soknad: SoknadData)
     fun hentOversikt(): Oversikt
@@ -78,13 +92,16 @@ internal class MidlertidigPrisforhandletTilbehoerStorePostgres(private val ds: D
                 .groupBy { it.hmsnr!! }
                 .filter { it.value.isNotEmpty() }
                 .mapValues { it.value.first() }
+                // Ignorer alle koblinger som gjelder en rammeavtale vi ikke har prisforhandlet-tilbehoer-data om
+                .filter { kjenteRammeavtaler.containsKey(it.value.rammeavtaleId!!) }
 
             hjelpemidler.forEach { hjelpemiddel ->
                 val hmsnr_hjelpemiddel = hjelpemiddel.key
                 val tilbehoer = hjelpemiddel.value
 
                 // Slå opp rammeavtaleId og leverandørId for hjelpemiddel
-                val rammeavtaleLeverandor = precachedRammeavtaleLeverandor[hmsnr_hjelpemiddel] ?: return
+                val rammeavtaleLeverandor = precachedRammeavtaleLeverandor[hmsnr_hjelpemiddel]
+                    ?: return // returner feks. pga. ukjent rammeavtale i grunndata sin oversikt over prisforhandlet tilbehoer
 
                 // Forbered listen over prisforhandligner vi skal slå opp
                 data class Prisforhandling(
