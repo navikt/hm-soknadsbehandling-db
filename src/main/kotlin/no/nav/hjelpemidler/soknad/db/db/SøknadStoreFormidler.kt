@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
+import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
@@ -45,7 +46,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE soknad.FNR_INNSENDER = ?
-                AND soknad.created > '2021-05-07'
+                AND soknad.created > ?
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
@@ -66,6 +67,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     queryOf(
                         statement,
                         fnrFormidler,
+                        LocalDateTime.now().minusMonths(6),
                     ).map {
                         SoknadForFormidler(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
@@ -102,7 +104,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId
-                AND soknad.created > '2021-05-07'
+                AND soknad.created > :minimumDato
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'UTSENDING_STARTET')
                     OR (status.CREATED + interval '$ukerEtterEndeligStatus week') > now()
@@ -123,7 +125,8 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                         statement,
                         mapOf(
                             "fnrInnsender" to fnrFormidler,
-                            "soknadId" to soknadId
+                            "soknadId" to soknadId,
+                            "minimumDato" to LocalDateTime.now().minusMonths(6),
                         )
                     ).map {
                         SoknadForFormidler(
