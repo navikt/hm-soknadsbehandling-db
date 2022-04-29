@@ -1,9 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.util.Date
 import java.util.UUID
+
+private val logg = KotlinLogging.logger {}
 
 class SøknadForBruker private constructor(
     val søknadId: UUID,
@@ -216,6 +219,8 @@ private fun funksjonsnedsettelser(søknad: JsonNode): List<Funksjonsnedsettelse>
 }
 
 private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
+    logg.info { "Søknad: ${søknad.toPrettyString()}" }
+
     val hjelpemidler = mutableListOf<Hjelpemiddel>()
     søknad["soknad"]["hjelpemidler"]["hjelpemiddelListe"].forEach {
         val hjelpemiddel = Hjelpemiddel(
