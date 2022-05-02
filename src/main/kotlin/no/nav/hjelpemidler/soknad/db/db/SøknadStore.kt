@@ -309,7 +309,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ? AND JOURNALPOSTID IS NULL",
+                        "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ?",
                         bigIntJournalPostId,
                         soknadsId
                     ).asUpdate
