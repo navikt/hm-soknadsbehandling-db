@@ -25,7 +25,7 @@ internal class InfotrygdStoreTest {
             VedtaksresultatData.getSaksblokkFromFagsakId(fagsakId),
             VedtaksresultatData.getSaksnrFromFagsakId(fagsakId),
             null,
-            null
+            null,
         )
 
         withMigratedDb {
@@ -56,7 +56,7 @@ internal class InfotrygdStoreTest {
             VedtaksresultatData.getSaksblokkFromFagsakId(fagsakId),
             VedtaksresultatData.getSaksnrFromFagsakId(fagsakId),
             null,
-            null
+            null,
         )
 
         // Etter vedtak er gjort
@@ -68,7 +68,7 @@ internal class InfotrygdStoreTest {
                 this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
             }
             InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato)
+                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
                     .also {
                         it shouldBe (1)
                     }
@@ -98,7 +98,7 @@ internal class InfotrygdStoreTest {
             VedtaksresultatData.getSaksblokkFromFagsakId(fagsakId),
             VedtaksresultatData.getSaksnrFromFagsakId(fagsakId),
             null,
-            null
+            null,
         )
 
         val resultat = "IM"
@@ -109,7 +109,7 @@ internal class InfotrygdStoreTest {
                 this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
             }
             InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato)
+                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
                     .also {
                         it shouldBe (1)
                     }
@@ -135,7 +135,7 @@ internal class InfotrygdStoreTest {
             VedtaksresultatData.getSaksblokkFromFagsakId(fagsakId1),
             VedtaksresultatData.getSaksnrFromFagsakId(fagsakId1),
             null,
-            null
+            null,
         )
 
         val søknadId2 = UUID.fromString("13a91147-88ae-428c-1ab7-3d2af985bcd9")
@@ -148,7 +148,7 @@ internal class InfotrygdStoreTest {
             VedtaksresultatData.getSaksblokkFromFagsakId(fagsakId2),
             VedtaksresultatData.getSaksnrFromFagsakId(fagsakId2),
             null,
-            null
+            null,
         )
 
         val resultat = "IM"
@@ -160,11 +160,11 @@ internal class InfotrygdStoreTest {
                 this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData2)
 
                 InfotrygdStorePostgres(DataSource.instance).apply {
-                    this.lagreVedtaksresultat(søknadId1, resultat, vedtaksdato)
+                    this.lagreVedtaksresultat(søknadId1, resultat, vedtaksdato, "")
                         .also {
                             it shouldBe (1)
                         }
-                    this.lagreVedtaksresultat(søknadId2, resultat, vedtaksdato)
+                    this.lagreVedtaksresultat(søknadId2, resultat, vedtaksdato, "")
                         .also {
                             it shouldBe (1)
                         }
