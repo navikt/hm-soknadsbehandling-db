@@ -250,7 +250,8 @@ internal fun Route.azureAdRoutes(
             val rowUpdated = infotrygdStore.lagreVedtaksresultat(
                 vedtaksresultatToBeSaved.søknadId,
                 vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato
+                vedtaksresultatToBeSaved.vedtaksdato,
+                vedtaksresultatToBeSaved.soknadsType,
             )
             call.respond(rowUpdated)
         } catch (e: Exception) {
@@ -569,6 +570,7 @@ data class VedtaksresultatDto(
     val søknadId: UUID,
     val vedtaksresultat: String,
     val vedtaksdato: LocalDate,
+    val soknadsType: String,
 )
 
 data class FnrOgJournalpostIdFinnesDto(

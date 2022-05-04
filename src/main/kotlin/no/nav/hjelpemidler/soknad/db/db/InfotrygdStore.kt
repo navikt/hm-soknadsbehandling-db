@@ -16,7 +16,8 @@ internal interface InfotrygdStore {
     fun lagreVedtaksresultat(
         søknadId: UUID,
         vedtaksresultat: String,
-        vedtaksdato: LocalDate
+        vedtaksdato: LocalDate,
+        soknadsType: String,
     ): Int
 
     fun hentSøknadIdFraVedtaksresultat(fnrBruker: String, saksblokkOgSaksnr: String, vedtaksdato: LocalDate): UUID?
@@ -52,15 +53,17 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
     override fun lagreVedtaksresultat(
         søknadId: UUID,
         vedtaksresultat: String,
-        vedtaksdato: LocalDate
+        vedtaksdato: LocalDate,
+        soknadsType: String,
     ): Int =
         time("oppdater_vedtaksresultat") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        "UPDATE V1_INFOTRYGD_DATA SET VEDTAKSRESULTAT = ?, VEDTAKSDATO = ? WHERE SOKNADS_ID = ?",
+                        "UPDATE V1_INFOTRYGD_DATA SET VEDTAKSRESULTAT = ?, VEDTAKSDATO = ?, SOKNADSTYPE = ? WHERE SOKNADS_ID = ?",
                         vedtaksresultat,
                         vedtaksdato,
+                        soknadsType,
                         søknadId,
                     ).asUpdate
                 )
