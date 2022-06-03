@@ -5,6 +5,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
@@ -36,7 +37,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
     override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.data ->> 'behovsmeldingType', soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -71,6 +72,9 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     ).map {
                         SoknadForFormidler(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                            behovsmeldingType = BehovsmeldingType.valueOf(
+                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                            ),
                             status = Status.valueOf(it.string("STATUS")),
                             fullmakt = it.boolean("fullmakt"),
                             datoOpprettet = it.sqlTimestamp("created"),
@@ -94,7 +98,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
     ): SoknadForFormidler? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.data ->> 'behovsmeldingType', soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -131,6 +135,9 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                     ).map {
                         SoknadForFormidler(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
+                            behovsmeldingType = BehovsmeldingType.valueOf(
+                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                            ),
                             status = Status.valueOf(it.string("STATUS")),
                             fullmakt = it.boolean("fullmakt"),
                             datoOpprettet = it.sqlTimestamp("created"),
@@ -163,6 +170,7 @@ private inline fun <T : Any?> time(queryName: String, function: () -> T) =
 
 class SoknadForFormidler constructor(
     val søknadId: UUID,
+    val behovsmeldingType: BehovsmeldingType,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
     val status: Status,
