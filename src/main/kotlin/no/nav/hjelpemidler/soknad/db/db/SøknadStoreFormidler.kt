@@ -37,7 +37,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
     override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.data ->> 'behovsmeldingType', soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -98,7 +98,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
     ): SoknadForFormidler? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.data ->> 'behovsmeldingType', soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
