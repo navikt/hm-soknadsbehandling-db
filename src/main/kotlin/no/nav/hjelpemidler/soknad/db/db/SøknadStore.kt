@@ -17,6 +17,7 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
@@ -35,6 +36,7 @@ internal interface SøknadStore {
     fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus>
     fun hentSoknadData(soknadsId: UUID): SoknadData?
     fun oppdaterStatus(soknadsId: UUID, status: Status): Int
+    fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int
     fun slettSøknad(soknadsId: UUID): Int
     fun slettUtløptSøknad(soknadsId: UUID): Int
     fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int
@@ -247,6 +249,42 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             return fnrBruker
         }
     }
+
+    override fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int =
+        time("oppdater_status med årsak") {
+            using(sessionOf(ds)) { session ->
+                if (checkIfLastStatusMatches(session, statusMedÅrsak.søknadId, statusMedÅrsak.status)) return@using 0
+                val result = session.transaction { transaction ->
+                    // Add the new status to the status table
+                    transaction.run(
+                        queryOf(
+                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS, BEGRUNNELSE, ARSAKER) VALUES (?, ?, ?, ?)",
+                            statusMedÅrsak.søknadId,
+                            statusMedÅrsak.status.name,
+                            statusMedÅrsak.begrunnelse,
+                            statusMedÅrsak.valgteÅrsaker?.let {
+                                PGobject().apply {
+                                    type = "jsonb"
+                                    value = valgteÅrsakerToJsonString(it)
+                                }
+                            }
+                        ).asUpdate
+                    )
+                    // Oppdatere UPDATED felt når man legger til ny status for søknad
+                    transaction.run(
+                        queryOf(
+                            "UPDATE V1_SOKNAD SET UPDATED = now() WHERE SOKNADS_ID = ?",
+                            statusMedÅrsak.søknadId,
+                        ).asUpdate
+                    )
+                }
+
+                metrics.measureElapsedTimeBetweenStatusChanges(session, statusMedÅrsak.søknadId, statusMedÅrsak.status)
+                metrics.countApplicationsByStatus(session)
+
+                return@using result
+            }
+        }
 
     override fun oppdaterStatus(soknadsId: UUID, status: Status): Int =
         time("oppdater_status") {
@@ -580,4 +618,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
+
+    private fun valgteÅrsakerToJsonString(valgteÅrsaker: Set<String>): String =
+        objectMapper.writeValueAsString(valgteÅrsaker)
 }

@@ -27,6 +27,7 @@ import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
 import java.security.MessageDigest
@@ -332,6 +333,17 @@ internal fun Route.azureAdRoutes(
             val soknadsId = UUID.fromString(soknadsId())
             val newStatus = call.receive<Status>()
             val rowsUpdated = søknadStore.oppdaterStatus(soknadsId, newStatus)
+            call.respond(rowsUpdated)
+        } catch (e: Exception) {
+            logger.error(e) { "Feilet ved oppdatering av søknad" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
+        }
+    }
+
+    put("/soknad/statusV2") {
+        try {
+            val statusMedÅrsak = call.receive<StatusMedÅrsak>()
+            val rowsUpdated = søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
