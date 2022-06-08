@@ -1,14 +1,14 @@
 package no.nav.hjelpemidler.soknad.db.db
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import no.nav.hjelpemidler.soknad.db.JacksonMapper
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
+import no.nav.hjelpemidler.soknad.db.objectMapper
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.Date
@@ -30,14 +30,13 @@ internal interface SøknadStoreFormidler {
     ): SoknadForFormidler?
 }
 
-private val objectMapper: ObjectMapper = JacksonMapper.objectMapper
-
 internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource) : SøknadStoreFormidler {
 
     override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, 
+                soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -76,6 +75,9 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                                 it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
                             ),
                             status = Status.valueOf(it.string("STATUS")),
+                            valgteÅrsaker = objectMapper.readValue(
+                                it.stringOrNull("ARSAKER") ?: "[]"
+                            ),
                             fullmakt = it.boolean("fullmakt"),
                             datoOpprettet = it.sqlTimestamp("created"),
                             datoOppdatert = when {
@@ -98,7 +100,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
     ): SoknadForFormidler? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,  
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -153,6 +155,9 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                                 ),
                                 null
                             ),
+                            valgteÅrsaker = objectMapper.readValue(
+                                it.stringOrNull("ARSAKER") ?: "[]"
+                            )
                         )
                     }.asSingle
                 )
@@ -177,5 +182,6 @@ class SoknadForFormidler constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val navnBruker: String?,
-    val søknadsdata: Søknadsdata? = null
+    val søknadsdata: Søknadsdata? = null,
+    val valgteÅrsaker: List<String>
 )

@@ -1,5 +1,11 @@
 package no.nav.hjelpemidler.soknad.db
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -29,6 +35,13 @@ import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
+
+internal val objectMapper: JsonMapper = jacksonMapperBuilder()
+    .addModule(JavaTimeModule())
+    .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .build()
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
