@@ -16,9 +16,10 @@ class SøknadForBruker private constructor(
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
     val er_digital: Boolean,
-    soknadGjelder: String?,
+    val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
     var fagsakId: String?,
+    val valgteÅrsaker: List<String>,
 ) {
     companion object {
         fun new(
@@ -36,6 +37,7 @@ class SøknadForBruker private constructor(
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
+            valgteÅrsaker: List<String>,
         ) =
             SøknadForBruker(
                 søknadId,
@@ -51,6 +53,7 @@ class SøknadForBruker private constructor(
                 soknadGjelder,
                 ordrelinjer,
                 fagsakId,
+                valgteÅrsaker,
             )
 
         fun newEmptySøknad(
@@ -66,6 +69,7 @@ class SøknadForBruker private constructor(
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
+            valgteÅrsaker: List<String>,
         ) =
             SøknadForBruker(
                 søknadId,
@@ -80,7 +84,8 @@ class SøknadForBruker private constructor(
                 er_digital,
                 soknadGjelder,
                 ordrelinjer,
-                fagsakId
+                fagsakId,
+                valgteÅrsaker,
             )
     }
 }

@@ -102,7 +102,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknad(soknadsId: UUID): SøknadForBruker? {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, 
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -140,6 +140,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
+                                valgteÅrsaker = objectMapper.readValue(
+                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                ),
                             )
                         } else {
                             SøknadForBruker.new(
@@ -160,6 +163,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
+                                valgteÅrsaker = objectMapper.readValue(
+                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                ),
                             )
                         }
                     }.asSingle
@@ -377,7 +383,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS,
+                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER,
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN true ELSE false END) as fullmakt
@@ -413,6 +419,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 },
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                                valgteÅrsaker = objectMapper.readValue(
+                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                ),
                             )
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
@@ -429,6 +438,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 søknad = it.jsonNodeOrDefault("DATA", "{}"),
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                                valgteÅrsaker = objectMapper.readValue(
+                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                ),
                             )
                         }
                     }.asList

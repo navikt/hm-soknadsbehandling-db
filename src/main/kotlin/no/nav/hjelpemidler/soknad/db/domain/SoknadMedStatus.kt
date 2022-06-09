@@ -15,13 +15,14 @@ class SoknadMedStatus private constructor(
     val formidlerNavn: String?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
+    val valgteÅrsaker: List<String>,
 ) {
     companion object {
-        fun newSøknadUtenFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean, soknadGjelder: String?) =
-            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, soknadGjelder)
+        fun newSøknadUtenFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean, soknadGjelder: String?, valgteÅrsaker: List<String>) =
+            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, soknadGjelder, valgteÅrsaker)
 
-        fun newSøknadMedFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean, soknadGjelder: String?) =
-            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, soknadGjelder)
+        fun newSøknadMedFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean, soknadGjelder: String?, valgteÅrsaker: List<String>) =
+            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, soknadGjelder, valgteÅrsaker)
     }
 }
 

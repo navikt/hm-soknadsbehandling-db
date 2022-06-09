@@ -1,5 +1,9 @@
 package no.nav.hjelpemidler.soknad.db.db
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -8,7 +12,6 @@ import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
-import no.nav.hjelpemidler.soknad.db.objectMapper
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.Date
@@ -164,6 +167,13 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
             }
         }
     }
+
+    companion object {
+        private val objectMapper = jacksonObjectMapper()
+            .registerModule(JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    }
 }
 
 private inline fun <T : Any?> time(queryName: String, function: () -> T) =
@@ -183,5 +193,5 @@ class SoknadForFormidler constructor(
     val fnrBruker: String,
     val navnBruker: String?,
     val søknadsdata: Søknadsdata? = null,
-    val valgteÅrsaker: List<String>
+    val valgteÅrsaker: List<String>,
 )
