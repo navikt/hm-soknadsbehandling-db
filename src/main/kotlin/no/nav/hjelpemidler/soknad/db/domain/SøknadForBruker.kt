@@ -7,6 +7,7 @@ import java.util.UUID
 
 class SøknadForBruker private constructor(
     val søknadId: UUID,
+    val behovsmeldingType: BehovsmeldingType,
     val journalpostId: UUID?,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
@@ -19,10 +20,10 @@ class SøknadForBruker private constructor(
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
     var fagsakId: String?,
 ) {
-
     companion object {
         fun new(
             søknadId: UUID,
+            behovsmeldingType: BehovsmeldingType,
             journalpostId: UUID?,
             datoOpprettet: Date,
             datoOppdatert: Date,
@@ -38,6 +39,7 @@ class SøknadForBruker private constructor(
         ) =
             SøknadForBruker(
                 søknadId,
+                behovsmeldingType,
                 journalpostId,
                 datoOpprettet,
                 datoOppdatert,
@@ -53,6 +55,7 @@ class SøknadForBruker private constructor(
 
         fun newEmptySøknad(
             søknadId: UUID,
+            behovsmeldingType: BehovsmeldingType,
             journalpostId: UUID?,
             datoOpprettet: Date,
             datoOppdatert: Date,
@@ -66,6 +69,7 @@ class SøknadForBruker private constructor(
         ) =
             SøknadForBruker(
                 søknadId,
+                behovsmeldingType,
                 journalpostId,
                 datoOpprettet,
                 datoOppdatert,

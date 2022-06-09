@@ -6,6 +6,7 @@ import java.util.UUID
 
 class SoknadMedStatus private constructor(
     val soknadId: UUID,
+    val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
     val datoOpprettet: Date,
     val datoOppdatert: Date,
@@ -16,11 +17,11 @@ class SoknadMedStatus private constructor(
     val soknadGjelder: String?,
 ) {
     companion object {
-        fun newSøknadUtenFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean, soknadGjelder: String?) =
-            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, soknadGjelder)
+        fun newSøknadUtenFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, er_digital: Boolean, soknadGjelder: String?) =
+            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, null, er_digital, soknadGjelder)
 
-        fun newSøknadMedFormidlernavn(soknadId: UUID, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean, soknadGjelder: String?) =
-            SoknadMedStatus(soknadId, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, soknadGjelder)
+        fun newSøknadMedFormidlernavn(soknadId: UUID, behovsmeldingType: BehovsmeldingType, journalpostId: String?, datoOpprettet: Date, datoOppdatert: Date, status: Status, fullmakt: Boolean, søknad: JsonNode, er_digital: Boolean, soknadGjelder: String?) =
+            SoknadMedStatus(soknadId, behovsmeldingType, journalpostId, datoOpprettet, datoOppdatert, status, fullmakt, formidlerNavn(søknad), er_digital, soknadGjelder)
     }
 }
 
