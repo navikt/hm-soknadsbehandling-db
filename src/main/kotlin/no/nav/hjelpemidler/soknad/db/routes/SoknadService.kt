@@ -21,6 +21,7 @@ import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStoreP
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
@@ -544,6 +545,21 @@ internal fun Route.azureAdRoutes(
             call.respond(
                 HttpStatusCode.BadRequest,
                 "Feilet ved sjekk om en søknad har ordre"
+            )
+        }
+    }
+
+    get("/soknad/behovsmeldingType/{soknadsId}") {
+        try {
+            val soknadsId = UUID.fromString(soknadsId())
+            val result = søknadStore.behovsmeldingTypeFor(soknadsId)
+            data class Result(val behovsmeldingType: BehovsmeldingType?)
+            call.respond(Result(result))
+        } catch (e: Exception) {
+            logger.error(e) { "Kunne ikke hente ut behovsmeldingsType" }
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Kunne ikke hente ut behovsmeldingsType"
             )
         }
     }

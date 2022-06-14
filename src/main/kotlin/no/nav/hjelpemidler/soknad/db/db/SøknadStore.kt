@@ -49,6 +49,7 @@ internal interface SøknadStore {
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
     fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
+    fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -613,6 +614,28 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     ).map {
                         it.string("SOKNADS_ID")
                     }.asList
+                )
+            }
+        }
+    }
+
+    override fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType? {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType
+                FROM V1_SOKNAD AS soknad
+                WHERE soknad.SOKNADS_ID = ?
+            """
+
+        return time("behovsmeldingTypeFor") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                        soknadsId,
+                    ).map {
+                        BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" })
+                    }.asSingle
                 )
             }
         }
