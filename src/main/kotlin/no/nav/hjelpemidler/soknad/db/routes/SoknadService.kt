@@ -553,6 +553,11 @@ internal fun Route.azureAdRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val result = søknadStore.behovsmeldingTypeFor(soknadsId)
+            if (result == null) {
+                logger.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$soknadsId")
+            } else {
+                logger.info("Found behovsmeldingType=$result for soknadsId=$soknadsId")
+            }
             data class Result(val behovsmeldingType: BehovsmeldingType?)
             call.respond(Result(result))
         } catch (e: Exception) {
