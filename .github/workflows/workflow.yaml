@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - DIGIHOT-758/brukernummer
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"

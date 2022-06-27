@@ -347,7 +347,7 @@ class Bruker(
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
-    val brukernummer: String?,
+    val brukernummer: String?
 )
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT }
