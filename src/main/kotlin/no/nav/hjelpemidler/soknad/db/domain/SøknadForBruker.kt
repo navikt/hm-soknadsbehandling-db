@@ -105,7 +105,8 @@ private fun bruker(søknad: JsonNode): Bruker {
         bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) Bruksarena.DAGLIGLIVET else Bruksarena.UKJENT,
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
-        kroppsmaal = kroppsmaal(brukerNode)
+        kroppsmaal = kroppsmaal(brukerNode),
+        brukernummer = brukerNode["brukernummer"]?.textValue()
     )
 }
 
@@ -355,6 +356,7 @@ class Bruker(
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
+    val brukernummer: String?
 )
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT }

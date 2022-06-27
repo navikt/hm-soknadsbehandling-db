@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - DIGIHOT-693/lagre-statistikk-i-midlertidig-db-tabell
 
 env:
   IMAGE: "docker.pkg.github.com/${{ github.repository }}/hm-soknadsbehandling-db:${{ github.sha }}"
