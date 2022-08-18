@@ -1,10 +1,8 @@
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jackson_version: String by project
 val ktor_version: String by project
 val graphql_client_version: String by project
-val kotest_version: String by project
 
 plugins {
     application
@@ -36,9 +34,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jackson_version")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
+    val jacksonVersion = "2.13.3"
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
     // Ktor Server
     implementation(ktor("server-core"))
@@ -53,22 +52,22 @@ dependencies {
     implementation(ktor("client-jackson"))
 
     // Database
-    implementation("org.flywaydb:flyway-core:8.4.3")
+    implementation("org.flywaydb:flyway-core:9.0.4")
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("com.github.seratch:kotliquery:1.6.1")
-    implementation("org.postgresql:postgresql:42.3.3")
+    implementation("com.github.seratch:kotliquery:1.8.0")
+    implementation("org.postgresql:postgresql:42.3.6")
 
     // Logging
-    implementation("io.github.microutils:kotlin-logging:2.1.21")
-    runtimeOnly("ch.qos.logback:logback-classic:1.2.10")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.0.1")
+    implementation("io.github.microutils:kotlin-logging:2.1.23")
+    runtimeOnly("ch.qos.logback:logback-classic:1.2.11")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
 
     implementation("com.natpryce:konfig:1.6.10.0")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.8.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.9.2")
 
     // InfluxDB
-    implementation("org.influxdb:influxdb-java:2.22")
-    implementation("com.influxdb:influxdb-client-kotlin:4.3.0")
+    implementation("org.influxdb:influxdb-java:2.23")
+    implementation("com.influxdb:influxdb-client-kotlin:6.4.0")
 
     // GraphQL Client
     implementation(graphqlKotlin("ktor-client")) {
@@ -84,9 +83,11 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation(ktor("server-test-host"))
-    testImplementation("io.mockk:mockk:1.12.2")
-    testImplementation("io.kotest:kotest-assertions-core:$kotest_version")
-    testImplementation("io.kotest:kotest-runner-junit5:$kotest_version")
+    testImplementation("io.mockk:mockk:1.12.5")
+
+    val kotestVersion = "5.4.1"
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("org.testcontainers:postgresql:1.16.3")
     testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
 }

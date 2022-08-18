@@ -128,7 +128,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             SøknadForBruker.newEmptySøknad(
                                 søknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
-                                journalpostId = it.uuidOrNull("JOURNALPOSTID"),
+                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),
@@ -149,7 +149,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             SøknadForBruker.new(
                                 søknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
-                                journalpostId = it.uuidOrNull("JOURNALPOSTID"),
+                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
                                 datoOpprettet = it.sqlTimestamp("created"),

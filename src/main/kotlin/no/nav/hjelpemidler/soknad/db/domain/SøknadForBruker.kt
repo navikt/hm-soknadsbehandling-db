@@ -8,7 +8,7 @@ import java.util.UUID
 class SøknadForBruker private constructor(
     val søknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
-    val journalpostId: UUID?,
+    val journalpostId: String?,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
     val status: Status,
@@ -25,7 +25,7 @@ class SøknadForBruker private constructor(
         fun new(
             søknadId: UUID,
             behovsmeldingType: BehovsmeldingType,
-            journalpostId: UUID?,
+            journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
             søknad: JsonNode,
@@ -59,7 +59,7 @@ class SøknadForBruker private constructor(
         fun newEmptySøknad(
             søknadId: UUID,
             behovsmeldingType: BehovsmeldingType,
-            journalpostId: UUID?,
+            journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
             status: Status,
