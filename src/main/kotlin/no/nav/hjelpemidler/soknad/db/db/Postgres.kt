@@ -40,12 +40,6 @@ fun Row.uuid(columnLabel: String): UUID = string(columnLabel).let {
     UUID.fromString(it)
 }
 
-fun Row.uuidOrNull(columnLabel: String): UUID? = runCatching {
-    stringOrNull(columnLabel)?.let {
-        UUID.fromString(it)
-    }
-}.getOrNull()
-
 fun Row.jsonNode(columnLabel: String): JsonNode =
     when (val content = stringOrNull(columnLabel)) {
         null -> JacksonMapper.objectMapper.nullNode()
@@ -84,5 +78,3 @@ internal fun dataSourceFrom(config: Configuration): HikariDataSource = when (con
 
 internal fun migrate(dataSource: HikariDataSource, initSql: String = ""): MigrateResult =
     Flyway.configure().dataSource(dataSource).initSql(initSql).load().migrate()
-
-internal fun clean(dataSource: HikariDataSource) = Flyway.configure().dataSource(dataSource).load().clean()

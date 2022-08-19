@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.hjelpemidler.soknad.db.Configuration
+import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -47,3 +48,6 @@ internal class PostgresTest {
         }
     }
 }
+
+private fun clean(dataSource: HikariDataSource) =
+    Flyway.configure().cleanDisabled(false).dataSource(dataSource).load().clean()
