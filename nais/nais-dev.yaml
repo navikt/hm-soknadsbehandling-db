@@ -61,7 +61,7 @@ spec:
         type: POSTGRES_12
         tier: db-f1-micro
         diskType: SSD
-        highAvailability: true
+        highAvailability: false
         diskSize: 10
         diskAutoresize: true
         autoBackupTime: "03:00"
