@@ -59,7 +59,7 @@ spec:
     sqlInstances:
       - name: hm-soknadsbehandling-v4-db-dev
         type: POSTGRES_12
-        tier: db-custom-1-3840
+        tier: db-f1-micro
         diskType: SSD
         highAvailability: true
         diskSize: 10
