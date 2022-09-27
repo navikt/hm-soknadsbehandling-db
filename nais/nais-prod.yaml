@@ -51,8 +51,8 @@ spec:
       cpu: 800m
       memory: 2024Mi
     requests:
-      cpu: 300m
-      memory: 1024Mi
+      cpu: 30m
+      memory: 512Mi
   secureLogs:
     enabled: true
   gcp:
