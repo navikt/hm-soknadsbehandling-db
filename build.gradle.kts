@@ -1,8 +1,6 @@
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktor_version: String by project
-val graphql_client_version: String by project
 
 plugins {
     application
@@ -27,8 +25,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:$ktor_version"
-fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:$graphql_client_version"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.1.2"
+fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.2.5"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -42,14 +40,16 @@ dependencies {
     // Ktor Server
     implementation(ktor("server-core"))
     implementation(ktor("server-netty"))
-    implementation(ktor("jackson"))
-    implementation(ktor("auth"))
-    implementation(ktor("auth-jwt"))
+    implementation(ktor("server-content-negotiation"))
+    implementation(ktor("server-auth"))
+    implementation(ktor("server-auth-jwt"))
+    implementation(ktor("server-call-logging"))
+    implementation(ktor("serialization-jackson"))
 
     // Ktor Client
     implementation(ktor("client-core"))
     implementation(ktor("client-apache"))
-    implementation(ktor("client-jackson"))
+    implementation(ktor("client-content-negotiation"))
 
     // Database
     implementation("org.flywaydb:flyway-core:9.4.0")

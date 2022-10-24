@@ -1,16 +1,20 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.auth0.jwk.JwkProviderBuilder
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.auth.Authentication
-import io.ktor.auth.Principal
-import io.ktor.auth.jwt.JWTPrincipal
-import io.ktor.auth.jwt.jwt
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.Principal
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-internal fun Application.installAuthentication(tokenXConfig: TokenXConfig, aadConfig: AadConfig, applicationConfig: Configuration.Application) {
+internal fun Application.installAuthentication(
+    tokenXConfig: TokenXConfig,
+    aadConfig: AadConfig,
+    applicationConfig: Configuration.Application
+) {
 
     val jwkProviderTokenX = JwkProviderBuilder(URL(tokenXConfig.metadata.jwksUri))
         // cache up to 10 JWKs for 24 hours

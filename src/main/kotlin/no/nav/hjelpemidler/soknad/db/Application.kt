@@ -1,19 +1,19 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.auth.authenticate
-import io.ktor.features.CallLogging
-import io.ktor.features.ContentNegotiation
 import io.ktor.http.ContentType
-import io.ktor.jackson.JacksonConverter
-import io.ktor.request.path
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.route
-import io.ktor.routing.routing
+import io.ktor.serialization.jackson.JacksonConverter
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
+import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.path
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
@@ -80,6 +80,7 @@ fun Application.module() {
                         midlertidigPrisforhandletTilbehoerStorePostgres
                     )
                 }
+
                 else -> {
                     authenticate("aad") {
                         azureAdRoutes(

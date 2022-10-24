@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - snyk-2022-10-21
+      - bump-graphql-deps
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}

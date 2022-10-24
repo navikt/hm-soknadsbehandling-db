@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 data class TokenXConfig(
@@ -15,11 +16,12 @@ data class TokenXConfig(
 
 suspend fun loadTokenXConfig(): TokenXConfig {
 
-    val jwksUri = System.getenv("TOKEN_X_WELL_KNOWN_URL") ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"
+    val jwksUri = System.getenv("TOKEN_X_WELL_KNOWN_URL")
+        ?: "http://host.docker.internal:8080/default/.well-known/openid-configuration"
     val clientId = System.getenv("TOKEN_X_CLIENT_ID") ?: "local"
 
     return TokenXConfig(
-        metadata = httpClient().get(jwksUri),
+        metadata = httpClient().get(jwksUri).body(),
         clientId = clientId
     )
 }

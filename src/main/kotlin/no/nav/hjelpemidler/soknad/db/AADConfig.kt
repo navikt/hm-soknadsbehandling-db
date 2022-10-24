@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 data class AadConfig(
@@ -19,7 +20,7 @@ suspend fun loadAadConfig(): AadConfig {
     val clientId = System.getenv("AZURE_APP_CLIENT_ID") ?: "local:hm-soknadsbehandling-db"
 
     return AadConfig(
-        metadata = httpClient().get(jwksUri),
+        metadata = httpClient().get(jwksUri).body(),
         clientId = clientId
     )
 }
