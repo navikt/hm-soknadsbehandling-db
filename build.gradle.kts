@@ -1,11 +1,13 @@
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val ktor_version: String by project
+val graphql_client_version: String by project
 
 plugins {
     application
     kotlin("jvm") version "1.6.10"
-    id("com.expediagroup.graphql") version "6.2.5"
+    id("com.expediagroup.graphql") version "5.3.2"
     id("com.diffplug.spotless") version "6.2.0"
 }
 
@@ -25,8 +27,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:1.6.7"
-fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.2.5"
+fun ktor(name: String) = "io.ktor:ktor-$name:$ktor_version"
+fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:$graphql_client_version"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
