@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     application
     kotlin("jvm") version "1.6.10"
-    id("com.expediagroup.graphql") version "5.3.2"
+    id("com.expediagroup.graphql") version "6.2.5"
     id("com.diffplug.spotless") version "6.2.0"
 }
 
@@ -52,7 +52,7 @@ dependencies {
     implementation(ktor("client-content-negotiation"))
 
     // Database
-    implementation("org.flywaydb:flyway-core:9.4.0")
+    implementation("org.flywaydb:flyway-core:9.5.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
     implementation("org.postgresql:postgresql:42.5.0")
@@ -85,7 +85,7 @@ dependencies {
     testImplementation(ktor("server-test-host"))
     testImplementation("io.mockk:mockk:1.13.2")
 
-    val kotestVersion = "5.5.1"
+    val kotestVersion = "5.5.2"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("org.testcontainers:postgresql:1.17.4")
