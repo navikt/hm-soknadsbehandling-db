@@ -40,6 +40,7 @@ spec:
         - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
         - application: hm-hjelpemiddelstatistikk
+        - application: hm-kommune-api
         - application: hm-soknadsbehandling
           namespace: teamdigihot
           cluster: dev-gcp
