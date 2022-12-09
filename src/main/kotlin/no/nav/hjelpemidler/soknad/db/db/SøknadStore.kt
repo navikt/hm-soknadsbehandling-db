@@ -20,6 +20,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
+import no.nav.hjelpemidler.soknad.db.domain.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
@@ -50,6 +51,7 @@ internal interface SøknadStore {
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
     fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
+    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -636,6 +638,50 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     ).map {
                         BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" })
                     }.asSingle
+                )
+            }
+        }
+    }
+
+    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String): List<SøknadForKommuneApi> {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT
+                    FNR_BRUKER,
+                    NAVN_BRUKER,
+                    FNR_INNSENDER,
+                    SOKNADS_ID,
+                    DATA,
+                    SOKNAD_GJELDER,
+                    CREATED
+                FROM V1_SOKNAD
+                WHERE
+                    kommunenavn LIKE ?
+                    AND data->'soknad'->'bruker'->>'kommunenummer' = ?
+                    AND created > NOW() - '7 days'::interval
+                    AND er_digital
+                ORDER BY created DESC
+                ;
+            """
+
+        return time("hentSoknaderForKommuneApiet") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                        "%$kommuneNavn%",
+                        kommuneNr,
+                    ).map {
+                        SøknadForKommuneApi(
+                            fnrBruker = it.string("FNR_BRUKER"),
+                            navnBruker = it.string("NAVN_BRUKER"),
+                            fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
+                            soknadId = it.uuid("SOKNADS_ID"),
+                            soknad = it.jsonNodeOrDefault("DATA", "{}"),
+                            soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                            opprettet = it.localDateTime("CREATED"),
+                        )
+                    }.asList
                 )
             }
         }
