@@ -51,7 +51,7 @@ internal interface SøknadStore {
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
     fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
-    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String): List<SøknadForKommuneApi>
+    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -643,7 +643,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         }
     }
 
-    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String): List<SøknadForKommuneApi> {
+    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi> {
+        val extraWhere = if (nyereEnn == null) "" else "AND created > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+
         @Language("PostgreSQL") val statement =
             """
                 SELECT
@@ -656,10 +658,11 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     CREATED
                 FROM V1_SOKNAD
                 WHERE
-                    kommunenavn LIKE ?
-                    AND data->'soknad'->'bruker'->>'kommunenummer' = ?
+                    kommunenavn LIKE :kommuneNavn
+                    AND data->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
                     AND created > NOW() - '7 days'::interval
                     AND er_digital
+                    $extraWhere
                 ORDER BY created DESC
                 ;
             """
@@ -669,8 +672,11 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 session.run(
                     queryOf(
                         statement,
-                        "%$kommuneNavn%",
-                        kommuneNr,
+                        mapOf(
+                            "kommuneNavn" to "%$kommuneNavn%",
+                            "kommuneNr" to kommuneNr,
+                            "nyereEnn" to nyereEnn?.toString(),
+                        )
                     ).map {
                         SøknadForKommuneApi(
                             fnrBruker = it.string("FNR_BRUKER"),
