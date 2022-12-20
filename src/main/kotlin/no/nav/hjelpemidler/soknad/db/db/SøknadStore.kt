@@ -675,7 +675,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         mapOf(
                             "kommuneNavn" to "%$kommuneNavn%",
                             "kommuneNr" to kommuneNr,
-                            "nyereEnn" to nyereEnn?.toString(),
+                            "nyereEnn" to nyereEnn,
                         )
                     ).map {
                         SøknadForKommuneApi(
