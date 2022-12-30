@@ -148,7 +148,7 @@ class Metrics {
                     if (!metricsToSend.isEmpty())
                         aivenMetrics.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
                 } catch (e: Exception) {
-                    logg.error { "Feil ved sending antall per status metrikker: ${e.message}. ${e.stackTrace}" }
+                    logg.error(e) { "Feil ved sending antall per status metrikker." }
                 }
             }
         }

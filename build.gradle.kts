@@ -25,15 +25,15 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.1.2"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.1.2" // TODO: Merkelig feil fører til SQLException i countApplicationsByStatus metrics ved oppgradering til 2.2.1
 fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.2.5"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // Jackson
-    val jacksonVersion = "2.13.4"
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion.2") // .2 pga snyk, kan sikkert ha samme versjon som de to andre senere
+    val jacksonVersion = "2.14.0"
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
 
@@ -52,18 +52,18 @@ dependencies {
     implementation(ktor("client-content-negotiation"))
 
     // Database
-    implementation("org.flywaydb:flyway-core:9.5.1")
+    implementation("org.flywaydb:flyway-core:9.10.2")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
-    implementation("org.postgresql:postgresql:42.5.0")
+    implementation("org.postgresql:postgresql:42.5.1")
 
     // Logging
-    implementation("io.github.microutils:kotlin-logging:3.0.2")
-    runtimeOnly("ch.qos.logback:logback-classic:1.4.4")
+    implementation("io.github.microutils:kotlin-logging:3.0.4")
+    runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
 
     implementation("com.natpryce:konfig:1.6.10.0")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.2")
 
     // InfluxDB
     implementation("org.influxdb:influxdb-java:2.23")
@@ -85,10 +85,10 @@ dependencies {
     testImplementation(ktor("server-test-host"))
     testImplementation("io.mockk:mockk:1.13.2")
 
-    val kotestVersion = "5.5.2"
+    val kotestVersion = "5.5.4"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    testImplementation("org.testcontainers:postgresql:1.17.4")
+    testImplementation("org.testcontainers:postgresql:1.17.6")
     testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
 }
 

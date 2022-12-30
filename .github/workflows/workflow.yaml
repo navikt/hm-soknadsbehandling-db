@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - bump-graphql-plugin
+      - bump-deps-again
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
