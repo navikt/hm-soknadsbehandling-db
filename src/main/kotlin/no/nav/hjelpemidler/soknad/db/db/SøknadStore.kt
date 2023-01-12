@@ -720,6 +720,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
                     AND CREATED > NOW() - '7 days'::interval
                     AND ER_DIGITAL
+                    AND DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
                     $extraWhere1
                     $extraWhere2
                 ORDER BY CREATED DESC
