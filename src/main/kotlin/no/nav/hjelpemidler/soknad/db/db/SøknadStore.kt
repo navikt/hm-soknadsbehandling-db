@@ -28,6 +28,9 @@ import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
@@ -54,7 +57,7 @@ internal interface SøknadStore {
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
-    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi>
+    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -697,8 +700,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         }
     }
 
-    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi> {
-        val extraWhere = if (nyereEnn == null) "" else "AND created > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
+        val extraWhere1 = if (nyereEnn == null) "" else "AND created > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND created > :nyereEnnTidsstempel"
 
         @Language("PostgreSQL") val statement =
             """
@@ -716,7 +720,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     AND data->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
                     AND created > NOW() - '7 days'::interval
                     AND er_digital
-                    $extraWhere
+                    $extraWhere1
+                    $extraWhere2
                 ORDER BY created DESC
                 ;
             """
@@ -730,6 +735,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             "kommuneNavn" to "%$kommuneNavn%",
                             "kommuneNr" to kommuneNr,
                             "nyereEnn" to nyereEnn,
+                            "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
+                                LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
+                            },
                         )
                     ).map {
                         SøknadForKommuneApi(

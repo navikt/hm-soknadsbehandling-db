@@ -582,6 +582,7 @@ internal fun Route.azureAdRoutes(
             val kommuneNavn: String,
             val kommuneNr: String,
             val nyereEnn: UUID?,
+            val nyereEnnTidsstempel: Long?,
         ) {
             fun isValid() =
                 kommuneNavn.isNotEmpty() &&
@@ -600,7 +601,7 @@ internal fun Route.azureAdRoutes(
         }
 
         runCatching {
-            val soknader = søknadStore.hentSoknaderForKommuneApiet(req.kommuneNavn, req.kommuneNr, req.nyereEnn)
+            val soknader = søknadStore.hentSoknaderForKommuneApiet(req.kommuneNavn, req.kommuneNr, req.nyereEnn, req.nyereEnnTidsstempel)
             call.respond(soknader)
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
