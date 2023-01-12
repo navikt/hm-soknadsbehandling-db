@@ -701,8 +701,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
-        val extraWhere1 = if (nyereEnn == null) "" else "AND created > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
-        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND created > :nyereEnnTidsstempel"
+        val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
 
         @Language("PostgreSQL") val statement =
             """
@@ -716,13 +716,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     CREATED
                 FROM V1_SOKNAD
                 WHERE
-                    kommunenavn LIKE :kommuneNavn
-                    AND data->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
-                    AND created > NOW() - '7 days'::interval
-                    AND er_digital
+                    KOMMUNENAVN LIKE :kommuneNavn
+                    AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                    AND CREATED > NOW() - '7 days'::interval
+                    AND ER_DIGITAL
                     $extraWhere1
                     $extraWhere2
-                ORDER BY created DESC
+                ORDER BY CREATED DESC
                 ;
             """
 
