@@ -30,6 +30,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
 import java.security.MessageDigest
 import java.time.LocalDate
@@ -178,6 +179,7 @@ internal fun Route.azureAdRoutes(
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
     midlertidigPrisforhandletTilbehoerStorePostgres: MidlertidigPrisforhandletTilbehoerStorePostgres,
+    metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadsId}") {
         try {
@@ -335,6 +337,9 @@ internal fun Route.azureAdRoutes(
             val newStatus = call.receive<Status>()
             val rowsUpdated = søknadStore.oppdaterStatus(soknadsId, newStatus)
             call.respond(rowsUpdated)
+
+            metrics.measureElapsedTimeBetweenStatusChanges(soknadsId, newStatus)
+            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -346,6 +351,9 @@ internal fun Route.azureAdRoutes(
             val statusMedÅrsak = call.receive<StatusMedÅrsak>()
             val rowsUpdated = søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak)
             call.respond(rowsUpdated)
+
+            metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
+            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")

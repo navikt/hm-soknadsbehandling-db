@@ -23,6 +23,7 @@ import no.nav.hjelpemidler.soknad.db.db.SøknadStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.dataSourceFrom
 import no.nav.hjelpemidler.soknad.db.db.migrate
 import no.nav.hjelpemidler.soknad.db.db.waitForDB
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
 import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
@@ -51,6 +52,7 @@ fun Application.module() {
     val infotrygdStore = InfotrygdStorePostgres(dataSource)
     val hotsakStore = HotsakStorePostgres(dataSource)
     val midlertidigPrisforhandletTilbehoerStorePostgres = MidlertidigPrisforhandletTilbehoerStorePostgres(dataSource)
+    val metrics = Metrics(søknadStore)
 
     installAuthentication(tokenXConfig, aadConfig, Configuration.application)
 
@@ -77,7 +79,8 @@ fun Application.module() {
                         ordreStore,
                         infotrygdStore,
                         hotsakStore,
-                        midlertidigPrisforhandletTilbehoerStorePostgres
+                        midlertidigPrisforhandletTilbehoerStorePostgres,
+                        metrics
                     )
                 }
 
@@ -88,7 +91,8 @@ fun Application.module() {
                             ordreStore,
                             infotrygdStore,
                             hotsakStore,
-                            midlertidigPrisforhandletTilbehoerStorePostgres
+                            midlertidigPrisforhandletTilbehoerStorePostgres,
+                            metrics
                         )
                     }
                 }

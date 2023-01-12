@@ -18,11 +18,12 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
+import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
@@ -51,6 +52,8 @@ internal interface SøknadStore {
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
     fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
+    fun tellStatuser(): List<StatusCountRow>
+    fun hentStatuser(soknadsId: UUID): List<StatusRow>
     fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi>
 }
 
@@ -129,7 +132,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SøknadForBruker.newEmptySøknad(
                                 søknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
+                                behovsmeldingType = BehovsmeldingType.valueOf(
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -150,7 +155,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         } else {
                             SøknadForBruker.new(
                                 søknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
+                                behovsmeldingType = BehovsmeldingType.valueOf(
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -291,9 +298,6 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }
 
-                metrics.measureElapsedTimeBetweenStatusChanges(session, statusMedÅrsak.søknadId, statusMedÅrsak.status)
-                metrics.countApplicationsByStatus(session)
-
                 return@using result
             }
         }
@@ -319,9 +323,6 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         ).asUpdate
                     )
                 }
-
-                metrics.measureElapsedTimeBetweenStatusChanges(session, soknadsId, status)
-                metrics.countApplicationsByStatus(session)
 
                 return@using result
             }
@@ -411,7 +412,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
+                                behovsmeldingType = BehovsmeldingType.valueOf(
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -429,7 +432,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
                                 soknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }),
+                                behovsmeldingType = BehovsmeldingType.valueOf(
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
                                 fullmakt = it.boolean("fullmakt"),
@@ -643,6 +648,55 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         }
     }
 
+    override fun tellStatuser(): List<StatusCountRow> {
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT STATUS AS STATUS, COUNT(SOKNADS_ID) AS COUNT FROM (
+                SELECT V1_STATUS.SOKNADS_ID, V1_STATUS.STATUS FROM V1_STATUS
+                                    LEFT JOIN V1_STATUS last_status ON
+                            V1_STATUS.SOKNADS_ID = last_status.SOKNADS_ID AND
+                            V1_STATUS.created < last_status.created
+                WHERE last_status.SOKNADS_ID IS NULL) last_statuses
+                GROUP BY STATUS                                
+            """.trimIndent()
+
+        return using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    statement
+                ).map {
+                    StatusCountRow(
+                        Status.valueOf(it.string("STATUS")),
+                        it.int("COUNT"),
+                    )
+                }.asList
+            )
+        }
+    }
+
+    override fun hentStatuser(soknadsId: UUID): List<StatusRow> {
+        @Language("PostgreSQL") val statement = """
+            SELECT STATUS, V1_STATUS.CREATED AS CREATED, ER_DIGITAL 
+            FROM V1_STATUS JOIN V1_SOKNAD ON V1_STATUS.SOKNADS_ID = V1_SOKNAD.SOKNADS_ID 
+            WHERE V1_STATUS.SOKNADS_ID = ? ORDER BY CREATED DESC
+        """.trimIndent() // ORDER is just a preventative measure
+
+        return using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    statement,
+                    soknadsId
+                ).map {
+                    StatusRow(
+                        Status.valueOf(it.string("STATUS")),
+                        it.sqlTimestamp("CREATED"),
+                        it.boolean("ER_DIGITAL"),
+                    )
+                }.asList
+            )
+        }
+    }
+
     override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?): List<SøknadForKommuneApi> {
         val extraWhere = if (nyereEnn == null) "" else "AND created > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
 
@@ -705,8 +759,6 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             .registerModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-
-        private val metrics = Metrics()
     }
 
     private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
