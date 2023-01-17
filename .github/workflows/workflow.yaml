@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - bump-deps-again
+      - vilkår-ers
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
