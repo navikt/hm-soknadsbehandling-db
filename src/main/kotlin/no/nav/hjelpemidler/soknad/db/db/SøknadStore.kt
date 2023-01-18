@@ -10,6 +10,7 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
@@ -22,8 +23,9 @@ import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
-import no.nav.hjelpemidler.soknad.db.domain.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.domain.kommune_api.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.kommune_api.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
@@ -34,6 +36,8 @@ import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
+
+private val logg = KotlinLogging.logger {}
 
 internal interface SøknadStore {
     fun save(soknadData: SoknadData): Int
@@ -716,11 +720,17 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     CREATED
                 FROM V1_SOKNAD
                 WHERE
+                    -- Sjekk at formidler jobbet i kommunen som slår opp kvitteringer
                     KOMMUNENAVN LIKE :kommuneNavn
+                    -- Sjekk at brukeren det søkes om bor i samme kommune
                     AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
-                    AND CREATED > NOW() - '7 days'::interval
-                    AND ER_DIGITAL
+                    -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
                     AND DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
+                    -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
+                    AND CREATED > NOW() - '7 days'::interval
+                    -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
+                    AND ER_DIGITAL
+                    -- Videre filtrering basert på kommunens filtre
                     $extraWhere1
                     $extraWhere2
                 ORDER BY CREATED DESC
@@ -741,12 +751,24 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             },
                         )
                     ).map {
+                        val data = it.jsonNodeOrDefault("DATA", "{}")
+
+                        // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
+                        val validatedData = kotlin.runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
+                            // TODO: Rapporter til Slack!!
+                            logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres." }
+                            return@map null
+                        }
+
+                        // Filtrer ut ikke-relevante felter
+                        val filteredData = validatedData.filtrerForKommuneApiet()
+
                         SøknadForKommuneApi(
                             fnrBruker = it.string("FNR_BRUKER"),
                             navnBruker = it.string("NAVN_BRUKER"),
                             fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
                             soknadId = it.uuid("SOKNADS_ID"),
-                            soknad = it.jsonNodeOrDefault("DATA", "{}"),
+                            soknad = filteredData,
                             soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                             opprettet = it.localDateTime("CREATED"),
                         )

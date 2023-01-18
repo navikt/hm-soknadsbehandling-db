@@ -1,6 +1,5 @@
-package no.nav.hjelpemidler.soknad.db.domain
+package no.nav.hjelpemidler.soknad.db.domain.kommune_api
 
-import com.fasterxml.jackson.databind.JsonNode
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -9,7 +8,7 @@ data class SøknadForKommuneApi(
     val navnBruker: String,
     val fnrInnsender: String?,
     val soknadId: UUID,
-    val soknad: JsonNode,
+    val soknad: Behovsmelding,
     val soknadGjelder: String?,
     val opprettet: LocalDateTime,
 )
