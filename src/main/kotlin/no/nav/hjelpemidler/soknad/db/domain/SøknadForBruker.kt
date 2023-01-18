@@ -283,6 +283,7 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
     return ElektriskRullestolInfo(
         godkjenningskurs = elRullestolinfoJson["godkjenningskurs"]?.booleanValue(),
         kanBetjeneManuellStyring = elRullestolinfoJson["kanBetjeneManuellStyring"]?.booleanValue(),
+        kanBetjeneMotorisertStyring = elRullestolinfoJson["kanBetjeneMotorisertStyring"]?.booleanValue(),
         ferdesSikkertITrafikk = elRullestolinfoJson["ferdesSikkertITrafikk"]?.booleanValue(),
         nedsattGangfunksjon = elRullestolinfoJson["nedsattGangfunksjon"]?.booleanValue(),
         oppbevaringOgLagring = elRullestolinfoJson["oppbevaringOgLagring"]?.booleanValue(),
@@ -438,6 +439,7 @@ enum class UtlevertType {
 class ElektriskRullestolInfo(
     val godkjenningskurs: Boolean?,
     val kanBetjeneManuellStyring: Boolean?,
+    val kanBetjeneMotorisertStyring: Boolean?,
     val ferdesSikkertITrafikk: Boolean?,
     val nedsattGangfunksjon: Boolean?,
     val oppbevaringOgLagring: Boolean?,
