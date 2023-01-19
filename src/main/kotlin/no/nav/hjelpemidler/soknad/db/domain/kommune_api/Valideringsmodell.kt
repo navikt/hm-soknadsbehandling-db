@@ -12,7 +12,16 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.util.UUID
 
 /**
- * This .... IS IMPORTANT, because ... tra la la ...
+ * Merk merk merk: Ikke gjør endringer uten å lese dette:
+ *
+ * Denne datamodellen brukes til å validere at noen har vurdert juridisk hva som kan deles med kommunen over
+ * kommune-apiet ettersom søknaden utvikler seg. Hvis endringer gjøres i hm-soknad / hm-soknad-api som ender opp i
+ * data-feltet i søknadsdatabasen, så vil valideringen her feile og kommune-apiet vil ikke lengre klare å hente
+ * kvitteringer før noen har oppdatert datamodellen her til å reflektere endringen, samt oppdatert
+ * "fun filtrerForKommuneApiet()" slik at den filtrerer ut nye verdier som ikke kan deles.
+ *
+ * I utgangspunktet skal alt som er generert av innsender være med. Men vi filtrerer ut feks. bestillingsordningsjekk og
+ * soknad->innsender (godkjenningskurs, organisasjoner, osv.).
  */
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -26,10 +35,6 @@ data class Behovsmelding(
         soknad = this.soknad.copy(innsender = null)
     )
 
-    fun tilJsonNode(): String {
-        return specializedObjectMapper.writeValueAsString(this)
-    }
-
     companion object {
         private val specializedObjectMapper = jacksonObjectMapper()
             .registerModule(JavaTimeModule())
@@ -37,7 +42,6 @@ data class Behovsmelding(
             // Skal feile hvis man har ukjente verdier i JsonNode, da må denne vedlikeholdes og hva som deles med
             // kommunen revurderes!
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
 
         fun fraJsonNode(node: JsonNode): Behovsmelding {
             return kotlin.runCatching {
