@@ -6,11 +6,16 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
+import no.nav.hjelpemidler.http.slack.slack
+import no.nav.hjelpemidler.http.slack.slackIconEmoji
+import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.Profile
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
@@ -30,6 +35,7 @@ import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -65,6 +71,7 @@ internal interface SøknadStore {
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
+
     override fun soknadFinnes(soknadsId: UUID): Boolean {
         @Language("PostgreSQL") val statement =
             """
@@ -704,6 +711,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         }
     }
 
+    private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
     override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
         val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
@@ -755,8 +763,33 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
                         // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
                         val validatedData = kotlin.runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
-                            // TODO: Rapporter til Slack!!
                             logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres." }
+                            synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
+                                if (
+                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(LocalDateTime.now().minusHours(1)) &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
+                                    Configuration.application.profile != Profile.LOCAL
+                                ) {
+                                    hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
+                                    runBlocking {
+                                        slack().sendMessage(
+                                            "hm-soknadsbehandling-db",
+                                            slackIconEmoji(":this-is-fine-fire:"),
+                                            "#digihot-brukers-hjelpemiddelside-dev",
+                                            "Testmelding, ignorer meg! Søknad datamodellen har endret seg og kvittering av innsendte " +
+                                                    "søknader tilbake til kommunen er satt på pause inntil noen har " +
+                                                    "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
+                                                    "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
+                                                    "vi filtrerer ut verdier som ikke skal kvitteres tilbake. Bør fikses " +
+                                                    "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
+                                                    "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
+                                                    "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>."
+                                        )
+                                    }
+                                }
+                            }
                             return@map null
                         }
 
