@@ -139,7 +139,8 @@ internal class BehovsmeldingDataValideringTest {
                                     "plasseringAvHendel": "Høyre",
                                     "nedsattGangfunksjon": false,
                                     "ferdesSikkertITrafikk": false,
-                                    "kanBetjeneManuellStyring": false
+                                    "kanBetjeneManuellStyring": false,
+                                    "kanBetjeneMotorisertStyring": true
                                 },
                                 "utlevertFraHjelpemiddelsentralen": false
                             }
