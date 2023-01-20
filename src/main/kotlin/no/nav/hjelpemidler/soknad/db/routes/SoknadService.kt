@@ -577,6 +577,39 @@ internal fun Route.azureAdRoutes(
         }
     }
 
+    get("/kommune-api/soknader") {
+        data class Request(
+            val kommuneNavn: String,
+            val kommuneNr: String,
+            val nyereEnn: UUID?,
+            val nyereEnnTidsstempel: Long?,
+        ) {
+            fun isValid() =
+                kommuneNavn.isNotEmpty() &&
+                    kommuneNr.isNotEmpty() &&
+                    (kommuneNr.toIntOrNull()?.let { it in 0..10000 } ?: false)
+        }
+
+        val req = runCatching {
+            val req = call.receive<Request>()
+            if (!req.isValid()) throw RuntimeException("Request not valid: $req")
+            req
+        }.getOrElse { e ->
+            logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
+            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknader for kommune-apiet")
+            return@get
+        }
+
+        runCatching {
+            val soknader = søknadStore.hentSoknaderForKommuneApiet(req.kommuneNavn, req.kommuneNr, req.nyereEnn, req.nyereEnnTidsstempel)
+            call.respond(soknader)
+        }.getOrElse { e ->
+            logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
+            call.respond(HttpStatusCode.InternalServerError, "Feilet ved henting av søknader for kommune-apiet")
+            return@get
+        }
+    }
+
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
             var result: List<ForslagsmotorTilbehoer_Hjelpemidler>?

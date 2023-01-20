@@ -6,10 +6,16 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
+import no.nav.hjelpemidler.http.slack.slack
+import no.nav.hjelpemidler.http.slack.slackIconEmoji
+import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.Profile
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
@@ -23,13 +29,21 @@ import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.domain.kommune_api.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.kommune_api.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 import javax.sql.DataSource
+
+private val logg = KotlinLogging.logger {}
 
 internal interface SøknadStore {
     fun save(soknadData: SoknadData): Int
@@ -53,9 +67,11 @@ internal interface SøknadStore {
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
+    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
+
     override fun soknadFinnes(soknadsId: UUID): Boolean {
         @Language("PostgreSQL") val statement =
             """
@@ -692,6 +708,109 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     )
                 }.asList
             )
+        }
+    }
+
+    private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
+    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
+        val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
+
+        @Language("PostgreSQL") val statement =
+            """
+                SELECT
+                    FNR_BRUKER,
+                    NAVN_BRUKER,
+                    FNR_INNSENDER,
+                    SOKNADS_ID,
+                    DATA,
+                    SOKNAD_GJELDER,
+                    CREATED
+                FROM V1_SOKNAD
+                WHERE
+                    -- Sjekk at formidler jobbet i kommunen som slår opp kvitteringer
+                    KOMMUNENAVN LIKE :kommuneNavn
+                    -- Sjekk at brukeren det søkes om bor i samme kommune
+                    AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                    -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
+                    AND DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
+                    -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
+                    AND CREATED > NOW() - '7 days'::interval
+                    -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
+                    AND ER_DIGITAL
+                    -- Videre filtrering basert på kommunens filtre
+                    $extraWhere1
+                    $extraWhere2
+                ORDER BY CREATED DESC
+                ;
+            """
+
+        return time("hentSoknaderForKommuneApiet") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                        mapOf(
+                            "kommuneNavn" to "%$kommuneNavn%",
+                            "kommuneNr" to kommuneNr,
+                            "nyereEnn" to nyereEnn,
+                            "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
+                                LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
+                            },
+                        )
+                    ).map {
+                        val data = it.jsonNodeOrDefault("DATA", "{}")
+
+                        // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
+                        val validatedData = kotlin.runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
+                            logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres." }
+                            synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
+                                if (
+                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(LocalDateTime.now().minusHours(1)) &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
+                                    Configuration.application.profile != Profile.LOCAL
+                                ) {
+                                    hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
+                                    runBlocking {
+                                        slack().sendMessage(
+                                            "hm-soknadsbehandling-db",
+                                            slackIconEmoji(":this-is-fine-fire:"),
+                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-alerts-dev",
+                                            "Søknad datamodellen har endret seg og kvittering av innsendte " +
+                                                "søknader tilbake til kommunen er satt på pause inntil noen har " +
+                                                "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
+                                                "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
+                                                "vi filtrerer ut verdier som ikke skal kvitteres tilbake. " +
+                                                "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
+                                                "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
+                                                "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
+                                                "Bør fikses ASAP.\n\nFeilmelding[..:2000]:\n```" +
+                                                (cause.message?.take(2000) ?: "<Ingen melding>") +
+                                                "```"
+                                        )
+                                    }
+                                }
+                            }
+                            return@map null
+                        }
+
+                        // Filtrer ut ikke-relevante felter
+                        val filteredData = validatedData.filtrerForKommuneApiet()
+
+                        SøknadForKommuneApi(
+                            fnrBruker = it.string("FNR_BRUKER"),
+                            navnBruker = it.string("NAVN_BRUKER"),
+                            fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
+                            soknadId = it.uuid("SOKNADS_ID"),
+                            soknad = filteredData,
+                            soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                            opprettet = it.localDateTime("CREATED"),
+                        )
+                    }.asList
+                )
+            }
         }
     }
 

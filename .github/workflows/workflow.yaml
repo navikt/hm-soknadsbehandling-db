@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - vilkår-ers
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}

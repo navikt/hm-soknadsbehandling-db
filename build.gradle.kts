@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.8.0"
     id("com.expediagroup.graphql") version "6.2.5"
     id("com.diffplug.spotless") version "6.2.0"
 }
@@ -30,6 +30,9 @@ fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.2.5"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    // Http
+    implementation("no.nav.hjelpemidler.http:hm-http:v0.0.4")
 
     // Jackson
     val jacksonVersion = "2.14.0"

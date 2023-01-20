@@ -11,6 +11,7 @@ spec:
   team: teamdigihot
   envFrom:
     - secret: hm-influxdb-secret
+    - secret: hm-slack-hook
   kafka:
     pool: nav-prod # just to get the SSL certificate required influxDB on GCP?
   liveness:
@@ -35,6 +36,7 @@ spec:
         - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
         - application: hm-hjelpemiddelstatistikk
+        - application: hm-kommune-api
         - application: hm-soknadsbehandling
           namespace: teamdigihot
           cluster: prod-gcp
