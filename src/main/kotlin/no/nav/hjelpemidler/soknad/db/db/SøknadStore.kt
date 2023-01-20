@@ -779,13 +779,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                             slackIconEmoji(":this-is-fine-fire:"),
                                             "#digihot-brukers-hjelpemiddelside-dev",
                                             "Testmelding, ignorer meg! Søknad datamodellen har endret seg og kvittering av innsendte " +
-                                                    "søknader tilbake til kommunen er satt på pause inntil noen har " +
-                                                    "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
-                                                    "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
-                                                    "vi filtrerer ut verdier som ikke skal kvitteres tilbake. Bør fikses " +
-                                                    "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
-                                                    "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
-                                                    "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>."
+                                                "søknader tilbake til kommunen er satt på pause inntil noen har " +
+                                                "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
+                                                "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
+                                                "vi filtrerer ut verdier som ikke skal kvitteres tilbake. Bør fikses " +
+                                                "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
+                                                "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
+                                                "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>."
                                         )
                                     }
                                 }
