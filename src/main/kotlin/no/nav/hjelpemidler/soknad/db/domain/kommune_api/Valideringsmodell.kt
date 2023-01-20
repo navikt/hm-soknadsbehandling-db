@@ -22,6 +22,11 @@ import java.util.UUID
  *
  * I utgangspunktet skal alt som er generert av innsender være med. Men vi filtrerer ut feks. bestillingsordningsjekk og
  * soknad->innsender (godkjenningskurs, organisasjoner, osv.).
+ *
+ * Fremgangsmåte for å fikse en feilende validering:
+*       Utvid datamodellen med de nye feltene. Vurder om de kan kvitteres tilbake til kommmunen. Hvis ikke gjør
+ *      du feltet nullable og endrer `fun filtrerForKommuneApiet()` under slik at feltet filtreres ut før data sendes til
+ *      kommunen.
  */
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

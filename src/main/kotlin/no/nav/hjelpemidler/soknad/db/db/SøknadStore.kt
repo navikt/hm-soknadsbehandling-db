@@ -777,16 +777,16 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                         slack().sendMessage(
                                             "hm-soknadsbehandling-db",
                                             slackIconEmoji(":this-is-fine-fire:"),
-                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-brukers-hjelpemiddelside-dev",
+                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-alerts-dev",
                                             "Søknad datamodellen har endret seg og kvittering av innsendte " +
                                                 "søknader tilbake til kommunen er satt på pause inntil noen har " +
                                                 "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
                                                 "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
-                                                "vi filtrerer ut verdier som ikke skal kvitteres tilbake. Bør fikses " +
-                                                "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
+                                                "vi filtrerer ut verdier som ikke skal kvitteres tilbake. " +
+                                                "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
                                                 "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
                                                 "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                                "Feilmelding[..:2000]:\n```" +
+                                                "Bør fikses ASAP.\n\nFeilmelding[..:2000]:\n```" +
                                                 (cause.message?.take(2000) ?: "<Ingen melding>") +
                                                 "```"
                                         )
