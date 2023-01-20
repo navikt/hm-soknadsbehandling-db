@@ -309,7 +309,7 @@ enum class FormidlersGjennomforingAvKurs {
 data class ElektriskRullestolInfo(
     val godkjenningskurs: Boolean?,
     val kanBetjeneManuellStyring: Boolean?,
-    // val kanBetjeneMotorisertStyring: Boolean?,
+    val kanBetjeneMotorisertStyring: Boolean?,
     val ferdesSikkertITrafikk: Boolean?,
     val nedsattGangfunksjon: Boolean?,
     val oppbevaringOgLagring: Boolean?,
