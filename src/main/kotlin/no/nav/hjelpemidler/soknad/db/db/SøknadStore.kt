@@ -777,7 +777,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                         slack().sendMessage(
                                             "hm-soknadsbehandling-db",
                                             slackIconEmoji(":this-is-fine-fire:"),
-                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-alerts-dev",
+                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-brukers-hjelpemiddelside-dev",
                                             "Søknad datamodellen har endret seg og kvittering av innsendte " +
                                                 "søknader tilbake til kommunen er satt på pause inntil noen har " +
                                                 "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
@@ -785,7 +785,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                                 "vi filtrerer ut verdier som ikke skal kvitteres tilbake. Bør fikses " +
                                                 "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
                                                 "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
-                                                "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>."
+                                                "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
+                                                "Feilmelding[..:100]:\n```" +
+                                                (cause.message?.take(100) ?: "<Ingen melding>") +
+                                                "```"
                                         )
                                     }
                                 }
