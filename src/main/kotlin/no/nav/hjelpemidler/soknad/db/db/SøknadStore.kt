@@ -786,8 +786,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                                 "ASAP. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
                                                 "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
                                                 "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                                "Feilmelding[..:100]:\n```" +
-                                                (cause.message?.take(100) ?: "<Ingen melding>") +
+                                                "Feilmelding[..:2000]:\n```" +
+                                                (cause.message?.take(2000) ?: "<Ingen melding>") +
                                                 "```"
                                         )
                                     }
