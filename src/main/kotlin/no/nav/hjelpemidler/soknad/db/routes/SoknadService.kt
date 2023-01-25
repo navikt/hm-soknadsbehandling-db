@@ -69,8 +69,8 @@ internal fun Route.tokenXRoutes(
                     if (fagsakData != null) {
                         soknad.fagsakId = fagsakData.fagsakId
                     } else {
-                        val fagsakData = hotsakStore.hentFagsakIdForSøknad(soknad.søknadId)
-                        if (fagsakData != null) soknad.fagsakId = fagsakData
+                        val fagsakData2 = hotsakStore.hentFagsakIdForSøknad(soknad.søknadId)
+                        if (fagsakData2 != null) soknad.fagsakId = fagsakData2
                     }
 
                     call.respond(soknad)
@@ -114,7 +114,7 @@ internal fun Route.tokenXRoutes(
                 val bytes = fnr.toByteArray()
                 val md = MessageDigest.getInstance("SHA-256")
                 val digest = md.digest(bytes)
-                val hash = digest.fold("", { str, it -> str + "%02x".format(it) }).take(10)
+                val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
                 val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
                 logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
             }
