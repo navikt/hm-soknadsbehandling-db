@@ -67,7 +67,7 @@ internal interface SøknadStore {
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
-    fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
+    fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -712,7 +712,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
-    override fun hentSoknaderForKommuneApiet(kommuneNavn: String, kommuneNr: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
+    override fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
         val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
 
@@ -738,16 +738,16 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         FROM v1_soknad
                         WHERE
                             -- Begrens størrelsen på datasettet ala. hovedquery
-                            data->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                            data->'soknad'->'bruker'->>'kommunenummer' = :kommunenummer
                             AND data->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
                             AND created > NOW() - '7 days'::interval
                             AND er_digital
                         ORDER BY created DESC
-                    ) oppdelteRader WHERE oppdelteRader.org->>'kommunenummer' = :kommuneNr
+                    ) oppdelteRader WHERE oppdelteRader.org->>'kommunenummer' = :kommunenummer
                 ) ij ON ij.soknads_id = s.soknads_id
                 WHERE
                     -- Sjekk at brukeren det søkes om bor i samme kommune
-                    s.DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                    s.DATA->'soknad'->'bruker'->>'kommunenummer' = :kommunenummer
                     -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
                     AND s.DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
                     -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
@@ -767,8 +767,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                         mapOf(
-                            "kommuneNavn" to "%$kommuneNavn%",
-                            "kommuneNr" to kommuneNr,
+                            "kommunenummer" to kommunenummer,
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                                 LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
@@ -813,12 +812,12 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         }
 
                         // Ekstra sikkerhetssjekker
-                        if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommuneNr } != true) {
+                        if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
                             // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
                             throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
                         }
 
-                        if (validatedData.soknad.bruker.kommunenummer != kommuneNr) {
+                        if (validatedData.soknad.bruker.kommunenummer != kommunenummer) {
                             throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
                         }
 
