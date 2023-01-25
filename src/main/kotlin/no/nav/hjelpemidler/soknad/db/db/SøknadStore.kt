@@ -719,29 +719,37 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL") val statement =
             """
                 SELECT
-                    FNR_BRUKER,
-                    NAVN_BRUKER,
-                    FNR_INNSENDER,
-                    SOKNADS_ID,
-                    DATA,
-                    SOKNAD_GJELDER,
-                    CREATED
-                FROM V1_SOKNAD
+                    s.FNR_BRUKER,
+                    s.NAVN_BRUKER,
+                    s.FNR_INNSENDER,
+                    s.SOKNADS_ID,
+                    s.DATA,
+                    s.SOKNAD_GJELDER,
+                    s.CREATED
+                FROM V1_SOKNAD s
+                -- Bruk en inner-join som et filter for å fjerne resultater hvor formidler ikke representerer en
+                -- organisasjon med samme kommunenummer som brukeren og kommunen som spør
+                INNER JOIN (
+                    -- Hent ut en "distinct" liste over søknads-ider hvor søknadene har én eller flere organisasjoner
+                    -- i json-feltet som har kommunenummeret vi leter etter.
+                    SELECT DISTINCT oppdelteRader.soknads_id FROM (
+                        -- Del søknad-rader opp i én rad for hver organisasjon i JSON-feltet
+                        SELECT soknads_id, jsonb_array_elements(DATA->'soknad'->'innsender'->'organisasjoner') org FROM v1_soknad ORDER BY created DESC
+                    ) oppdelteRader WHERE oppdelteRader.org->>'kommunenummer' = :kommuneNr
+                ) ij ON ij.soknads_id = s.soknads_id
                 WHERE
-                    -- Sjekk at formidler jobbet i kommunen som slår opp kvitteringer
-                    KOMMUNENAVN LIKE :kommuneNavn
                     -- Sjekk at brukeren det søkes om bor i samme kommune
-                    AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                    s.DATA->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
                     -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
-                    AND DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
+                    AND s.DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
                     -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
-                    AND CREATED > NOW() - '7 days'::interval
+                    AND s.CREATED > NOW() - '7 days'::interval
                     -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
-                    AND ER_DIGITAL
+                    AND s.ER_DIGITAL
                     -- Videre filtrering basert på kommunens filtre
                     $extraWhere1
                     $extraWhere2
-                ORDER BY CREATED DESC
+                ORDER BY s.CREATED DESC
                 ;
             """
 
