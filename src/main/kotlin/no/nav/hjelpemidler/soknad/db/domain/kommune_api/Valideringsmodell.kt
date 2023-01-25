@@ -86,6 +86,7 @@ data class Organisasjon(
     val navn: String,
     val orgform: String = "",
     val overordnetOrgnr: String? = null,
+    val kommunenummer: String? = null,
 )
 
 enum class InnsenderRolle {
