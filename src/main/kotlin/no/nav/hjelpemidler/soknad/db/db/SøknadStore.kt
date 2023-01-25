@@ -734,7 +734,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     -- i json-feltet som har kommunenummeret vi leter etter.
                     SELECT DISTINCT oppdelteRader.soknads_id FROM (
                         -- Del søknad-rader opp i én rad for hver organisasjon i JSON-feltet
-                        SELECT soknads_id, jsonb_array_elements(DATA->'soknad'->'innsender'->'organisasjoner') org FROM v1_soknad ORDER BY created DESC
+                        SELECT soknads_id, jsonb_array_elements(DATA->'soknad'->'innsender'->'organisasjoner') org
+                        FROM v1_soknad
+                        WHERE
+                            -- Begrens størrelsen på datasettet ala. hovedquery
+                            data->'soknad'->'bruker'->>'kommunenummer' = :kommuneNr
+                            AND data->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
+                            AND created > NOW() - '7 days'::interval
+                            AND er_digital
+                        ORDER BY created DESC
                     ) oppdelteRader WHERE oppdelteRader.org->>'kommunenummer' = :kommuneNr
                 ) ij ON ij.soknads_id = s.soknads_id
                 WHERE
