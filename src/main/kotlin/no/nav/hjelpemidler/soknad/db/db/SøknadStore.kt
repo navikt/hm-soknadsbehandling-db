@@ -804,6 +804,16 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             return@map null
                         }
 
+                        // Ekstra sikkerhetssjekker
+                        if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommuneNr } != true) {
+                            // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
+                            throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
+                        }
+
+                        if (validatedData.soknad.bruker.kommunenummer != kommuneNr) {
+                            throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
+                        }
+
                         // Filtrer ut ikke-relevante felter
                         val filteredData = validatedData.filtrerForKommuneApiet()
 
