@@ -13,6 +13,7 @@ group = "no.nav.hjelpemidler.soknad.db"
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io") // Used for tms-ktor-token-support
 }
 
 application {
@@ -59,6 +60,13 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
     implementation("org.postgresql:postgresql:42.5.1")
+
+    // AAD og TokenX
+    val tokenSupportVersion = "2022.08.08-14.36-ac5034ce487b"
+    implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
+    implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
+    implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
+    implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.4")

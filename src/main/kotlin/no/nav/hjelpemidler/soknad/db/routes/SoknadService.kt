@@ -3,7 +3,6 @@ package no.nav.hjelpemidler.soknad.db.routes
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -15,12 +14,11 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import no.nav.hjelpemidler.soknad.db.UserPrincipal
 import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
-import no.nav.hjelpemidler.soknad.db.db.SøknadStoreFormidler
+import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
@@ -31,7 +29,9 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDate
 import java.util.Date
@@ -44,13 +44,14 @@ internal fun Route.tokenXRoutes(
     ordreStore: OrdreStore,
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
-    formidlerStore: SøknadStoreFormidler,
+    formidlerStore: SøknadStoreInnsender,
+    rolleService: RolleService,
+    tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
     get("/soknad/bruker/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val fnr = call.principal<UserPrincipal>()?.getFnr()
-                ?: call.respond(HttpStatusCode.BadRequest, "Fnr mangler i token claim")
+            val fnr = tokenXUserFactory.createTokenXUser(call).ident
             val soknad = søknadStore.hentSoknad(soknadsId)
 
             when {
@@ -83,7 +84,7 @@ internal fun Route.tokenXRoutes(
     }
 
     get("/soknad/bruker") {
-        val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
+        val fnr = tokenXUserFactory.createTokenXUser(call).ident
 
         try {
             val soknaderTilGodkjenning = søknadStore.hentSoknaderForBruker(fnr)
@@ -97,10 +98,12 @@ internal fun Route.tokenXRoutes(
     }
 
     get("/soknad/formidler") {
-        val fnr = call.principal<UserPrincipal>()?.getFnr() ?: throw RuntimeException("Fnr mangler i token claim")
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnrInnsender = user.ident
+        val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
         try {
-            val formidlersSøknader = formidlerStore.hentSøknaderForFormidler(fnr)
+            val formidlersSøknader = formidlerStore.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
 
             // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
             val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
@@ -111,7 +114,7 @@ internal fun Route.tokenXRoutes(
                 }
             }
             if (datoer.isNotEmpty()) {
-                val bytes = fnr.toByteArray()
+                val bytes = fnrInnsender.toByteArray()
                 val md = MessageDigest.getInstance("SHA-256")
                 val digest = md.digest(bytes)
                 val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
@@ -128,13 +131,12 @@ internal fun Route.tokenXRoutes(
 
     get("/soknad/formidler/{soknadsId}") {
         val soknadsId = UUID.fromString(soknadsId())
-        val fnrFormidler = call.principal<UserPrincipal>()?.getFnr() ?: return@get call.respond(
-            HttpStatusCode.Unauthorized,
-            "Fnr mangler i token claim"
-        )
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnrInnsender = user.ident
+        val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
         try {
-            val formidlersSoknad = formidlerStore.hentSøknadForFormidler(fnrFormidler, soknadsId)
+            val formidlersSoknad = formidlerStore.hentSøknadForInnsender(fnrInnsender, soknadsId, innsenderRolle)
             if (formidlersSoknad == null) {
                 logger.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
                 call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
@@ -151,8 +153,7 @@ internal fun Route.tokenXRoutes(
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val fnr = call.principal<UserPrincipal>()?.getFnr()
-                ?: call.respond(HttpStatusCode.BadRequest, "Fnr mangler i token claim")
+            val fnr = tokenXUserFactory.createTokenXUser(call).ident
             val soknad = søknadStore.hentSoknad(soknadsId)
 
             when {
