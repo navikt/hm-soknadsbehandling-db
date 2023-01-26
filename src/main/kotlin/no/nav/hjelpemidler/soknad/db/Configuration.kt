@@ -28,6 +28,8 @@ private val localProperties = ConfigurationMap(
         "INFLUX_PASSWORD" to "password",
 
         "GRUNNDATA_API_URL" to "https://hm-grunndata-api.dev.intern.nav.no",
+        "HM_ROLLER_URL" to "https://localhost",
+        "HM_ROLLER_AUDIENCE" to "audience",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_local",
         "GCP_TEAM_PROJECT_ID" to "teamdigihot",
     )
@@ -39,6 +41,8 @@ private val devProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "HM_ROLLER_URL" to "http://hm-roller.teamdigihot.svc.cluster.local",
+        "HM_ROLLER_AUDIENCE" to "dev-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_dev",
     )
 )
@@ -49,6 +53,8 @@ private val prodProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "HM_ROLLER_URL" to "http://hm-roller.teamdigihot.svc.cluster.local",
+        "HM_ROLLER_AUDIENCE" to "prod-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_prod",
     )
 )
@@ -89,6 +95,8 @@ internal object Configuration {
         val INFLUX_USER: String? = config[Key("INFLUX_USER", stringType)],
         val INFLUX_PASSWORD: String? = config[Key("INFLUX_PASSWORD", stringType)],
         val grunndataApiURL: String = config[Key("GRUNNDATA_API_URL", stringType)],
+        val hmRollerUrl: String = config[Key("HM_ROLLER_URL", stringType)],
+        val hmRollerAudience: String = config[Key("HM_ROLLER_AUDIENCE", stringType)],
     )
 
     data class BigQuery(

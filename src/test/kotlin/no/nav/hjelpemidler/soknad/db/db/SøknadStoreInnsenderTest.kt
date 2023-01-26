@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.mockSøknad
+import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -14,7 +16,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-internal class SøknadStoreFormidlerTest {
+internal class SøknadStoreInnsenderTest {
 
     @Test
     fun `Hent formidlers søknad`() {
@@ -25,8 +27,8 @@ internal class SøknadStoreFormidlerTest {
                     mockSøknad(soknadsId)
                 )
             }
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val formidlersSøknad = this.hentSøknaderForFormidler("12345678910")[0]
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                val formidlersSøknad = this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)[0]
                 assertEquals("fornavn etternavn", formidlersSøknad.navnBruker)
             }
         }
@@ -46,11 +48,11 @@ internal class SøknadStoreFormidlerTest {
                     mockSøknad(UUID.randomUUID(), fnrInnsender = fnrAnnenFormidler)
                 )
             }
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val formidlersSoknader = this.hentSøknaderForFormidler("12345678910")
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                val formidlersSoknader = this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
                 assertEquals(1, formidlersSoknader.size)
 
-                val formidlersSoknad = this.hentSøknadForFormidler("12345678910", soknadsId)
+                val formidlersSoknad = this.hentSøknadForInnsender("12345678910", soknadsId, InnsenderRolle.FORMIDLER)
                 assertEquals(soknadsId, formidlersSoknad!!.søknadId)
                 assertNotNull(formidlersSoknad.søknadsdata)
             }
@@ -74,8 +76,8 @@ internal class SøknadStoreFormidlerTest {
                     it shouldBe 1
                 }
 
-                SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                    val formidlersSøknad = this.hentSøknaderForFormidler("12345678910")[0]
+                SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                    val formidlersSøknad = this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)[0]
                     assertEquals("fornavn etternavn", formidlersSøknad.navnBruker)
                 }
             }
@@ -109,8 +111,8 @@ internal class SøknadStoreFormidlerTest {
                 sessionOf(this).run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '3 week') WHERE SOKNADS_ID = '$id' ").asExecute)
             }
 
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                this.hentSøknaderForFormidler("12345678910", 4).also {
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER, 4).also {
                     it.size shouldBe 1
                 }
             }
@@ -119,8 +121,8 @@ internal class SøknadStoreFormidlerTest {
                 sessionOf(this).run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '5 week') WHERE SOKNADS_ID = '$id' ").asExecute)
             }
 
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                this.hentSøknaderForFormidler("1234567891014", 4).also {
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                this.hentSøknaderForInnsender("1234567891014", InnsenderRolle.FORMIDLER, 4).also {
                     it.size shouldBe 0
                 }
             }
@@ -144,8 +146,8 @@ internal class SøknadStoreFormidlerTest {
                     it shouldBe 1
                 }
             }
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val søknader = this.hentSøknaderForFormidler("12345678910")
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                val søknader = this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
                 assertTrue { søknader[0].fullmakt }
             }
         }
@@ -176,9 +178,35 @@ internal class SøknadStoreFormidlerTest {
                     it shouldBe 1
                 }
             }
-            SøknadStoreFormidlerPostgres(DataSource.instance).apply {
-                val søknader = this.hentSøknaderForFormidler("12345678910")
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                val søknader = this.hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
                 assertFalse { søknader[0].fullmakt }
+            }
+        }
+    }
+
+    @Test
+    fun `Bestiller kan kun hente ut BESTILLINGer`() {
+        val idSøknad = UUID.randomUUID()
+        val idBestilling = UUID.randomUUID()
+        withMigratedDb {
+            SøknadStorePostgres(DataSource.instance).apply {
+                this.save(mockSøknad(idSøknad, behovsmeldingType = BehovsmeldingType.SØKNAD))
+                this.save(mockSøknad(idBestilling, behovsmeldingType = BehovsmeldingType.BESTILLING))
+            }
+
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                this.hentSøknaderForInnsender("12345678910", InnsenderRolle.BESTILLER).also {
+                    it.size shouldBe 1
+                    it.first().søknadId shouldBe idBestilling
+                }
+            }
+
+            SøknadStoreInnsenderPostgres(DataSource.instance).apply {
+                this.hentSøknadForInnsender("12345678910", idBestilling, InnsenderRolle.BESTILLER).also {
+                    it!!.søknadId shouldBe idBestilling
+                    it.behovsmeldingType shouldBe BehovsmeldingType.BESTILLING
+                }
             }
         }
     }

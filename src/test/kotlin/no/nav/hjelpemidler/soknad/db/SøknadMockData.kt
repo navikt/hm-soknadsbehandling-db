@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import java.util.UUID
@@ -8,7 +9,8 @@ import java.util.UUID
 internal fun mockSøknad(
     id: UUID,
     status: Status = Status.VENTER_GODKJENNING,
-    fnrInnsender: String = "12345678910"
+    fnrInnsender: String = "12345678910",
+    behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD
 ) =
     SoknadData(
         "15084300133",
@@ -21,6 +23,7 @@ internal fun mockSøknad(
                           "fnrBruker": "15084300133",
                           "soknadId": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
                           "datoOpprettet": "2021-02-23T09:46:45.146+00:00",
+                          "behovsmeldingType": "$behovsmeldingType",
                           "soknad": {
                               "id": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
                               "date": "2020-06-19",
