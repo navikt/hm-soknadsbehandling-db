@@ -729,7 +729,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD
                 WHERE
                     -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
-                	DATA->'soknad'->'innsender'->'organisasjoner' @> :kommunenummerJson::jsonb
+                	DATA->'soknad'->'innsender'->'organisasjoner' @> :kommunenummerJson
                     -- Sjekk at brukeren det søkes om bor i samme kommune
                     AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommunenummer
                     -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
@@ -752,7 +752,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         statement,
                         mapOf(
                             "kommunenummer" to kommunenummer,
-                            "kommunenummerJson" to """[{"kommunenummer": "$kommunenummer"}]""",
+                            "kommunenummerJson" to PGobject().apply {
+                                type = "jsonb"
+                                value =  """[{"kommunenummer": "$kommunenummer"}]"""
+                            },
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                                 LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
