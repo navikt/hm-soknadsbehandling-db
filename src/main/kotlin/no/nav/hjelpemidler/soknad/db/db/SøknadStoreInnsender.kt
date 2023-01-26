@@ -12,6 +12,7 @@ import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
+import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.Date
@@ -20,22 +21,34 @@ import javax.sql.DataSource
 
 private const val UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS = 4
 
-internal interface SøknadStoreFormidler {
-    fun hentSøknaderForFormidler(
-        fnrFormidler: String,
+internal interface SøknadStoreInnsender {
+    fun hentSøknaderForInnsender(
+        fnrInnsender: String,
+        innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS
-    ): List<SoknadForFormidler>
+    ): List<SoknadForInnsender>
 
-    fun hentSøknadForFormidler(
-        fnrFormidler: String,
+    fun hentSøknadForInnsender(
+        fnrInnsender: String,
         soknadId: UUID,
+        innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS
-    ): SoknadForFormidler?
+    ): SoknadForInnsender?
 }
 
-internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource) : SøknadStoreFormidler {
+internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource) : SøknadStoreInnsender {
 
-    override fun hentSøknaderForFormidler(fnrFormidler: String, ukerEtterEndeligStatus: Int): List<SoknadForFormidler> {
+    override fun hentSøknaderForInnsender(
+        fnrInnsender: String,
+        innsenderRolle: InnsenderRolle?,
+        ukerEtterEndeligStatus: Int
+    ): List<SoknadForInnsender> {
+
+        val behovsmeldingTypeClause = when (innsenderRolle) {
+            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
+            else -> ""
+        }
+
         @Language("PostgreSQL") val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, 
@@ -48,7 +61,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.FNR_INNSENDER = ?
+                WHERE soknad.FNR_INNSENDER = ? $behovsmeldingTypeClause
                 AND soknad.created > ?
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
@@ -64,15 +77,15 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 ORDER BY soknad.UPDATED DESC
             """
 
-        return time("hent_soknader_for_formidler") {
+        return time("hent_soknader_for_innsender") {
             using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
                         statement,
-                        fnrFormidler,
+                        fnrInnsender,
                         LocalDateTime.now().minusMonths(6),
                     ).map {
-                        SoknadForFormidler(
+                        SoknadForInnsender(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             behovsmeldingType = BehovsmeldingType.valueOf(
                                 it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
@@ -96,11 +109,17 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
         }
     }
 
-    override fun hentSøknadForFormidler(
-        fnrFormidler: String,
+    override fun hentSøknadForInnsender(
+        fnrInnsender: String,
         soknadId: UUID,
+        innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int
-    ): SoknadForFormidler? {
+    ): SoknadForInnsender? {
+        val behovsmeldingTypeClause = when (innsenderRolle) {
+            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
+            else -> ""
+        }
+
         @Language("PostgreSQL") val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,  
@@ -112,7 +131,7 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId
+                WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId $behovsmeldingTypeClause
                 AND soknad.created > :minimumDato
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
@@ -127,18 +146,18 @@ internal class SøknadStoreFormidlerPostgres(private val dataSource: DataSource)
                 )
             """
 
-        return time("hent_soknader_for_formidler") {
+        return time("hent_soknad_for_innsender") {
             using(sessionOf(dataSource)) { session ->
                 session.run(
                     queryOf(
                         statement,
                         mapOf(
-                            "fnrInnsender" to fnrFormidler,
+                            "fnrInnsender" to fnrInnsender,
                             "soknadId" to soknadId,
                             "minimumDato" to LocalDateTime.now().minusMonths(6),
                         )
                     ).map {
-                        SoknadForFormidler(
+                        SoknadForInnsender(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             behovsmeldingType = BehovsmeldingType.valueOf(
                                 it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
@@ -183,7 +202,7 @@ private inline fun <T : Any?> time(queryName: String, function: () -> T) =
         }
     }
 
-class SoknadForFormidler constructor(
+class SoknadForInnsender constructor(
     val søknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
     val datoOpprettet: Date,

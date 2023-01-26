@@ -48,6 +48,7 @@ spec:
     outbound:
       rules:
         - application: hm-grunndata-api
+        - application: hm-roller
   resources:
     limits:
       cpu: 800m
