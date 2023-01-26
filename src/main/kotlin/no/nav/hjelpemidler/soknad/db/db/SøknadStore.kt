@@ -729,7 +729,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 FROM V1_SOKNAD
                 WHERE
                     -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
-                	DATA->'soknad'->'innsender'->'organisasjoner' @> :kommunenummerJson
+                	DATA->'soknad'->'innsender'->'organisasjoner' @> :kommunenummerJson::jsonb
                     -- Sjekk at brukeren det søkes om bor i samme kommune
                     AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommunenummer
                     -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
