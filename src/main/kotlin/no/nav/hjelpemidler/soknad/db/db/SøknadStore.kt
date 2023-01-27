@@ -754,7 +754,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             "kommunenummer" to kommunenummer,
                             "kommunenummerJson" to PGobject().apply {
                                 type = "jsonb"
-                                value =  """[{"kommunenummer": "$kommunenummer"}]"""
+                                value = """[{"kommunenummer": "$kommunenummer"}]"""
                             },
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
@@ -766,7 +766,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
                         // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
                         val validatedData = kotlin.runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
-                            logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres." }
+                            val logID = UUID.randomUUID()
+                            logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logID)" }
                             synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                                 if (
                                     hentSoknaderForKommuneApietSistRapportertSlack.isBefore(LocalDateTime.now().minusHours(1)) &&
@@ -789,9 +790,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                                 "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
                                                 "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
                                                 "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                                "Bør fikses ASAP.\n\nFeilmelding[..:2000]:\n```" +
-                                                (cause.message?.take(2000) ?: "<Ingen melding>") +
-                                                "```"
+                                                "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logID"
                                         )
                                     }
                                 }
