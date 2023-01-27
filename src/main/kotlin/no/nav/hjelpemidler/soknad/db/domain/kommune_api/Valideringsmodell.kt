@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
 import java.util.UUID
 
 /**
@@ -86,7 +87,14 @@ data class Organisasjon(
     val navn: String,
     val orgform: String = "",
     val overordnetOrgnr: String? = null,
+    val næringskoder: List<Næringskode> = emptyList(),
     val kommunenummer: String? = null,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Næringskode(
+    val kode: String,
+    val beskrivelse: String = "",
 )
 
 enum class InnsenderRolle {
