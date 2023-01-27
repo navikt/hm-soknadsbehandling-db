@@ -97,6 +97,7 @@ internal fun Route.tokenXRoutes(
         }
     }
 
+    // @Deprecated - Bruk /soknad/innsender
     get("/soknad/formidler") {
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnrInnsender = user.ident
@@ -129,7 +130,61 @@ internal fun Route.tokenXRoutes(
         }
     }
 
+    get("/soknad/innsender") {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnrInnsender = user.ident
+        val innsenderRolle = rolleService.hentRolle(user.tokenString)
+
+        try {
+            val formidlersSøknader = formidlerStore.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
+
+            // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
+            val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
+            val datoer = mutableListOf<Date>()
+            formidlersSøknader.forEach {
+                if (it.datoOpprettet.before(olderThan6mo)) {
+                    datoer.add(it.datoOpprettet)
+                }
+            }
+            if (datoer.isNotEmpty()) {
+                val bytes = fnrInnsender.toByteArray()
+                val md = MessageDigest.getInstance("SHA-256")
+                val digest = md.digest(bytes)
+                val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
+                val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
+                logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
+            }
+
+            call.respond(formidlersSøknader)
+        } catch (e: Exception) {
+            logger.error(e) { "Error on fetching formidlers søknader" }
+            call.respond(HttpStatusCode.InternalServerError, e)
+        }
+    }
+
+    // @Deprecated - Bruk /soknad/innsender/{soknadsId}
     get("/soknad/formidler/{soknadsId}") {
+        val soknadsId = UUID.fromString(soknadsId())
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnrInnsender = user.ident
+        val innsenderRolle = rolleService.hentRolle(user.tokenString)
+
+        try {
+            val formidlersSoknad = formidlerStore.hentSøknadForInnsender(fnrInnsender, soknadsId, innsenderRolle)
+            if (formidlersSoknad == null) {
+                logger.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
+                call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
+            } else {
+                logger.info { "Formidler hentet ut søknad $soknadsId" }
+                call.respond(formidlersSoknad)
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error on fetching formidlers søknader" }
+            call.respond(HttpStatusCode.InternalServerError, e)
+        }
+    }
+
+    get("/soknad/innsender/{soknadsId}") {
         val soknadsId = UUID.fromString(soknadsId())
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnrInnsender = user.ident
