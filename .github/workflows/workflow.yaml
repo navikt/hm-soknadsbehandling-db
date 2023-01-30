@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - bestiller-henter-innsendte-bestillinger
+      - fjern-deprecated-endepunkt
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
