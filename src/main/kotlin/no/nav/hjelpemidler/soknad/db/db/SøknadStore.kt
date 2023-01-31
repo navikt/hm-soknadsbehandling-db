@@ -741,7 +741,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     -- Videre filtrering basert på kommunens filtre
                     $extraWhere1
                     $extraWhere2
-                ORDER BY CREATED DESC
+                ORDER BY CREATED ASC
                 ;
             """
 
