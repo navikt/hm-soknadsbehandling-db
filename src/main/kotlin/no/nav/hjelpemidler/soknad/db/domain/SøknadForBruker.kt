@@ -295,6 +295,15 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
             "Venstre" -> HendelPlassering.Venstre
             null -> null
             else -> throw RuntimeException("Ugyldig hendelplassering")
+        },
+        kabin = when(elRullestolinfoJson["kabin"]) {
+            null -> null
+            else -> Kabin(
+                brukerOppfyllerKrav = elRullestolinfoJson["kabin"]["brukerOppfyllerKrav"].booleanValue(),
+                kanIkkeAvhjelpesMedEnklereArsak = elRullestolinfoJson["kabin"]["kanIkkeAvhjelpesMedEnklereArsak"]?.textValue(),
+                kanIkkeAvhjelpesMedEnklereBegrunnelse = elRullestolinfoJson["kabin"]["kanIkkeAvhjelpesMedEnklereBegrunnelse"]?.textValue(),
+                arsakForBehovBegrunnelse = elRullestolinfoJson["kabin"]["arsakForBehovBegrunnelse"]?.textValue()
+            )
         }
     )
 }
@@ -447,6 +456,14 @@ class ElektriskRullestolInfo(
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,
     val plasseringAvHendel: HendelPlassering?,
+    val kabin: Kabin?
+)
+
+data class Kabin(
+    val brukerOppfyllerKrav: Boolean,
+    val kanIkkeAvhjelpesMedEnklereArsak: String?,
+    val kanIkkeAvhjelpesMedEnklereBegrunnelse:String?,
+    val arsakForBehovBegrunnelse: String?
 )
 
 enum class HendelPlassering {
