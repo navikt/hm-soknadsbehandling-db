@@ -326,6 +326,15 @@ data class ElektriskRullestolInfo(
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,
     val plasseringAvHendel: PlasseringType?,
+    val kabin: Kabin?
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Kabin(
+    val brukerOppfyllerKrav: Boolean,
+    val kanIkkeAvhjelpesMedEnklereArsak: String?,
+    val kanIkkeAvhjelpesMedEnklereBegrunnelse:String?,
+    val arsakForBehovBegrunnelse: String?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
