@@ -350,7 +350,7 @@ private fun appInfo(hjelpemiddel: JsonNode): AppInfo? {
     return AppInfo(
         brukerHarProvdProvelisens = appInfoJson["brukerHarProvdProvelisens"].booleanValue(),
         stottepersonSkalAdministrere = appInfoJson["stottepersonSkalAdministrere"].booleanValue(),
-        stottepersonHarProvdProvelisens = appInfoJson["stottepersonHarProvdProvelisens"].booleanValue(),
+        stottepersonHarProvdProvelisens = appInfoJson["stottepersonHarProvdProvelisens"]?.booleanValue(),
     )
 }
 
