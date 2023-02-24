@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - ers-kabin
+      - nye-felter-kalenderapp
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}

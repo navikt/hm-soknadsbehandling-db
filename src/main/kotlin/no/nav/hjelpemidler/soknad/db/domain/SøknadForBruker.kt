@@ -244,7 +244,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             rullestolInfo = rullestolinfo(it),
             elektriskRullestolInfo = elektriskRullestolInfo(it),
             personlofterInfo = personlofterInfo(it),
-            utlevertInfo = utlevertInfo(it)
+            utlevertInfo = utlevertInfo(it),
+            appInfo = appInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -296,7 +297,7 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
             null -> null
             else -> throw RuntimeException("Ugyldig hendelplassering")
         },
-        kabin = when(elRullestolinfoJson["kabin"]) {
+        kabin = when (elRullestolinfoJson["kabin"]) {
             null -> null
             else -> Kabin(
                 brukerOppfyllerKrav = elRullestolinfoJson["kabin"]["brukerOppfyllerKrav"].booleanValue(),
@@ -341,6 +342,15 @@ private fun utlevertInfo(hjelpemiddel: JsonNode): UtlevertInfo? {
             null -> null
             else -> throw java.lang.RuntimeException("ugyldig utlevertInfo")
         }
+    )
+}
+
+private fun appInfo(hjelpemiddel: JsonNode): AppInfo? {
+    val appInfoJson = hjelpemiddel["appInfo"] ?: return null
+    return AppInfo(
+        brukerHarProvdProvelisens = appInfoJson["brukerHarProvdProvelisens"].booleanValue(),
+        stottepersonSkalAdministrere = appInfoJson["stottepersonSkalAdministrere"].booleanValue(),
+        stottepersonHarProvdProvelisens = appInfoJson["stottepersonHarProvdProvelisens"].booleanValue(),
     )
 }
 
@@ -417,11 +427,18 @@ class Hjelpemiddel(
     val elektriskRullestolInfo: ElektriskRullestolInfo?,
     val personlofterInfo: PersonlofterInfo?,
     val utlevertInfo: UtlevertInfo?,
+    val appInfo: AppInfo?,
 )
 
 data class RullestolInfo(
     val skalBrukesIBil: Boolean?,
     val sitteputeValg: SitteputeValg?,
+)
+
+data class AppInfo(
+    val brukerHarProvdProvelisens: Boolean,
+    val stottepersonSkalAdministrere: Boolean,
+    val stottepersonHarProvdProvelisens: Boolean?,
 )
 
 data class PersonlofterInfo(
@@ -462,7 +479,7 @@ class ElektriskRullestolInfo(
 data class Kabin(
     val brukerOppfyllerKrav: Boolean,
     val kanIkkeAvhjelpesMedEnklereArsak: String?,
-    val kanIkkeAvhjelpesMedEnklereBegrunnelse:String?,
+    val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
     val arsakForBehovBegrunnelse: String?
 )
 

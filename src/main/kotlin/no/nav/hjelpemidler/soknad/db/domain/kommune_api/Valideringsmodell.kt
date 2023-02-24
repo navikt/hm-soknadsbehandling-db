@@ -267,7 +267,8 @@ data class HjelpemiddelItem(
     val rullestolInfo: RullestolInfo?,
     val utlevertInfo: UtlevertInfo?,
     val personlofterInfo: PersonlofterInfo?,
-    val elektriskRullestolInfo: ElektriskRullestolInfo?
+    val elektriskRullestolInfo: ElektriskRullestolInfo?,
+    val appInfo: AppInfo?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -333,8 +334,15 @@ data class ElektriskRullestolInfo(
 data class Kabin(
     val brukerOppfyllerKrav: Boolean,
     val kanIkkeAvhjelpesMedEnklereArsak: String?,
-    val kanIkkeAvhjelpesMedEnklereBegrunnelse:String?,
+    val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
     val arsakForBehovBegrunnelse: String?
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AppInfo(
+    val brukerHarProvdProvelisens: Boolean,
+    val stottepersonSkalAdministrere: Boolean,
+    val stottepersonHarProvdProvelisens: Boolean?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
