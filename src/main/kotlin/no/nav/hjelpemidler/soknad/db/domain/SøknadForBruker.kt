@@ -231,6 +231,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
         val hjelpemiddel = Hjelpemiddel(
             antall = it["antall"].intValue(),
             arsakForAntall = arsakForAntall(it),
+            arsakForAntallBegrunnelse = it["arsakForAntallBegrunnelse"]?.textValue(),
             beskrivelse = it["beskrivelse"].textValue(),
             hjelpemiddelkategori = it["hjelpemiddelkategori"].textValue(),
             hmsNr = it["hmsNr"].textValue(),
@@ -254,7 +255,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
 }
 
 private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
-   val arsak = hjelpemiddel["arsakForAntallBegrunnelse"]?.textValue() ?: hjelpemiddel["arsakForAntall"]?.let {
+   val arsak = hjelpemiddel["arsakForAntall"]?.let {
        when (hjelpemiddel["arsakForAntall"].textValue()) {
            // Legacy-fix for fra da det ble lagret faktiske verdier i databasen, og ikke enums
            "Behov i flere etasjer" -> "BEHOV_I_FLERE_ETASJER"
@@ -266,7 +267,7 @@ private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
            "Annet behov" -> "ANNET_BEHOV"
            else -> "UKJENT_ÅRSAK"
        }
-   } ?: hjelpemiddel["arsakForAntallValg"]?.textValue()
+   }
 
     return arsak
 }
@@ -432,6 +433,7 @@ class Oppfolgingsansvarlig(
 class Hjelpemiddel(
     val antall: Int,
     val arsakForAntall: String?,
+    val arsakForAntallBegrunnelse: String?,
     val beskrivelse: String,
     val hjelpemiddelkategori: String,
     val hmsNr: String,
