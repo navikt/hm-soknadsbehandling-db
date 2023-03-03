@@ -257,7 +257,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
 private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
    val arsak = hjelpemiddel["arsakForAntall"]?.let {
        when (hjelpemiddel["arsakForAntall"].textValue()) {
-           // Legacy-fix for fra da det ble lagret faktiske verdier i databasen, og ikke enums
+           // Returner enums så det blir lettere å legge inn translations
            "Behov i flere etasjer" -> "BEHOV_I_FLERE_ETASJER"
            "Behov i flere rom" -> "BEHOV_I_FLERE_ROM"
            "Behov både innendørs og utendørs" -> "BEHOV_INNENDØRS_OG_UTENDØRS"
