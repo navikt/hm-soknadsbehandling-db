@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - ers-kabin
-      - nye-felter-kalenderapp
+      - arsakForAntall
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
