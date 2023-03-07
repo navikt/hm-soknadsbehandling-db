@@ -230,6 +230,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
     søknad["soknad"]["hjelpemidler"]["hjelpemiddelListe"].forEach {
         val hjelpemiddel = Hjelpemiddel(
             antall = it["antall"].intValue(),
+            arsakForAntall = arsakForAntall(it),
+            arsakForAntallBegrunnelse = it["arsakForAntallBegrunnelse"]?.textValue(),
             beskrivelse = it["beskrivelse"].textValue(),
             hjelpemiddelkategori = it["hjelpemiddelkategori"].textValue(),
             hmsNr = it["hmsNr"].textValue(),
@@ -250,6 +252,24 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
+}
+
+private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
+   val arsak = hjelpemiddel["arsakForAntall"]?.let {
+       when (hjelpemiddel["arsakForAntall"].textValue()) {
+           // Returner enums så det blir lettere å legge inn translations
+           "Behov i flere etasjer" -> "BEHOV_I_FLERE_ETASJER"
+           "Behov i flere rom" -> "BEHOV_I_FLERE_ROM"
+           "Behov både innendørs og utendørs" -> "BEHOV_INNENDØRS_OG_UTENDØRS"
+           "Behov for pute til flere rullestoler eller sitteenheter" -> "BEHOV_FOR_FLERE_PUTER_FOR_RULLESTOL"
+           "Behov for jevnlig vask eller vedlikehold" -> "BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD"
+           "Bruker har to hjem" -> "BRUKER_HAR_TO_HJEM"
+           "Annet behov" -> "ANNET_BEHOV"
+           else -> "UKJENT_ÅRSAK"
+       }
+   }
+
+    return arsak
 }
 
 private fun vilkaar(hjelpemiddel: JsonNode): List<HjelpemiddelVilkar> {
@@ -412,6 +432,8 @@ class Oppfolgingsansvarlig(
 
 class Hjelpemiddel(
     val antall: Int,
+    val arsakForAntall: String?,
+    val arsakForAntallBegrunnelse: String?,
     val beskrivelse: String,
     val hjelpemiddelkategori: String,
     val hmsNr: String,
