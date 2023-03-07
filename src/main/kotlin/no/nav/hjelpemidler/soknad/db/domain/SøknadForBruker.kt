@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.util.Date
 import java.util.UUID
@@ -157,6 +159,9 @@ private fun oppfolgingsansvarlig(søknad: JsonNode): Oppfolgingsansvarlig? {
     )
 }
 
+private val leveringTilleggsinfoReader =
+    objectMapper.readerFor(object : TypeReference<List<LeveringTilleggsinfo>?>() {})
+
 private fun levering(søknad: JsonNode): Levering {
     val leveringNode = søknad["soknad"]["levering"]
     val leveringsMaate = leveringsMaate(søknad)
@@ -164,7 +169,8 @@ private fun levering(søknad: JsonNode): Levering {
         leveringsmaate = leveringsMaate,
         adresse = if (leveringsMaate == Leveringsmaate.ANNEN_ADRESSE) "${leveringNode["utleveringPostadresse"].textValue()} ${leveringNode["utleveringPostnr"].textValue()} ${leveringNode["utleveringPoststed"].textValue()}" else null,
         kontaktPerson = kontaktPerson(søknad),
-        merknad = leveringNode["merknadTilUtlevering"]?.textValue()
+        merknad = leveringNode["merknadTilUtlevering"]?.textValue(),
+        tilleggsinfo = leveringNode["tilleggsinfo"]?.let { leveringTilleggsinfoReader.readValue(it) } ?: emptyList()
     )
 }
 
@@ -207,14 +213,15 @@ private fun signaturType(søknad: JsonNode): SignaturType {
     }
 }
 
-private fun leveringsMaate(søknad: JsonNode): Leveringsmaate {
+private fun leveringsMaate(søknad: JsonNode): Leveringsmaate? {
     val leveringNode = søknad["soknad"]["levering"]
 
-    return when (leveringNode["utleveringsmaateRadioButton"].textValue()) {
+    return when (leveringNode["utleveringsmaateRadioButton"]?.textValue()) {
         "AnnenBruksadresse" -> Leveringsmaate.ANNEN_ADRESSE
         "FolkeregistrertAdresse" -> Leveringsmaate.FOLKEREGISTRERT_ADRESSE
         "Hjelpemiddelsentralen" -> Leveringsmaate.HJELPEMIDDELSENTRAL
         "AlleredeUtlevertAvNav" -> Leveringsmaate.ALLEREDE_LEVERT
+        null -> null
         else -> throw RuntimeException("Ugyldig leveringsmåte")
     }
 }
@@ -516,10 +523,16 @@ enum class HendelPlassering {
 
 class Levering(
     val kontaktPerson: KontaktPerson,
-    val leveringsmaate: Leveringsmaate,
+    val leveringsmaate: Leveringsmaate?,
     val adresse: String?,
     val merknad: String?,
+    val tilleggsinfo: List<LeveringTilleggsinfo>,
 )
+
+enum class LeveringTilleggsinfo {
+    UTLEVERING_KALENDERAPP,
+    ALLE_HJELPEMIDLER_ER_UTLEVERT,
+}
 
 class KontaktPerson(
     val navn: String? = null,

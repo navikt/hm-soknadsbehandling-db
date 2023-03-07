@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
 import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
+import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
@@ -141,11 +142,12 @@ internal class SøknadStorePostgresTest {
                               "utleveringEtternavn": "",
                               "merknadTilUtlevering": "",
                               "utleveringPostadresse": "",
-                              "utleveringsmaateRadioButton": "AlleredeUtlevertAvNav",
+                              "utleveringsmaateRadioButton": null,
                               "utlevertInfo": {
                                 "utlevertType":"Overført",
                                 "overførtFraBruker":"1234"
-                              }
+                              },
+                              "tilleggsinfo": ["UTLEVERING_KALENDERAPP"]
                             },
                             "hjelpemidler": {
                               "hjelpemiddelListe": [
@@ -210,8 +212,9 @@ internal class SøknadStorePostgresTest {
                     )
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
-                assertEquals("15084300133", hentSoknad?.søknadsdata?.bruker?.fnummer)
+                assertEquals("15084300133", hentSoknad!!.søknadsdata!!.bruker.fnummer)
                 assertEquals(true, hentSoknad?.er_digital)
+                assertEquals(LeveringTilleggsinfo.UTLEVERING_KALENDERAPP, hentSoknad.søknadsdata!!.levering.tilleggsinfo.first())
             }
         }
     }

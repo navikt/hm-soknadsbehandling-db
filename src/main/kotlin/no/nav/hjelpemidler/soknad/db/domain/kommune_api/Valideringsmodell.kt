@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
 import java.util.UUID
 
@@ -226,7 +227,8 @@ data class Levering(
     val utleveringPoststed: String?,
     val utleveringTelefon: String?,
     val utleveringskontaktpersonRadioButton: Kontaktperson?,
-    val utleveringsmaateRadioButton: UtleveringsMaate
+    val utleveringsmaateRadioButton: UtleveringsMaate,
+    val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
 )
 
 enum class Oppfoelger {
