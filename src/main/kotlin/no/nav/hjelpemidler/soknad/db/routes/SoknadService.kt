@@ -74,6 +74,9 @@ internal fun Route.tokenXRoutes(
                         if (fagsakData2 != null) soknad.fagsakId = fagsakData2
                     }
 
+                    // Fetch soknadType for søknad
+                    soknad.søknadType = infotrygdStore.hentTypeForSøknad(soknad.søknadId)
+
                     call.respond(soknad)
                 }
             }

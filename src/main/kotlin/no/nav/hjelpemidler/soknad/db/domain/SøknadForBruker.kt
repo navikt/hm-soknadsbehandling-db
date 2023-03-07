@@ -19,6 +19,7 @@ class SøknadForBruker private constructor(
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
     var fagsakId: String?,
+    var søknadType: String?,
     val valgteÅrsaker: List<String>,
 ) {
     companion object {
@@ -37,6 +38,7 @@ class SøknadForBruker private constructor(
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
+            søknadType: String?,
             valgteÅrsaker: List<String>,
         ) =
             SøknadForBruker(
@@ -53,6 +55,7 @@ class SøknadForBruker private constructor(
                 soknadGjelder,
                 ordrelinjer,
                 fagsakId,
+                søknadType,
                 valgteÅrsaker,
             )
 
@@ -69,6 +72,7 @@ class SøknadForBruker private constructor(
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
             fagsakId: String?,
+            søknadType: String?,
             valgteÅrsaker: List<String>,
         ) =
             SøknadForBruker(
@@ -85,6 +89,7 @@ class SøknadForBruker private constructor(
                 soknadGjelder,
                 ordrelinjer,
                 fagsakId,
+                søknadType,
                 valgteÅrsaker,
             )
     }
@@ -255,19 +260,19 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
 }
 
 private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
-   val arsak = hjelpemiddel["arsakForAntall"]?.let {
-       when (hjelpemiddel["arsakForAntall"].textValue()) {
-           // Returner enums så det blir lettere å legge inn translations
-           "Behov i flere etasjer" -> "BEHOV_I_FLERE_ETASJER"
-           "Behov i flere rom" -> "BEHOV_I_FLERE_ROM"
-           "Behov både innendørs og utendørs" -> "BEHOV_INNENDØRS_OG_UTENDØRS"
-           "Behov for pute til flere rullestoler eller sitteenheter" -> "BEHOV_FOR_FLERE_PUTER_FOR_RULLESTOL"
-           "Behov for jevnlig vask eller vedlikehold" -> "BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD"
-           "Bruker har to hjem" -> "BRUKER_HAR_TO_HJEM"
-           "Annet behov" -> "ANNET_BEHOV"
-           else -> "UKJENT_ÅRSAK"
-       }
-   }
+    val arsak = hjelpemiddel["arsakForAntall"]?.let {
+        when (hjelpemiddel["arsakForAntall"].textValue()) {
+            // Returner enums så det blir lettere å legge inn translations
+            "Behov i flere etasjer" -> "BEHOV_I_FLERE_ETASJER"
+            "Behov i flere rom" -> "BEHOV_I_FLERE_ROM"
+            "Behov både innendørs og utendørs" -> "BEHOV_INNENDØRS_OG_UTENDØRS"
+            "Behov for pute til flere rullestoler eller sitteenheter" -> "BEHOV_FOR_FLERE_PUTER_FOR_RULLESTOL"
+            "Behov for jevnlig vask eller vedlikehold" -> "BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD"
+            "Bruker har to hjem" -> "BRUKER_HAR_TO_HJEM"
+            "Annet behov" -> "ANNET_BEHOV"
+            else -> "UKJENT_ÅRSAK"
+        }
+    }
 
     return arsak
 }

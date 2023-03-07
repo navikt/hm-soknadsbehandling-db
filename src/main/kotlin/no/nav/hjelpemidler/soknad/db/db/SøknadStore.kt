@@ -162,6 +162,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
+                                søknadType = null,
                                 valgteÅrsaker = objectMapper.readValue(
                                     it.stringOrNull("ARSAKER") ?: "[]"
                                 ),
@@ -187,6 +188,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
+                                søknadType = null,
                                 valgteÅrsaker = objectMapper.readValue(
                                     it.stringOrNull("ARSAKER") ?: "[]"
                                 ),

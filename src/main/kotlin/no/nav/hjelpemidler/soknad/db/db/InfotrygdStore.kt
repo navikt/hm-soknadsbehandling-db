@@ -24,6 +24,7 @@ internal interface InfotrygdStore {
     fun hentSøknadIdFraVedtaksresultatV2(fnrBruker: String, saksblokkOgSaksnr: String): List<InfotrygdStorePostgres.SøknadIdFraVedtaksresultat>
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData?
     fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData?
+    fun hentTypeForSøknad(søknadId: UUID): String?
 }
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -174,6 +175,26 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
                         )
+                    }.asSingle
+                )
+            }
+        }
+    }
+
+    override fun hentTypeForSøknad(søknadId: UUID): String? {
+        return time("hent_type_for_soknad") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        """
+                            SELECT SOKNADSTYPE
+                            FROM V1_INFOTRYGD_DATA
+                            WHERE
+                                SOKNADS_ID = ?
+                        """.trimIndent(),
+                        søknadId,
+                    ).map {
+                        it.stringOrNull("SOKNADSTYPE")
                     }.asSingle
                 )
             }
