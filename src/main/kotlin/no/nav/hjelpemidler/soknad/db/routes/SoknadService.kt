@@ -268,6 +268,13 @@ internal fun Route.azureAdRoutes(
         }
     }
 
+    get("/infotrygd/søknadsType/{soknadsId}") {
+        val soknadsId = UUID.fromString(soknadsId())
+        val søknadsType = infotrygdStore.hentTypeForSøknad(soknadsId)
+        data class Response(val søknadsType: String?)
+        call.respond(Response(søknadsType))
+    }
+
     post("/soknad/hotsak/fra-saknummer") {
         try {
             val soknadFraHotsakNummerDto = call.receive<SoknadFraHotsakNummerDto>()
