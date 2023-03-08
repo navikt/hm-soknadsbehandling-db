@@ -75,7 +75,7 @@ internal fun Route.tokenXRoutes(
                     }
 
                     // Fetch soknadType for søknad
-                    soknad.søknadType = infotrygdStore.hentTypeForSøknad(soknad.søknadId) ?: "<test i test>"
+                    soknad.søknadType = infotrygdStore.hentTypeForSøknad(soknad.søknadId)
 
                     call.respond(soknad)
                 }
