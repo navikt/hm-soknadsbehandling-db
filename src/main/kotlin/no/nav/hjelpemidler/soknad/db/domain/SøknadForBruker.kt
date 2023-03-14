@@ -2,10 +2,13 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.util.Date
 import java.util.UUID
+
+private val logger = KotlinLogging.logger { }
 
 class SøknadForBruker private constructor(
     val søknadId: UUID,
@@ -101,6 +104,9 @@ private val bekreftedeVilkårReader =
     objectMapper.readerFor(object : TypeReference<List<BrukersituasjonVilkår>?>() {})
 
 private fun bruker(søknad: JsonNode): Bruker {
+
+    logger.info { "Søknad $søknad" }
+
     val brukerNode = søknad["soknad"]["bruker"]
     val brukerSituasjonNode = søknad["soknad"]["brukersituasjon"]
     val storreBehov = brukerSituasjonNode["storreBehov"]?.booleanValue() ?: false
