@@ -1,18 +1,18 @@
-apiVersion: nais.io/v1
-kind: Alert
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
 metadata:
   name: hm-soknadsbehandling-db
   namespace: teamdigihot
   labels:
     team: teamdigihot
 spec:
-  alerts:
-    - action: Sjekk {{ $labels.app }} i {{ $labels.kubernetes_namespace }} sine selftest
-        for å se hva som er galt
-      alert: feil i selftest
-      expr: selftests_aggregate_result_status{app="hm-soknadsbehandling-db"} > 0
-      for: 1m
-  receivers:
-    slack:
-      channel: '#digihot-rr-alerts'
-      prependText: '<!here> | '
+  groups:
+    - name: hm-soknadsbehandling-db-alerts
+      rules:
+      - alert: feil i selftest
+        expr: selftests_aggregate_result_status{app="hm-soknadsbehandling-db"} > 0
+        for: 1m
+        annotations:
+          action: Sjekk {{ $labels.app }} i {{ $labels.namespace }} sine selftest for å se hva som er galt
+        labels:
+          namespace: teamdigihot
