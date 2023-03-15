@@ -97,9 +97,36 @@ class SøknadForBruker private constructor(
     }
 }
 
+private val bekreftedeVilkårReader =
+    objectMapper.readerFor(object : TypeReference<List<BrukersituasjonVilkår>?>() {})
+
 private fun bruker(søknad: JsonNode): Bruker {
     val brukerNode = søknad["soknad"]["bruker"]
     val brukerSituasjonNode = søknad["soknad"]["brukersituasjon"]
+    val storreBehov = brukerSituasjonNode["storreBehov"]?.booleanValue() ?: false
+    val praktiskeProblem = brukerSituasjonNode["praktiskeProblem"]?.booleanValue() ?: false
+    val nedsattFunksjon = brukerSituasjonNode["nedsattFunksjon"]?.booleanValue() ?: false
+    val skalIkkeBrukesTilAndreFormaal = brukerSituasjonNode["skalIkkeBrukesTilAndreFormaal"]?.booleanValue() ?: false
+    val bruksarenaErDagliglivet = brukerSituasjonNode["bruksarenaErDagliglivet"]?.booleanValue() ?: false
+
+    val bekreftedeVilkår: List<BrukersituasjonVilkår> =
+        brukerSituasjonNode["bekreftedeVilkår"]?.let { bekreftedeVilkårReader.readValue(it) }
+            ?: mutableListOf<BrukersituasjonVilkår>().apply {
+                // Håndter eldre variant av datamodellen
+                if (skalIkkeBrukesTilAndreFormaal) {
+                    // Bestilling
+                    add(BrukersituasjonVilkår.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1)
+                    if (storreBehov) add(BrukersituasjonVilkår.KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1)
+                    if (praktiskeProblem) add(BrukersituasjonVilkår.I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1)
+                    if (bruksarenaErDagliglivet) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1)
+                } else {
+                    // Formidler søknad
+                    if (storreBehov) add(BrukersituasjonVilkår.STORRE_BEHOV)
+                    if (praktiskeProblem) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEM)
+                    if (nedsattFunksjon) add(BrukersituasjonVilkår.NEDSATT_FUNKSJON)
+                }
+            }
+
     return Bruker(
         fnummer = brukerNode["fnummer"].textValue(),
         fornavn = brukerNode["fornavn"].textValue(),
@@ -113,7 +140,8 @@ private fun bruker(søknad: JsonNode): Bruker {
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
         kroppsmaal = kroppsmaal(brukerNode),
-        brukernummer = brukerNode["brukernummer"]?.textValue()
+        brukernummer = brukerNode["brukernummer"]?.textValue(),
+        bekreftedeVilkår = bekreftedeVilkår,
     )
 }
 
@@ -408,8 +436,19 @@ class Bruker(
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
-    val brukernummer: String?
+    val brukernummer: String?,
+    val bekreftedeVilkår: List<BrukersituasjonVilkår>
 )
+
+enum class BrukersituasjonVilkår {
+    NEDSATT_FUNKSJON, // Bruker har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.
+    STORRE_BEHOV, // Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av NAV.
+    PRAKTISKE_PROBLEM, // Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og bruker vil være i stand til å bruke det.
+    PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1, // Hjelpemiddelet er nødvendig for å avhjelpe praktiske problemer i dagliglivet, eller for å bli pleid i hjemmet.
+    VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1, // Bruker har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut. Hjelpemiddelet skal ikke brukes til korttidsutlån eller til andre formål.
+    KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1, // Innbyggers behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.
+    I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1, // Innbyggeren vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.
+}
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT }
 enum class Bruksarena { DAGLIGLIVET, UKJENT }
