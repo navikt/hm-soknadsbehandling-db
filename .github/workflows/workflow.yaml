@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - ers-kabin
-      - brukersituasjon
+      - debug
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}

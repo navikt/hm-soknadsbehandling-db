@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
+import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.util.Date
@@ -109,23 +110,27 @@ private fun bruker(søknad: JsonNode): Bruker {
     val skalIkkeBrukesTilAndreFormaal = brukerSituasjonNode["skalIkkeBrukesTilAndreFormaal"]?.booleanValue() ?: false
     val bruksarenaErDagliglivet = brukerSituasjonNode["bruksarenaErDagliglivet"]?.booleanValue() ?: false
 
-    val bekreftedeVilkår: List<BrukersituasjonVilkår> =
+    var bekreftedeVilkår: List<BrukersituasjonVilkår> =
         brukerSituasjonNode["bekreftedeVilkår"]?.let { bekreftedeVilkårReader.readValue(it) }
-            ?: mutableListOf<BrukersituasjonVilkår>().apply {
-                // Håndter eldre variant av datamodellen
-                if (skalIkkeBrukesTilAndreFormaal) {
-                    // Bestilling
-                    add(BrukersituasjonVilkår.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1)
-                    if (storreBehov) add(BrukersituasjonVilkår.KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1)
-                    if (praktiskeProblem) add(BrukersituasjonVilkår.I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1)
-                    if (bruksarenaErDagliglivet) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1)
-                } else {
-                    // Formidler søknad
-                    if (storreBehov) add(BrukersituasjonVilkår.STORRE_BEHOV)
-                    if (praktiskeProblem) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEM)
-                    if (nedsattFunksjon) add(BrukersituasjonVilkår.NEDSATT_FUNKSJON)
-                }
+            ?: emptyList()
+    if (bekreftedeVilkår.isEmpty()) {
+        bekreftedeVilkår = mutableListOf<BrukersituasjonVilkår>().apply {
+            // Håndter eldre variant av datamodellen
+            if (skalIkkeBrukesTilAndreFormaal) {
+                // Bestilling
+                add(BrukersituasjonVilkår.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1)
+                if (storreBehov) add(BrukersituasjonVilkår.KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1)
+                if (praktiskeProblem) add(BrukersituasjonVilkår.I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1)
+                if (bruksarenaErDagliglivet) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1)
+            } else {
+                // Formidler søknad
+                if (storreBehov) add(BrukersituasjonVilkår.STORRE_BEHOV)
+                if (praktiskeProblem) add(BrukersituasjonVilkår.PRAKTISKE_PROBLEM)
+                if (nedsattFunksjon) add(BrukersituasjonVilkår.NEDSATT_FUNKSJON)
             }
+        }
+
+    }
 
     return Bruker(
         fnummer = brukerNode["fnummer"].textValue(),
