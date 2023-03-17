@@ -173,7 +173,7 @@ data class Brukersituasjon(
     val storreBehov: Boolean,
     val praktiskeProblem: Boolean,
     val skalIkkeBrukesTilAndreFormaal: Boolean?, // Kun for bestiller
-    val bekreftedeVilkår: List<BrukersituasjonVilkår>
+    val bekreftedeVilkår: List<BrukersituasjonVilkår>?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
