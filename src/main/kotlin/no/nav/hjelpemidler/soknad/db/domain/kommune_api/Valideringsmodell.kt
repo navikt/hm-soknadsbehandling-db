@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
 import java.util.UUID
@@ -171,7 +172,8 @@ data class Brukersituasjon(
     val nedsattFunksjonTypes: NedsattFunksjonTypes?,
     val storreBehov: Boolean,
     val praktiskeProblem: Boolean,
-    val skalIkkeBrukesTilAndreFormaal: Boolean? // Kun for bestiller
+    val skalIkkeBrukesTilAndreFormaal: Boolean?, // Kun for bestiller
+    val bekreftedeVilkår: List<BrukersituasjonVilkår>
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
