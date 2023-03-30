@@ -11,6 +11,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
+import no.nav.hjelpemidler.soknad.db.domain.VarmehjelpemiddelInfo
 import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
 import java.util.UUID
 
@@ -273,6 +274,14 @@ data class HjelpemiddelItem(
     val personlofterInfo: PersonlofterInfo?,
     val elektriskRullestolInfo: ElektriskRullestolInfo?,
     val appInfo: AppInfo?,
+    val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class VarmehjelpemiddelInfo(
+    val harHelseopplysningerFraFør: Boolean?,
+    val legeBekrefterDiagnose: Boolean?,
+    val opplysningerFraLegeOppbevaresIKommune: Boolean?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
