@@ -423,9 +423,9 @@ private fun appInfo(hjelpemiddel: JsonNode): AppInfo? {
 private fun varmehjelpemiddelInfo(hjelpemiddel: JsonNode): VarmehjelpemiddelInfo? {
     val varmehjelpemiddelInfoJson = hjelpemiddel["varmehjelpemiddelInfo"] ?: return null
     return VarmehjelpemiddelInfo(
-        harHelseopplysningerFraFør = varmehjelpemiddelInfoJson["harHelseopplysningerFraFør"].booleanValue(),
-        legeBekrefterDiagnose = varmehjelpemiddelInfoJson["legeBekrefterDiagnose"].booleanValue(),
-        opplysningerFraLegeOppbevaresIKommune = varmehjelpemiddelInfoJson["opplysningerFraLegeOppbevaresIKommune"].booleanValue()
+        harHelseopplysningerFraFør = varmehjelpemiddelInfoJson["harHelseopplysningerFraFør"]?.booleanValue(),
+        legeBekrefterDiagnose = varmehjelpemiddelInfoJson["legeBekrefterDiagnose"]?.booleanValue(),
+        opplysningerFraLegeOppbevaresIKommune = varmehjelpemiddelInfoJson["opplysningerFraLegeOppbevaresIKommune"]?.booleanValue()
     )
 }
 
