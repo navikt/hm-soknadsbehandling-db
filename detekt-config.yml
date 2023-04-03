@@ -1,0 +1,4 @@
+# https://raw.githubusercontent.com/detekt/detekt/main/detekt-core/src/main/resources/default-detekt-config.yml
+naming:
+  ConstructorParameterNaming:
+    active: false
