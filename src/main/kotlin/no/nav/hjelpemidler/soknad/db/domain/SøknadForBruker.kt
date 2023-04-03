@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
 import java.util.Date
