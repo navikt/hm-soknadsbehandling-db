@@ -56,10 +56,10 @@ dependencies {
     implementation(ktor("client-content-negotiation"))
 
     // Database
-    implementation("org.flywaydb:flyway-core:9.10.2")
+    implementation("org.flywaydb:flyway-core:9.16.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
-    implementation("org.postgresql:postgresql:42.5.1")
+    implementation("org.postgresql:postgresql:42.5.4")
 
     // AAD og TokenX
     val tokenSupportVersion = "2022.08.08-14.36-ac5034ce487b"
@@ -69,12 +69,12 @@ dependencies {
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
     // Logging
-    implementation("io.github.microutils:kotlin-logging:3.0.4")
-    runtimeOnly("ch.qos.logback:logback-classic:1.4.5")
-    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.2")
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
+    runtimeOnly("ch.qos.logback:logback-classic:1.4.6")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.3")
 
     implementation("com.natpryce:konfig:1.6.10.0")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.10.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.10.5")
 
     // InfluxDB
     implementation("org.influxdb:influxdb-java:2.23")
@@ -94,9 +94,9 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation(ktor("server-test-host"))
-    testImplementation("io.mockk:mockk:1.13.2")
+    testImplementation("io.mockk:mockk:1.13.4")
 
-    val kotestVersion = "5.5.4"
+    val kotestVersion = "5.5.5"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("org.testcontainers:postgresql:1.17.6")
