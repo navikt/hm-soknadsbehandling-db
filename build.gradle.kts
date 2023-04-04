@@ -36,7 +36,7 @@ dependencies {
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.4")
 
     // Jackson
-    val jacksonVersion = "2.14.0"
+    val jacksonVersion = "2.14.2"
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

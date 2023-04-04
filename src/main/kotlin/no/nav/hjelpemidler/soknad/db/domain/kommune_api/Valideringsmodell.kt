@@ -129,22 +129,16 @@ data class Bruker(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class Fødselsnummer(@get:JsonValue val value: String) {
-
-    private val elevenDigits = Regex("\\d{11}")
+data class Fødselsnummer(@get:JsonValue val value: String) {
 
     init {
-        if (!elevenDigits.matches(value)) {
+        if (!elevenDigitsPattern.matches(value)) {
             throw IllegalArgumentException("$value is not a valid fnr")
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Fødselsnummer) return false
-
-        if (value != other.value) return false
-        return true
+    companion object {
+        private val elevenDigitsPattern = Regex("\\d{11}")
     }
 }
 

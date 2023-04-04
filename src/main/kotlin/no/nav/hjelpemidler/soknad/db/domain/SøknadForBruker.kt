@@ -128,7 +128,6 @@ private fun bruker(søknad: JsonNode): Bruker {
                 if (nedsattFunksjon) add(BrukersituasjonVilkår.NEDSATT_FUNKSJON)
             }
         }
-
     }
 
     return Bruker(
