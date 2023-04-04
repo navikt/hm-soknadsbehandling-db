@@ -1,4 +1,4 @@
-name: build
+name: Scan dependencies for Dependabot
 on:
   push:
     branches:

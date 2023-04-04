@@ -46,6 +46,20 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}
 
+      - name: Run Trivy vulnerability scanner on docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.docker-push.outputs.image }}
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
   deploy-dev:
     name: Deploy to dev
     needs: build
