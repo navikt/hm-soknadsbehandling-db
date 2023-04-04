@@ -360,7 +360,7 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
             "Høyre" -> HendelPlassering.Høyre
             "Venstre" -> HendelPlassering.Venstre
             null -> null
-            else -> throw RuntimeException("Ugyldig hendelplassering")
+            else -> throw IllegalArgumentException("Ugyldig hendelplassering")
         },
         kabin = when (elRullestolinfoJson["kabin"]) {
             null -> null

@@ -5,6 +5,12 @@
 complexity:
   active: false
 
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+
 naming:
   active: false
 

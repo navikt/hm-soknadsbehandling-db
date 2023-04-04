@@ -803,11 +803,11 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         // Ekstra sikkerhetssjekker
                         if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
                             // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
-                            throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
+                            throw IllegalStateException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
                         }
 
                         if (validatedData.soknad.bruker.kommunenummer != kommunenummer) {
-                            throw RuntimeException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
+                            throw IllegalStateException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
                         }
 
                         // Filtrer ut ikke-relevante felter

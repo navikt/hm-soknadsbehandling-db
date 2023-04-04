@@ -601,7 +601,7 @@ internal fun Route.azureAdRoutes(
 
         val req = runCatching {
             val req = call.receive<Request>()
-            if (!req.isValid()) throw RuntimeException("Request not valid: $req")
+            if (!req.isValid()) throw IllegalArgumentException("Request not valid: $req")
             req
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
