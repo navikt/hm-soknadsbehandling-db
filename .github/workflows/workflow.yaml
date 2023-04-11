@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - trivy
+      - purge-bigquery
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
@@ -46,6 +46,12 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}
 
+  trivy-imagescan:
+    name: Scan dockerimage with Trivy
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
       - name: Run Trivy vulnerability scanner on docker image
         uses: aquasecurity/trivy-action@master
         with:

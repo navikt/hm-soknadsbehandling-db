@@ -68,6 +68,9 @@ dependencies {
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
+    // Kafka
+    implementation("org.apache.kafka:kafka-clients:3.4.0")
+
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.5")
     runtimeOnly("ch.qos.logback:logback-classic:1.4.6")
@@ -87,9 +90,6 @@ dependencies {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
     }
     implementation(graphqlKotlin("client-jackson"))
-
-    // BigQuery
-    implementation("com.google.cloud:google-cloud-bigquery:2.10.0")
 
     // Test
     testImplementation(kotlin("test"))
