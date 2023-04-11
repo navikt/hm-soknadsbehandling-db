@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - purge-bigquery
+      - bump-deps-2023-04-11
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
