@@ -13,7 +13,7 @@ spec:
     - secret: hm-influxdb-secret
     - secret: hm-slack-hook
   kafka:
-    pool: nav-dev # just to get the SSL certificate required influxDB on GCP?
+    pool: nav-dev
   liveness:
     path: /is_alive
     initialDelay: 30

@@ -71,7 +71,7 @@ internal object Configuration {
     val config = config()
     val database: Database = Database()
     val application: Application = Application()
-    val bigQuery: BigQuery = BigQuery()
+    val kafka: Kafka by lazy { Kafka() }
 
     data class Database(
         val host: String = config[Key("db.host", stringType)],
@@ -99,9 +99,12 @@ internal object Configuration {
         val hmRollerAudience: String = config[Key("HM_ROLLER_AUDIENCE", stringType)],
     )
 
-    data class BigQuery(
-        val projectId: String = config[Key("GCP_TEAM_PROJECT_ID", stringType)],
-        val datasetId: String = config[Key("BIGQUERY_DATASET_ID", stringType)],
+    data class Kafka(
+        val topic: String = config.getOrElse(Key("KAFKA_TOPIC", stringType), "teamdigihot.hm-soknadsbehandling-v1"),
+        val brokers: String = config[Key("KAFKA_BROKERS", stringType)],
+        val truststore_path: String = config[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
+        val keystore_path: String = config[Key("KAFKA_KEYSTORE_PATH", stringType)],
+        val credstore_password: String = config[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
     )
 }
 
