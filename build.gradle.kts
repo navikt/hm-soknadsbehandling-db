@@ -26,7 +26,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.2.1"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.2.4"
 fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.2.5"
 
 dependencies {
