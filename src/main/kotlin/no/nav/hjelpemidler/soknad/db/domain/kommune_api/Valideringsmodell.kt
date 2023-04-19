@@ -224,7 +224,7 @@ data class Levering(
     val utleveringPoststed: String?,
     val utleveringTelefon: String?,
     val utleveringskontaktpersonRadioButton: Kontaktperson?,
-    val utleveringsmaateRadioButton: UtleveringsMaate,
+    val utleveringsmaateRadioButton: UtleveringsMaate?,
     val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
 )
 
