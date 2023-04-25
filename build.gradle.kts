@@ -62,7 +62,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.5.4")
 
     // AAD og TokenX
-    val tokenSupportVersion = "2023.01.31-14.00-3b470b0cc43b"
+    val tokenSupportVersion = "2.1.0"
     implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
