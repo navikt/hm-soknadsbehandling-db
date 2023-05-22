@@ -44,6 +44,8 @@ spec:
       rules:
         - application: hm-grunndata-api
         - application: hm-roller
+      external:
+        - host: hooks.slack.com
   tokenx:
     enabled: true
   azure:
