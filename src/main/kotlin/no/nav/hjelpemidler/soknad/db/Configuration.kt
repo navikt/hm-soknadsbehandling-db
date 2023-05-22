@@ -41,7 +41,7 @@ private val devProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
-        "HM_ROLLER_URL" to "http://hm-roller.teamdigihot.svc.cluster.local",
+        "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "dev-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_dev",
     )
@@ -53,7 +53,7 @@ private val prodProperties = ConfigurationMap(
         "sensu" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
-        "HM_ROLLER_URL" to "http://hm-roller.teamdigihot.svc.cluster.local",
+        "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "prod-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_prod",
     )

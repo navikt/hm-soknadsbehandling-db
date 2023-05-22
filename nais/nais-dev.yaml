@@ -51,6 +51,7 @@ spec:
         - application: hm-roller
       external:
         - host: hooks.slack.com
+        - host: digihot-proxy.dev-fss-pub.nais.io
   resources:
     limits:
       cpu: 800m

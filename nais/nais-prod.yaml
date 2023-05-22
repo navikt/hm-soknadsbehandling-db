@@ -46,6 +46,7 @@ spec:
         - application: hm-roller
       external:
         - host: hooks.slack.com
+        - host: digihot-proxy.prod-fss-pub.nais.io
   tokenx:
     enabled: true
   azure:
