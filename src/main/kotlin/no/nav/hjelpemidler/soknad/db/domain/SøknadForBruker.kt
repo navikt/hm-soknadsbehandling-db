@@ -292,6 +292,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             utlevertInfo = utlevertInfo(it),
             appInfo = appInfo(it),
             varmehjelpemiddelInfo = varmehjelpemiddelInfo(it),
+            sengeInfo = sengeInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -427,6 +428,16 @@ private fun varmehjelpemiddelInfo(hjelpemiddel: JsonNode): VarmehjelpemiddelInfo
     )
 }
 
+private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
+    val sengeInfoJson = hjelpemiddel["sengeInfo"] ?: return null
+    return SengeInfo(
+        påkrevdBehov = sengeInfoJson["påkrevdBehov"]?.textValue(),
+        brukerOppfyllerPåkrevdBehov = sengeInfoJson["brukerOppfyllerPåkrevdBehov"]?.booleanValue(),
+        behovForSeng = sengeInfoJson["behovForSeng"]?.textValue(),
+        behovForSengBegrunnelse = sengeInfoJson["behovForSengBegrunnelse"]?.textValue(),
+    )
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -515,6 +526,14 @@ class Hjelpemiddel(
     val utlevertInfo: UtlevertInfo?,
     val appInfo: AppInfo?,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
+    val sengeInfo: SengeInfo?,
+)
+
+data class SengeInfo(
+    val påkrevdBehov: String?,
+    val brukerOppfyllerPåkrevdBehov: Boolean?,
+    val behovForSeng: String?,
+    val behovForSengBegrunnelse: String?
 )
 
 data class VarmehjelpemiddelInfo(
