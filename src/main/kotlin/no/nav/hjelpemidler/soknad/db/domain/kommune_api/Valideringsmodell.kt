@@ -269,6 +269,15 @@ data class HjelpemiddelItem(
     val elektriskRullestolInfo: ElektriskRullestolInfo?,
     val appInfo: AppInfo?,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
+    val sengeInfo: SengeInfo?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class SengeInfo(
+    val påkrevdBehov: String?,
+    val brukerOppfyllerPåkrevdBehov: Boolean?,
+    val behovForSeng: String?,
+    val behovForSengBegrunnelse: String?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
