@@ -465,7 +465,7 @@ private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): Posisjoneringssyst
     return PosisjoneringssystemInfo(
         skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
         skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
-        behov = objectMapper.readValue(posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.textValue(), PosisjoneringsputeBehov::class.java),
+        behov = objectMapper.readValue(posisjoneringssystemInfoJson["behov"]?.textValue(), PosisjoneringsputeBehov::class.java),
         oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
         oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
     )
