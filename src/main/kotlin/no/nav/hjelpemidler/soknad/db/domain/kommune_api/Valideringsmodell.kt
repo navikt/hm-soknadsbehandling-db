@@ -270,6 +270,57 @@ data class HjelpemiddelItem(
     val appInfo: AppInfo?,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
+    val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
+    val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class PosisjoneringsputeForBarnInfo(
+    val bruksområde: PosisjoneringsputeForBarnBruk?,
+    val brukerErOver26År: Boolean?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
+
+enum class PosisjoneringsputeForBarnBruk {
+    TILRETTELEGGE_UTGANGSSTILLING,
+    TRENING_AKTIVITET_STIMULERING,
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class PosisjoneringssystemInfo(
+    val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
+    val skalIkkeBrukesTilRenSmertelindring: Boolean?,
+    val behov: PosisjoneringsputeBehov?,
+    val oppgaverIDagliglivet: List<PosisjoneringsputeOppgaverIDagligliv>?,
+    val oppgaverIDagliglivetAnnet: String?,
+)
+
+enum class PosisjoneringsputeBehov {
+    STORE_LAMMELSER,
+    DIREKTE_AVHJELPE_I_DAGLIGLIVET,
+}
+
+enum class PosisjoneringsputeOppgaverIDagligliv {
+    SPISE_DRIKKE_OL,
+    BRUKE_DATAUTSTYR,
+    FØLGE_OPP_BARN,
+    HOBBY_FRITID_U26,
+    ANNET,
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class ElektriskVendesystemInfo(
+    val sengForMontering: SengForVendesystemMontering?,
+    val standardLakenByttesTilRiktigStørrelseAvNav: Boolean?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class SengForVendesystemMontering(
+    val hmsnr: String?,
+    val navn: String?,
+    val madrassbredde: Int?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

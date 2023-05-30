@@ -293,6 +293,9 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             appInfo = appInfo(it),
             varmehjelpemiddelInfo = varmehjelpemiddelInfo(it),
             sengeInfo = sengeInfo(it),
+            elektriskVendesystemInfo = elektriskVendesystemInfo(it),
+            posisjoneringssystemInfo = posisjoneringssystemInfo(it),
+            posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -438,6 +441,46 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
     )
 }
 
+private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesystemInfo? {
+    val elektriskVendesystemInfoJson = hjelpemiddel["elektriskVendesystemInfo"] ?: return null
+    return ElektriskVendesystemInfo(
+        sengForMontering = sengForMontering(elektriskVendesystemInfoJson),
+        standardLakenByttesTilRiktigStørrelseAvNav = elektriskVendesystemInfoJson["standardLakenByttesTilRiktigStørrelseAvNav"]?.booleanValue(),
+    )
+}
+
+private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMontering? {
+    val sengForMonteringJson = hjelpemiddel["sengForMontering"] ?: return null
+    return SengForVendesystemMontering(
+        hmsnr = sengForMonteringJson["hmsnr"]?.textValue(),
+        navn = sengForMonteringJson["navn"]?.textValue(),
+        madrassbredde = sengForMonteringJson["madrassbredde"]?.intValue()
+    )
+}
+
+private val posisjoneringsputeOppgaverIDagliglivReader =
+    objectMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
+private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): PosisjoneringssystemInfo? {
+    val posisjoneringssystemInfoJson = hjelpemiddel["posisjoneringssystemInfo"] ?: return null
+    return PosisjoneringssystemInfo(
+        skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
+        skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
+        behov = objectMapper.readValue(posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.textValue(), PosisjoneringsputeBehov::class.java),
+        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
+        oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
+    )
+}
+
+private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): PosisjoneringsputeForBarnInfo? {
+    val posisjoneringsputeForBarnInfoJson = hjelpemiddel["posisjoneringsputeForBarnInfo"] ?: return null
+    return PosisjoneringsputeForBarnInfo(
+        bruksområde = objectMapper.readValue(posisjoneringsputeForBarnInfoJson["bruksområde"]?.textValue(), PosisjoneringsputeForBarnBruk::class.java),
+        brukerErOver26År = posisjoneringsputeForBarnInfoJson["brukerErOver26År"]?.booleanValue(),
+        detErLagetEnMålrettetPlan = posisjoneringsputeForBarnInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
+        planenOppbevaresIKommunen = posisjoneringsputeForBarnInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
+    )
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -527,6 +570,53 @@ class Hjelpemiddel(
     val appInfo: AppInfo?,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
+    val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
+    val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+)
+
+data class PosisjoneringsputeForBarnInfo(
+    val bruksområde: PosisjoneringsputeForBarnBruk?,
+    val brukerErOver26År: Boolean?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
+
+enum class PosisjoneringsputeForBarnBruk {
+    TILRETTELEGGE_UTGANGSSTILLING,
+    TRENING_AKTIVITET_STIMULERING,
+}
+
+data class PosisjoneringssystemInfo(
+    val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
+    val skalIkkeBrukesTilRenSmertelindring: Boolean?,
+    val behov: PosisjoneringsputeBehov?,
+    val oppgaverIDagliglivet: List<PosisjoneringsputeOppgaverIDagligliv>?,
+    val oppgaverIDagliglivetAnnet: String?,
+)
+
+enum class PosisjoneringsputeBehov {
+    STORE_LAMMELSER,
+    DIREKTE_AVHJELPE_I_DAGLIGLIVET,
+}
+
+enum class PosisjoneringsputeOppgaverIDagligliv {
+    SPISE_DRIKKE_OL,
+    BRUKE_DATAUTSTYR,
+    FØLGE_OPP_BARN,
+    HOBBY_FRITID_U26,
+    ANNET,
+}
+
+data class ElektriskVendesystemInfo(
+    val sengForMontering: SengForVendesystemMontering?,
+    val standardLakenByttesTilRiktigStørrelseAvNav: Boolean?,
+)
+
+data class SengForVendesystemMontering(
+    val hmsnr: String?,
+    val navn: String?,
+    val madrassbredde: Int?,
 )
 
 data class SengeInfo(
