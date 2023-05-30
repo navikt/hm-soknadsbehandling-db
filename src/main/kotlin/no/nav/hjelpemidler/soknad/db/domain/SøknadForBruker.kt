@@ -465,7 +465,7 @@ private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): Posisjoneringssyst
     return PosisjoneringssystemInfo(
         skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
         skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
-        behov = objectMapper.readValue(posisjoneringssystemInfoJson["behov"]?.textValue(), PosisjoneringsputeBehov::class.java),
+        behov = posisjoneringsputeBehov(posisjoneringssystemInfoJson["behov"]?.textValue()),
         oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
         oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
     )
@@ -474,7 +474,7 @@ private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): Posisjoneringssyst
 private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): PosisjoneringsputeForBarnInfo? {
     val posisjoneringsputeForBarnInfoJson = hjelpemiddel["posisjoneringsputeForBarnInfo"] ?: return null
     return PosisjoneringsputeForBarnInfo(
-        bruksområde = objectMapper.readValue(posisjoneringsputeForBarnInfoJson["bruksområde"]?.textValue(), PosisjoneringsputeForBarnBruk::class.java),
+        bruksområde = posisjoneringsputeForBarnBruk(posisjoneringsputeForBarnInfoJson["bruksområde"]?.textValue()),
         brukerErOver26År = posisjoneringsputeForBarnInfoJson["brukerErOver26År"]?.booleanValue(),
         detErLagetEnMålrettetPlan = posisjoneringsputeForBarnInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
         planenOppbevaresIKommunen = posisjoneringsputeForBarnInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
@@ -587,6 +587,15 @@ enum class PosisjoneringsputeForBarnBruk {
     TRENING_AKTIVITET_STIMULERING,
 }
 
+private fun posisjoneringsputeForBarnBruk(value: String?): PosisjoneringsputeForBarnBruk? {
+    return when (value) {
+        "TILRETTELEGGE_UTGANGSSTILLING" -> PosisjoneringsputeForBarnBruk.TILRETTELEGGE_UTGANGSSTILLING
+        "TRENING_AKTIVITET_STIMULERING" -> PosisjoneringsputeForBarnBruk.TRENING_AKTIVITET_STIMULERING
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
 data class PosisjoneringssystemInfo(
     val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
     val skalIkkeBrukesTilRenSmertelindring: Boolean?,
@@ -598,6 +607,15 @@ data class PosisjoneringssystemInfo(
 enum class PosisjoneringsputeBehov {
     STORE_LAMMELSER,
     DIREKTE_AVHJELPE_I_DAGLIGLIVET,
+}
+
+private fun posisjoneringsputeBehov(value: String?): PosisjoneringsputeBehov? {
+    return when (value) {
+        "STORE_LAMMELSER" -> PosisjoneringsputeBehov.STORE_LAMMELSER
+        "DIREKTE_AVHJELPE_I_DAGLIGLIVET" -> PosisjoneringsputeBehov.DIREKTE_AVHJELPE_I_DAGLIGLIVET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
 }
 
 enum class PosisjoneringsputeOppgaverIDagligliv {
