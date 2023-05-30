@@ -313,6 +313,9 @@ private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
             "Behov for jevnlig vask eller vedlikehold" -> "BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD"
             "Bruker har to hjem" -> "BRUKER_HAR_TO_HJEM"
             "Annet behov" -> "ANNET_BEHOV"
+            "PUTENE_SKAL_KOMBINERES_I_POSISJONERING" -> "PUTENE_SKAL_KOMBINERES_I_POSISJONERING"
+            "BEHOV_HJEMME_OG_I_BARNEHAGE" -> "BEHOV_HJEMME_OG_I_BARNEHAGE"
+            "PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK" -> "PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK"
             else -> "UKJENT_ÅRSAK"
         }
     }
