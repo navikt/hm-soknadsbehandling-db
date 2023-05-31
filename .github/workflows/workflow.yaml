@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - bump-deps-2023-04-11
+      - rammeavtaler-010623
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}

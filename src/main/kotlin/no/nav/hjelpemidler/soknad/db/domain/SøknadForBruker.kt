@@ -292,6 +292,10 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             utlevertInfo = utlevertInfo(it),
             appInfo = appInfo(it),
             varmehjelpemiddelInfo = varmehjelpemiddelInfo(it),
+            sengeInfo = sengeInfo(it),
+            elektriskVendesystemInfo = elektriskVendesystemInfo(it),
+            posisjoneringssystemInfo = posisjoneringssystemInfo(it),
+            posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -309,6 +313,9 @@ private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
             "Behov for jevnlig vask eller vedlikehold" -> "BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD"
             "Bruker har to hjem" -> "BRUKER_HAR_TO_HJEM"
             "Annet behov" -> "ANNET_BEHOV"
+            "PUTENE_SKAL_KOMBINERES_I_POSISJONERING" -> "PUTENE_SKAL_KOMBINERES_I_POSISJONERING"
+            "BEHOV_HJEMME_OG_I_BARNEHAGE" -> "BEHOV_HJEMME_OG_I_BARNEHAGE"
+            "PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK" -> "PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK"
             else -> "UKJENT_ÅRSAK"
         }
     }
@@ -427,6 +434,56 @@ private fun varmehjelpemiddelInfo(hjelpemiddel: JsonNode): VarmehjelpemiddelInfo
     )
 }
 
+private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
+    val sengeInfoJson = hjelpemiddel["sengeInfo"] ?: return null
+    return SengeInfo(
+        påkrevdBehov = sengeInfoJson["påkrevdBehov"]?.textValue(),
+        brukerOppfyllerPåkrevdBehov = sengeInfoJson["brukerOppfyllerPåkrevdBehov"]?.booleanValue(),
+        behovForSeng = sengeInfoJson["behovForSeng"]?.textValue(),
+        behovForSengBegrunnelse = sengeInfoJson["behovForSengBegrunnelse"]?.textValue(),
+    )
+}
+
+private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesystemInfo? {
+    val elektriskVendesystemInfoJson = hjelpemiddel["elektriskVendesystemInfo"] ?: return null
+    return ElektriskVendesystemInfo(
+        sengForMontering = sengForMontering(elektriskVendesystemInfoJson),
+        standardLakenByttesTilRiktigStørrelseAvNav = elektriskVendesystemInfoJson["standardLakenByttesTilRiktigStørrelseAvNav"]?.booleanValue(),
+    )
+}
+
+private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMontering? {
+    val sengForMonteringJson = hjelpemiddel["sengForMontering"] ?: return null
+    return SengForVendesystemMontering(
+        hmsnr = sengForMonteringJson["hmsnr"]?.textValue(),
+        navn = sengForMonteringJson["navn"]?.textValue(),
+        madrassbredde = sengForMonteringJson["madrassbredde"]?.intValue()
+    )
+}
+
+private val posisjoneringsputeOppgaverIDagliglivReader =
+    objectMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
+private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): PosisjoneringssystemInfo? {
+    val posisjoneringssystemInfoJson = hjelpemiddel["posisjoneringssystemInfo"] ?: return null
+    return PosisjoneringssystemInfo(
+        skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
+        skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
+        behov = posisjoneringsputeBehov(posisjoneringssystemInfoJson["behov"]?.textValue()),
+        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
+        oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
+    )
+}
+
+private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): PosisjoneringsputeForBarnInfo? {
+    val posisjoneringsputeForBarnInfoJson = hjelpemiddel["posisjoneringsputeForBarnInfo"] ?: return null
+    return PosisjoneringsputeForBarnInfo(
+        bruksområde = posisjoneringsputeForBarnBruk(posisjoneringsputeForBarnInfoJson["bruksområde"]?.textValue()),
+        brukerErOver26År = posisjoneringsputeForBarnInfoJson["brukerErOver26År"]?.booleanValue(),
+        detErLagetEnMålrettetPlan = posisjoneringsputeForBarnInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
+        planenOppbevaresIKommunen = posisjoneringsputeForBarnInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
+    )
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -515,6 +572,79 @@ class Hjelpemiddel(
     val utlevertInfo: UtlevertInfo?,
     val appInfo: AppInfo?,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
+    val sengeInfo: SengeInfo?,
+    val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
+    val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+)
+
+data class PosisjoneringsputeForBarnInfo(
+    val bruksområde: PosisjoneringsputeForBarnBruk?,
+    val brukerErOver26År: Boolean?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
+
+enum class PosisjoneringsputeForBarnBruk {
+    TILRETTELEGGE_UTGANGSSTILLING,
+    TRENING_AKTIVITET_STIMULERING,
+}
+
+private fun posisjoneringsputeForBarnBruk(value: String?): PosisjoneringsputeForBarnBruk? {
+    return when (value) {
+        "TILRETTELEGGE_UTGANGSSTILLING" -> PosisjoneringsputeForBarnBruk.TILRETTELEGGE_UTGANGSSTILLING
+        "TRENING_AKTIVITET_STIMULERING" -> PosisjoneringsputeForBarnBruk.TRENING_AKTIVITET_STIMULERING
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+data class PosisjoneringssystemInfo(
+    val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
+    val skalIkkeBrukesTilRenSmertelindring: Boolean?,
+    val behov: PosisjoneringsputeBehov?,
+    val oppgaverIDagliglivet: List<PosisjoneringsputeOppgaverIDagligliv>?,
+    val oppgaverIDagliglivetAnnet: String?,
+)
+
+enum class PosisjoneringsputeBehov {
+    STORE_LAMMELSER,
+    DIREKTE_AVHJELPE_I_DAGLIGLIVET,
+}
+
+private fun posisjoneringsputeBehov(value: String?): PosisjoneringsputeBehov? {
+    return when (value) {
+        "STORE_LAMMELSER" -> PosisjoneringsputeBehov.STORE_LAMMELSER
+        "DIREKTE_AVHJELPE_I_DAGLIGLIVET" -> PosisjoneringsputeBehov.DIREKTE_AVHJELPE_I_DAGLIGLIVET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+enum class PosisjoneringsputeOppgaverIDagligliv {
+    SPISE_DRIKKE_OL,
+    BRUKE_DATAUTSTYR,
+    FØLGE_OPP_BARN,
+    HOBBY_FRITID_U26,
+    ANNET,
+}
+
+data class ElektriskVendesystemInfo(
+    val sengForMontering: SengForVendesystemMontering?,
+    val standardLakenByttesTilRiktigStørrelseAvNav: Boolean?,
+)
+
+data class SengForVendesystemMontering(
+    val hmsnr: String?,
+    val navn: String?,
+    val madrassbredde: Int?,
+)
+
+data class SengeInfo(
+    val påkrevdBehov: String?,
+    val brukerOppfyllerPåkrevdBehov: Boolean?,
+    val behovForSeng: String?,
+    val behovForSengBegrunnelse: String?
 )
 
 data class VarmehjelpemiddelInfo(
