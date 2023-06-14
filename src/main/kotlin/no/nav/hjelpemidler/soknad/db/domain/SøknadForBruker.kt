@@ -645,7 +645,7 @@ data class SengeInfo(
     val påkrevdBehov: String?,
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
-    val behovForSengBegrunnelse: String?
+    val behovForSengBegrunnelse: String?,
     val madrassValg: String?
 )
 
