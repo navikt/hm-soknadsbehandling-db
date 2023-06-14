@@ -646,6 +646,7 @@ data class SengeInfo(
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
     val behovForSengBegrunnelse: String?
+    val madrassValg: String?
 )
 
 data class VarmehjelpemiddelInfo(
