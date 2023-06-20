@@ -442,7 +442,7 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
         behovForSeng = sengeInfoJson["behovForSeng"]?.textValue(),
         behovForSengBegrunnelse = sengeInfoJson["behovForSengBegrunnelse"]?.textValue(),
         madrassValg = when (sengeInfoJson["madrassValg"]?.textValue()) {
-            "TrengerMadrass" -> MadrassValg.TrengerSittepute
+            "TrengerMadrass" -> MadrassValg.TrengerMadrass
             "HarFraFor" -> MadrassValg.HarFraFor
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")

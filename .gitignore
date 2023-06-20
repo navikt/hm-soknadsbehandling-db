@@ -8,3 +8,5 @@ out
 
 # IntelliJ HTTP Client private environment settings
 *.private.env.json
+
+.DS_store
