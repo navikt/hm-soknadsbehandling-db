@@ -646,7 +646,7 @@ data class SengeInfo(
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
     val behovForSengBegrunnelse: String?,
-    val madrassValg: String?
+    val madrassValg: MadrassValg?
 )
 
 data class VarmehjelpemiddelInfo(
@@ -672,6 +672,10 @@ data class PersonlofterInfo(
 
 enum class SitteputeValg {
     TrengerSittepute, HarFraFor, StandardSittepute, LeggesTilSeparat
+}
+
+enum class MadrassValg {
+    TrengerMadrass, HarFraFor
 }
 
 data class UtlevertInfo(

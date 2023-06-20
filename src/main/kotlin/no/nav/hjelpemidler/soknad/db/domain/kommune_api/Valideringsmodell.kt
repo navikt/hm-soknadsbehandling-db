@@ -329,6 +329,7 @@ data class SengeInfo(
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
     val behovForSengBegrunnelse: String?
+    val madrassValg: MadrassValg?
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -443,6 +444,10 @@ enum class UtlevertType {
 
 enum class SitteputeValg {
     TrengerSittepute, HarFraFor
+}
+
+enum class MadrassValg {
+    TrengerMadrass, HarFraFor
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
