@@ -441,6 +441,12 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
         brukerOppfyllerPåkrevdBehov = sengeInfoJson["brukerOppfyllerPåkrevdBehov"]?.booleanValue(),
         behovForSeng = sengeInfoJson["behovForSeng"]?.textValue(),
         behovForSengBegrunnelse = sengeInfoJson["behovForSengBegrunnelse"]?.textValue(),
+        madrassValg = when (sengeInfoJson["madrassValg"]?.textValue()) {
+            "TrengerMadrass" -> MadrassValg.TrengerMadrass
+            "HarFraFor" -> MadrassValg.HarFraFor
+            null -> null
+            else -> throw RuntimeException("Ugyldig sitteputeValg")
+        }
     )
 }
 
@@ -644,7 +650,8 @@ data class SengeInfo(
     val påkrevdBehov: String?,
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
-    val behovForSengBegrunnelse: String?
+    val behovForSengBegrunnelse: String?,
+    val madrassValg: MadrassValg?
 )
 
 data class VarmehjelpemiddelInfo(
@@ -670,6 +677,10 @@ data class PersonlofterInfo(
 
 enum class SitteputeValg {
     TrengerSittepute, HarFraFor, StandardSittepute, LeggesTilSeparat
+}
+
+enum class MadrassValg {
+    TrengerMadrass, HarFraFor
 }
 
 data class UtlevertInfo(
