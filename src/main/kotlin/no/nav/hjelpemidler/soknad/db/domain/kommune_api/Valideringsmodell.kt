@@ -273,6 +273,7 @@ data class HjelpemiddelItem(
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+    val diverseInfo: Map<String, String> = emptyMap(),
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
