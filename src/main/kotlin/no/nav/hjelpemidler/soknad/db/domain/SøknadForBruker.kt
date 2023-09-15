@@ -807,8 +807,13 @@ data class OppreisningsStolInfo(
     val kanBrukerReiseSegSelvFraVanligStol: Boolean,
     val behov: List<OppreisningsStolBehov>?,
     val behovForStolBegrunnelse: String?,
-    val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?
+    val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
+    val bruksområde: OppreisningsStolBruksområde?
 )
+
+enum class OppreisningsStolBruksområde{
+    EGEN_BOENHET, FELLESAREAL
+}
 
 enum class OppreisningsStolBehov {
     OPPGAVER_I_DAGLIGLIVET,
