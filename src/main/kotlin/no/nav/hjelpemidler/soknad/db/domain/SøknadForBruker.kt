@@ -297,7 +297,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             elektriskVendesystemInfo = elektriskVendesystemInfo(it),
             posisjoneringssystemInfo = posisjoneringssystemInfo(it),
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
-            oppreisningsStolInfo = oppreisningsStolInfo(it)
+            oppreisningsStolInfo = oppreisningsStolInfo(it),
+            diverseInfo = diverseInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -497,6 +498,11 @@ private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): Posisjonering
     )
 }
 
+private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
+    val diverseInfoJson = hjelpemiddel["diverseInfo"] ?: return emptyMap()
+    return objectMapper.treeToValue(diverseInfoJson)
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -590,6 +596,7 @@ class Hjelpemiddel(
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
+    val diverseInfo: Map<String, String> = emptyMap(),
 )
 
 data class PosisjoneringsputeForBarnInfo(

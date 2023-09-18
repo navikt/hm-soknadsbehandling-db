@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm") version "1.8.0"
+    kotlin("jvm") version "1.9.0"
     id("com.expediagroup.graphql") version "6.2.5"
     id("com.diffplug.spotless") version "6.2.0"
 }
@@ -26,7 +26,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.2.4"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.3.3"
 fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.4.0"
 
 dependencies {
@@ -36,7 +36,7 @@ dependencies {
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.4")
 
     // Jackson
-    val jacksonVersion = "2.14.2"
+    val jacksonVersion = "2.15.1"
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -56,7 +56,7 @@ dependencies {
     implementation(ktor("client-content-negotiation"))
 
     // Database
-    implementation("org.flywaydb:flyway-core:9.16.0")
+    implementation("org.flywaydb:flyway-core:9.21.1")
     implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("com.github.seratch:kotliquery:1.9.0")
     implementation("org.postgresql:postgresql:42.6.0")
@@ -73,7 +73,7 @@ dependencies {
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.5")
-    runtimeOnly("ch.qos.logback:logback-classic:1.4.6")
+    runtimeOnly("ch.qos.logback:logback-classic:1.4.7")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:7.3")
 
     implementation("com.natpryce:konfig:1.6.10.0")
@@ -94,7 +94,7 @@ dependencies {
     // Test
     testImplementation(kotlin("test"))
     testImplementation(ktor("server-test-host"))
-    testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation("io.mockk:mockk:1.13.5")
 
     val kotestVersion = "5.5.5"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
