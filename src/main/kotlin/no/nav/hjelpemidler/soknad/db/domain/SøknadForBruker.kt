@@ -297,11 +297,17 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             elektriskVendesystemInfo = elektriskVendesystemInfo(it),
             posisjoneringssystemInfo = posisjoneringssystemInfo(it),
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
+            oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
+}
+
+private fun oppreisningsStolInfo(hjelpemiddel: JsonNode): OppreisningsStolInfo? {
+    val oppreisningsStolInfo = hjelpemiddel["oppreisningsStolInfo"] ?: return null
+    return objectMapper.treeToValue<OppreisningsStolInfo>(oppreisningsStolInfo)
 }
 
 private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
@@ -589,6 +595,7 @@ class Hjelpemiddel(
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+    val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
 )
 
@@ -801,4 +808,26 @@ data class SøknadForBrukerOrdrelinje(
         }
         return this
     }
+}
+
+data class OppreisningsStolInfo(
+    val kanBrukerReiseSegSelvFraVanligStol: Boolean,
+    val behov: List<OppreisningsStolBehov>?,
+    val behovForStolBegrunnelse: String?,
+    val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
+    val bruksområde: OppreisningsStolBruksområde?
+)
+
+enum class OppreisningsStolBruksområde{
+    EGEN_BOENHET, FELLESAREAL
+}
+
+enum class OppreisningsStolBehov {
+    OPPGAVER_I_DAGLIGLIVET,
+    PLEID_I_HJEMMET,
+    FLYTTE_MELLOM_STOL_OG_RULLESTOL,
+}
+
+enum class SideBetjeningsPanelPosisjon {
+    HØYRE, VENSTRE
 }

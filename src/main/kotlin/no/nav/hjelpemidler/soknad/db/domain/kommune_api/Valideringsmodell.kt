@@ -477,3 +477,25 @@ data class HjelpemiddelVilkar(
     val kreverTilleggsinfo: Boolean?,
     val tilleggsinfo: String?
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class OppreisningsStolInfo(
+    val kanBrukerReiseSegSelvFraVanligStol: Boolean,
+    val behov: List<OppreisningsStolBehov>?,
+    val behovForStolBegrunnelse: String?,
+    val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
+    val bruksområde: OppreisningsStolBruksområde?
+)
+
+enum class OppreisningsStolBruksområde{
+    EGEN_BOENHET, FELLESAREAL
+}
+enum class OppreisningsStolBehov {
+    OPPGAVER_I_DAGLIGLIVET,
+    PLEID_I_HJEMMET,
+    FLYTTE_MELLOM_STOL_OG_RULLESTOL,
+}
+
+enum class SideBetjeningsPanelPosisjon {
+    HØYRE, VENSTRE
+}
