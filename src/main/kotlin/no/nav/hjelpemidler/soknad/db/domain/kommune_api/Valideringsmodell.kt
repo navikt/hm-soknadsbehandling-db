@@ -484,7 +484,8 @@ data class OppreisningsStolInfo(
     val behov: List<OppreisningsStolBehov>?,
     val behovForStolBegrunnelse: String?,
     val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
-    val bruksområde: OppreisningsStolBruksområde?
+    val bruksområde: OppreisningsStolBruksområde?,
+    val annetTrekkKanBenyttes: Boolean,
 )
 
 enum class OppreisningsStolBruksområde{
