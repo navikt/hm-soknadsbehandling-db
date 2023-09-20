@@ -817,7 +817,12 @@ data class OppreisningsStolInfo(
     val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
     val bruksområde: OppreisningsStolBruksområde?,
     val annetTrekkKanBenyttes: Boolean,
+    val løftType: OppreisningsStolLøftType,
 )
+
+enum class OppreisningsStolLøftType {
+    SKRÅLØFT, RETTLØFT
+}
 
 enum class OppreisningsStolBruksområde{
     EGEN_BOENHET, FELLESAREAL
