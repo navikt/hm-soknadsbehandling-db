@@ -273,6 +273,7 @@ data class HjelpemiddelItem(
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
+    val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
 )
 
