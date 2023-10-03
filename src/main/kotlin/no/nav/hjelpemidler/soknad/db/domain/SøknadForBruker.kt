@@ -456,14 +456,7 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")
         },
-        høyGrindValg = if (høyGrindValg != null) {
-            HøyGrindValg(
-                erKjentMedTvangsAspekt = høyGrindValg["erKjentMedTvangsAspekt"].booleanValue(),
-                harForsøktOpptrening = høyGrindValg["harForsøktOpptrening"].booleanValue(),
-                harIkkeForsøktOpptreningBegrunnelse = høyGrindValg["harIkkeForsøktOpptreningBegrunnelse"]?.textValue(),
-                erLagetPlanForOppfølging = høyGrindValg["erLagetPlanForOppfølging"].booleanValue(),
-            )
-        } else null,
+        høyGrindValg = høyGrindValg?.let { objectMapper.treeToValue<HøyGrindValg>(it) }
     )
 }
 
