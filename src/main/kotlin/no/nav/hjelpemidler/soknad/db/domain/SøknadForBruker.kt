@@ -444,6 +444,7 @@ private fun varmehjelpemiddelInfo(hjelpemiddel: JsonNode): VarmehjelpemiddelInfo
 
 private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
     val sengeInfoJson = hjelpemiddel["sengeInfo"] ?: return null
+    val høyGrindValg = sengeInfoJson["høyGrindValg"] ?: null
     return SengeInfo(
         påkrevdBehov = sengeInfoJson["påkrevdBehov"]?.textValue(),
         brukerOppfyllerPåkrevdBehov = sengeInfoJson["brukerOppfyllerPåkrevdBehov"]?.booleanValue(),
@@ -454,7 +455,8 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
             "HarFraFor" -> MadrassValg.HarFraFor
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")
-        }
+        },
+        høyGrindValg = høyGrindValg?.let { objectMapper.treeToValue<HøyGrindValg>(it) }
     )
 }
 
@@ -666,7 +668,8 @@ data class SengeInfo(
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
     val behovForSengBegrunnelse: String?,
-    val madrassValg: MadrassValg?
+    val madrassValg: MadrassValg?,
+    val høyGrindValg: HøyGrindValg?,
 )
 
 data class VarmehjelpemiddelInfo(
@@ -697,6 +700,13 @@ enum class SitteputeValg {
 enum class MadrassValg {
     TrengerMadrass, HarFraFor
 }
+
+data class HøyGrindValg(
+    val erKjentMedTvangsAspekt: Boolean,
+    val harForsøktOpptrening: Boolean,
+    val harIkkeForsøktOpptreningBegrunnelse: String?,
+    val erLagetPlanForOppfølging: Boolean,
+)
 
 data class UtlevertInfo(
     val utlevertType: UtlevertType?,
