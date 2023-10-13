@@ -13,7 +13,6 @@ private val logg = KotlinLogging.logger {}
 internal class Metrics(
     private val søknadStore: SøknadStore,
     private val aivenMetrics: AivenMetrics = AivenMetrics(),
-    private val sensuMetrics: SensuMetrics = SensuMetrics()
 ) {
 
     fun measureElapsedTimeBetweenStatusChanges(soknadsId: UUID, status: Status) {
@@ -92,7 +91,6 @@ internal class Metrics(
                     if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
 
                 aivenMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
-                sensuMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
             logg.error(e) { "Feil ved sending av tid mellom status-metrikker" }

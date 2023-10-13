@@ -504,7 +504,7 @@ enum class OppreisningsStolLøftType {
     SKRÅLØFT, RETTLØFT
 }
 
-enum class OppreisningsStolBruksområde{
+enum class OppreisningsStolBruksområde {
     EGEN_BOENHET, FELLESAREAL
 }
 enum class OppreisningsStolBehov {
