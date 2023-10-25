@@ -26,7 +26,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-fun ktor(name: String) = "io.ktor:ktor-$name:2.3.3"
+fun ktor(name: String) = "io.ktor:ktor-$name:2.3.5"
 fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.4.0"
 
 dependencies {
@@ -43,12 +43,18 @@ dependencies {
 
     // Ktor Server
     implementation(ktor("server-core"))
-    implementation(ktor("server-netty"))
     implementation(ktor("server-content-negotiation"))
     implementation(ktor("server-auth"))
     implementation(ktor("server-auth-jwt"))
     implementation(ktor("server-call-logging"))
     implementation(ktor("serialization-jackson"))
+
+    implementation(ktor("server-netty"))
+    constraints {
+        implementation("io.netty:netty-codec-http2:4.1.100.Final") {
+            because("io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack #30")
+        }
+    }
 
     // Ktor Client
     implementation(ktor("client-core"))
@@ -81,6 +87,11 @@ dependencies {
 
     // InfluxDB
     implementation("org.influxdb:influxdb-java:2.23")
+    constraints {
+        implementation("com.squareup.okio:okio:3.6.0") {
+            because("Okio Signed to Unsigned Conversion Error vulnerability")
+        }
+    }
     implementation("com.influxdb:influxdb-client-kotlin:6.6.0")
 
     // GraphQL Client
