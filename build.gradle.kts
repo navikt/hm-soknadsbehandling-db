@@ -62,14 +62,14 @@ dependencies {
     implementation("org.postgresql:postgresql:42.6.0")
 
     // AAD og TokenX
-    val tokenSupportVersion = "2.1.0"
-    implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
+    val tokenSupportVersion = "3.0.0"
+    // implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.4.0")
+    implementation("org.apache.kafka:kafka-clients:3.6.0")
 
     // Logging
     implementation("io.github.microutils:kotlin-logging:3.0.5")

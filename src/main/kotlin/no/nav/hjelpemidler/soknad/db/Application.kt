@@ -7,6 +7,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.authentication
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
@@ -28,10 +29,11 @@ import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
 import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
 import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
-import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
+import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
+import no.nav.tms.token.support.tokenx.validation.tokenX
 import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
@@ -59,9 +61,9 @@ fun Application.module() {
     val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     val rolleService = RolleService(RolleClient(tokendingsService))
 
-    installAuthenticators {
-        installAzureAuth { }
-        installTokenXAuth { }
+    authentication {
+        azure { }
+        tokenX { }
     }
 
     install(ContentNegotiation) {
