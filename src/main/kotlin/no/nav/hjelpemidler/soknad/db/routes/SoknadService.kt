@@ -588,7 +588,7 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/kommune-api/soknader") {
+    post("/kommune-api/soknader") {
         data class Request(
             val kommunenummer: String,
             val nyereEnn: UUID?,
@@ -606,7 +606,7 @@ internal fun Route.azureAdRoutes(
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknader for kommune-apiet")
-            return@get
+            return@post
         }
 
         runCatching {
@@ -615,7 +615,7 @@ internal fun Route.azureAdRoutes(
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
             call.respond(HttpStatusCode.InternalServerError, "Feilet ved henting av søknader for kommune-apiet")
-            return@get
+            return@post
         }
     }
 
