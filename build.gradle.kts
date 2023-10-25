@@ -45,9 +45,15 @@ dependencies {
     implementation(ktor("server-core"))
     implementation(ktor("server-content-negotiation"))
     implementation(ktor("server-auth"))
-    implementation(ktor("server-auth-jwt"))
     implementation(ktor("server-call-logging"))
     implementation(ktor("serialization-jackson"))
+
+    implementation(ktor("server-auth-jwt"))
+    constraints {
+        implementation("com.auth0:jwks-rsa:0.22.1") {
+            because("Guava vulnerable to insecure use of temporary directory (<32.0.0)")
+        }
+    }
 
     implementation(ktor("server-netty"))
     constraints {
