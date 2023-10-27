@@ -64,7 +64,7 @@ data class Behovsmelding(
 }
 
 enum class BehovsmeldingType {
-    SØKNAD, BESTILLING
+    SØKNAD, BESTILLING, BYTTE
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
