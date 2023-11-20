@@ -144,7 +144,7 @@ data class Fødselsnummer(@get:JsonValue val value: String) {
 }
 
 enum class Signaturtype {
-    BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT
+    BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE
 }
 
 enum class BrukerKilde {
