@@ -276,7 +276,26 @@ data class HjelpemiddelItem(
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
+    val bytter: List<Bytte> = emptyList(),
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Bytte(
+    val erTilsvarende: Boolean,
+    val hmsnr: String,
+    val serienr: String? = null,
+    val hjmNavn: String,
+    val hjmKategori: String,
+    val årsak: BytteÅrsak? = null,
+)
+
+enum class BytteÅrsak {
+    UTSLITT,
+    VOKST_FRA,
+    ENDRINGER_I_INNBYGGERS_FUNKSJON,
+    FEIL_STØRRELSE,
+    VURDERT_SOM_ØDELAGT_AV_LOKAL_TEKNIKER,
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class PosisjoneringsputeForBarnInfo(
