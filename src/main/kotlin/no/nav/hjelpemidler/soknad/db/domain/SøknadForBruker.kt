@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
@@ -235,16 +234,9 @@ private fun kontaktPersonType(søknad: JsonNode): KontaktpersonType {
     }
 }
 
-private fun signaturType(søknad: JsonNode): SignaturType {
-    val brukerNode = søknad["soknad"]["bruker"]
+private fun signaturType(søknad: JsonNode): SignaturType =
+    objectMapper.treeToValue(søknad["soknad"]["bruker"]["signatur"])
 
-    return when (brukerNode["signatur"].textValue()) {
-        "BRUKER_BEKREFTER" -> SignaturType.BRUKER_BEKREFTER
-        "FULLMAKT" -> SignaturType.FULLMAKT
-        "FRITAK_FRA_FULLMAKT" -> SignaturType.FRITAK_FRA_FULLMAKT
-        else -> throw RuntimeException("Ugyldig signaturtype")
-    }
-}
 
 private fun leveringsMaate(søknad: JsonNode): Leveringsmaate? {
     val leveringNode = søknad["soknad"]["levering"]
@@ -481,13 +473,18 @@ private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMonterin
 
 private val posisjoneringsputeOppgaverIDagliglivReader =
     objectMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
+
 private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): PosisjoneringssystemInfo? {
     val posisjoneringssystemInfoJson = hjelpemiddel["posisjoneringssystemInfo"] ?: return null
     return PosisjoneringssystemInfo(
         skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
         skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
         behov = posisjoneringsputeBehov(posisjoneringssystemInfoJson["behov"]?.textValue()),
-        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
+        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let {
+            posisjoneringsputeOppgaverIDagliglivReader.readValue(
+                it
+            )
+        } ?: emptyList(),
         oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
     )
 }
