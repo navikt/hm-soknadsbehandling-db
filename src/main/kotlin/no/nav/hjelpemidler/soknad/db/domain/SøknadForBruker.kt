@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
@@ -299,6 +300,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
+            bytter = bytter(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -505,6 +507,11 @@ private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
     return objectMapper.treeToValue(diverseInfoJson)
 }
 
+private fun bytter(hjelpemiddel: JsonNode): List<Bytte> {
+    val diverseInfoJson = hjelpemiddel["bytter"] ?: return emptyList()
+    return objectMapper.treeToValue(diverseInfoJson)
+}
+
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val bruker = bruker(søknad)
     val formidler = formidler(søknad, kommunenavn)
@@ -599,7 +606,25 @@ class Hjelpemiddel(
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
+    val bytter: List<Bytte> = emptyList(),
 )
+
+data class Bytte(
+    val erTilsvarende: Boolean,
+    val hmsnr: String,
+    val serienr: String? = null,
+    val hjmNavn: String,
+    val hjmKategori: String,
+    val årsak: BytteÅrsak? = null,
+)
+
+enum class BytteÅrsak {
+    UTSLITT,
+    VOKST_FRA,
+    ENDRINGER_I_INNBYGGERS_FUNKSJON,
+    FEIL_STØRRELSE,
+    VURDERT_SOM_ØDELAGT_AV_LOKAL_TEKNIKER,
+}
 
 data class PosisjoneringsputeForBarnInfo(
     val bruksområde: PosisjoneringsputeForBarnBruk?,
