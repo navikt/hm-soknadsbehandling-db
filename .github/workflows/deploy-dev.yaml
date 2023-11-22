@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - høyGrindValg
+      - INNSENDT_FULLMAKT_IKKE_PÅKREVD
 
 jobs:
   build:
