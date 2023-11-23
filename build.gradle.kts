@@ -32,6 +32,8 @@ fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.4.0"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    implementation("net.minidev:json-smart:2.4.9")
+
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.4")
 
@@ -77,12 +79,6 @@ dependencies {
     val tokenSupportVersion = "3.0.0"
     // implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
-    constraints {
-        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.6") {
-            because("json-smart: Uncontrolled Resource Consumption vulnerability in json-smart (Resource Exhaustion)")
-        }
-    }
-
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
