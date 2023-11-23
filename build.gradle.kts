@@ -32,7 +32,7 @@ fun graphqlKotlin(name: String) = "com.expediagroup:graphql-kotlin-$name:6.4.0"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation("net.minidev:json-smart:2.4.9")
+    // implementation("net.minidev:json-smart:2.4.9")
 
     // Http
     implementation("no.nav.hjelpemidler.http:hm-http:v0.0.4")
