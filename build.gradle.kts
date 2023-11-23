@@ -77,6 +77,12 @@ dependencies {
     val tokenSupportVersion = "3.0.0"
     // implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
+    constraints {
+        implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.6") {
+            because("json-smart: Uncontrolled Resource Consumption vulnerability in json-smart (Resource Exhaustion)")
+        }
+    }
+
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokendings-exchange:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-tokenx-validation:$tokenSupportVersion")
 
