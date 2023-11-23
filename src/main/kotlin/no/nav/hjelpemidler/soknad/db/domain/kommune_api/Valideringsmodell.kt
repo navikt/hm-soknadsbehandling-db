@@ -64,7 +64,7 @@ data class Behovsmelding(
 }
 
 enum class BehovsmeldingType {
-    SØKNAD, BESTILLING
+    SØKNAD, BESTILLING, BYTTE
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -144,7 +144,7 @@ data class Fødselsnummer(@get:JsonValue val value: String) {
 }
 
 enum class Signaturtype {
-    BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT
+    BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE
 }
 
 enum class BrukerKilde {
@@ -276,7 +276,26 @@ data class HjelpemiddelItem(
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
+    val bytter: List<Bytte> = emptyList(),
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Bytte(
+    val erTilsvarende: Boolean,
+    val hmsnr: String,
+    val serienr: String? = null,
+    val hjmNavn: String,
+    val hjmKategori: String,
+    val årsak: BytteÅrsak? = null,
+)
+
+enum class BytteÅrsak {
+    UTSLITT,
+    VOKST_FRA,
+    ENDRINGER_I_INNBYGGERS_FUNKSJON,
+    FEIL_STØRRELSE,
+    VURDERT_SOM_ØDELAGT_AV_LOKAL_TEKNIKER,
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class PosisjoneringsputeForBarnInfo(

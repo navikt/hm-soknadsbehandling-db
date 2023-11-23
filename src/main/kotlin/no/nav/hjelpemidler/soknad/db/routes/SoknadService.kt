@@ -90,13 +90,11 @@ internal fun Route.tokenXRoutes(
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
 
         try {
-            val soknaderTilGodkjenning = søknadStore.hentSoknaderForBruker(fnr)
-            call.respond(soknaderTilGodkjenning)
+            val brukersSaker = søknadStore.hentSoknaderForBruker(fnr)
+            call.respond(brukersSaker)
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching søknader til godkjenning" }
-            logger.info("Error on fetching søknader til godkjenning: $e")
-            e.printStackTrace()
-            call.respond(HttpStatusCode.InternalServerError, e)
+            call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av saker")
         }
     }
 

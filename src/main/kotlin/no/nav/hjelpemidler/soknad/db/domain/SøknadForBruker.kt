@@ -234,16 +234,9 @@ private fun kontaktPersonType(søknad: JsonNode): KontaktpersonType {
     }
 }
 
-private fun signaturType(søknad: JsonNode): SignaturType {
-    val brukerNode = søknad["soknad"]["bruker"]
+private fun signaturType(søknad: JsonNode): SignaturType =
+    objectMapper.treeToValue(søknad["soknad"]["bruker"]["signatur"])
 
-    return when (brukerNode["signatur"].textValue()) {
-        "BRUKER_BEKREFTER" -> SignaturType.BRUKER_BEKREFTER
-        "FULLMAKT" -> SignaturType.FULLMAKT
-        "FRITAK_FRA_FULLMAKT" -> SignaturType.FRITAK_FRA_FULLMAKT
-        else -> throw RuntimeException("Ugyldig signaturtype")
-    }
-}
 
 private fun leveringsMaate(søknad: JsonNode): Leveringsmaate? {
     val leveringNode = søknad["soknad"]["levering"]
@@ -299,6 +292,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
+            bytter = bytter(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -479,13 +473,18 @@ private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMonterin
 
 private val posisjoneringsputeOppgaverIDagliglivReader =
     objectMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
+
 private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): PosisjoneringssystemInfo? {
     val posisjoneringssystemInfoJson = hjelpemiddel["posisjoneringssystemInfo"] ?: return null
     return PosisjoneringssystemInfo(
         skalIkkeBrukesSomBehandlingshjelpemiddel = posisjoneringssystemInfoJson["skalIkkeBrukesSomBehandlingshjelpemiddel"]?.booleanValue(),
         skalIkkeBrukesTilRenSmertelindring = posisjoneringssystemInfoJson["skalIkkeBrukesTilRenSmertelindring"]?.booleanValue(),
         behov = posisjoneringsputeBehov(posisjoneringssystemInfoJson["behov"]?.textValue()),
-        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let { posisjoneringsputeOppgaverIDagliglivReader.readValue(it) } ?: emptyList(),
+        oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let {
+            posisjoneringsputeOppgaverIDagliglivReader.readValue(
+                it
+            )
+        } ?: emptyList(),
         oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
     )
 }
@@ -502,6 +501,11 @@ private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): Posisjonering
 
 private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
     val diverseInfoJson = hjelpemiddel["diverseInfo"] ?: return emptyMap()
+    return objectMapper.treeToValue(diverseInfoJson)
+}
+
+private fun bytter(hjelpemiddel: JsonNode): List<Bytte> {
+    val diverseInfoJson = hjelpemiddel["bytter"] ?: return emptyList()
     return objectMapper.treeToValue(diverseInfoJson)
 }
 
@@ -541,7 +545,7 @@ enum class BrukersituasjonVilkår {
     I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1, // Innbyggeren vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.
 }
 
-enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT }
+enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE }
 enum class Bruksarena { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
 
@@ -599,7 +603,25 @@ class Hjelpemiddel(
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
+    val bytter: List<Bytte> = emptyList(),
 )
+
+data class Bytte(
+    val erTilsvarende: Boolean,
+    val hmsnr: String,
+    val serienr: String? = null,
+    val hjmNavn: String,
+    val hjmKategori: String,
+    val årsak: BytteÅrsak? = null,
+)
+
+enum class BytteÅrsak {
+    UTSLITT,
+    VOKST_FRA,
+    ENDRINGER_I_INNBYGGERS_FUNKSJON,
+    FEIL_STØRRELSE,
+    VURDERT_SOM_ØDELAGT_AV_LOKAL_TEKNIKER,
+}
 
 data class PosisjoneringsputeForBarnInfo(
     val bruksområde: PosisjoneringsputeForBarnBruk?,

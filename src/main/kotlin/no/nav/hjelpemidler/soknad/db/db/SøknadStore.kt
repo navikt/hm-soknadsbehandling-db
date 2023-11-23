@@ -131,7 +131,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.SOKNADS_ID = ? AND status.STATUS <> ?
+                WHERE soknad.SOKNADS_ID = ? AND status.STATUS NOT IN (?, ?)
             """
 
         return time("hent_soknad") {
@@ -140,7 +140,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                         soknadsId,
-                        "GODKJENT_MED_FULLMAKT",
+                        Status.GODKJENT_MED_FULLMAKT.name,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
@@ -412,7 +413,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.FNR_BRUKER = ? AND status.STATUS <> ?
+                WHERE soknad.FNR_BRUKER = ? AND status.STATUS NOT IN (?, ?)
                 ORDER BY soknad.CREATED DESC
             """
 
@@ -422,14 +423,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     queryOf(
                         statement,
                         fnrBruker,
-                        "GODKJENT_MED_FULLMAKT",
+                        Status.GODKJENT_MED_FULLMAKT.name,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
                     ).map {
                         val status = Status.valueOf(it.string("STATUS"))
                         if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                    it.stringOrNull("behovsmeldingType") ?: "SØKNAD"
                                 ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -621,7 +623,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE status.STATUS IN (?, ?) 
+                WHERE status.STATUS IN (?, ?, ?) 
                     AND (soknad.CREATED + interval '$dager day') < now() 
                     AND soknad.oppgaveid IS NULL
                     AND soknad.created > '2021-04-13' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
@@ -634,6 +636,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         statement,
                         Status.GODKJENT_MED_FULLMAKT.name,
                         Status.GODKJENT.name,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
                     ).map {
                         it.string("SOKNADS_ID")
                     }.asList
