@@ -15,7 +15,6 @@ internal class HotsakStoreTest {
     fun `Lag knytning mellom endeleg journalført digital søknad og Hotsak basert på sakId`() {
 
         val søknadId = UUID.randomUUID() // Digital søknad får denne i kanalreferanseId frå Joark
-        val fnrBruker = "15084300133"
         val sakId = "1001"
 
         val hotsakTilknytningData = HotsakTilknytningData(
