@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - INNSENDT_FULLMAKT_IKKE_PÅKREVD
+      - ganghjelpemidler
 
 jobs:
   build:
