@@ -140,7 +140,7 @@ private fun bruker(søknad: JsonNode): Bruker {
         postnummer = brukerNode["postnummer"]?.textValue(),
         poststed = brukerNode["poststed"]?.textValue(),
         boform = brukerSituasjonNode["bostedRadioButton"]?.textValue(),
-        bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) Bruksarena.DAGLIGLIVET else Bruksarena.UKJENT,
+        bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) BruksarenaBruker.DAGLIGLIVET else BruksarenaBruker.UKJENT,
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
         kroppsmaal = kroppsmaal(brukerNode),
@@ -577,7 +577,7 @@ enum class BrukersituasjonVilkår {
 }
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE }
-enum class Bruksarena { DAGLIGLIVET, UKJENT }
+enum class BruksarenaBruker { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
 
 data class Kroppsmaal(
