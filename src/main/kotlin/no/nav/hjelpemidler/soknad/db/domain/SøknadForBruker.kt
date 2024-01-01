@@ -463,7 +463,7 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
-private fun ganghjelpemiddelInfoBruksområde(value: String?): PosisjoneringsputeForBarnBruk? {
+private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
     return when (value) {
         "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
         "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
