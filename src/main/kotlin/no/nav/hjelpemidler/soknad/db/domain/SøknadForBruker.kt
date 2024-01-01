@@ -558,7 +558,7 @@ class Bruker(
     val postnummer: String?,
     val poststed: String?,
     val boform: String?,
-    val bruksarena: Bruksarena,
+    val bruksarena: BruksarenaBruker,
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
