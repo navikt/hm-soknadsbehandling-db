@@ -293,7 +293,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
-        )
+
+            )
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
@@ -604,7 +605,19 @@ class Hjelpemiddel(
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
+    val bruksarena: List<HjmBruksarena> = emptyList(),
 )
+
+enum class HjmBruksarena {
+    EGET_HJEM,
+    EGET_HJEM_IKKE_AVLASTNING,
+    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
+    BARNEHAGE,
+    GRUNN_ELLER_VIDEREGÅENDESKOLE,
+    SKOLEFRITIDSORDNING,
+    INSTITUSJON,
+    INSTITUSJON_BARNEBOLIG,
+}
 
 data class Bytte(
     val erTilsvarende: Boolean,
