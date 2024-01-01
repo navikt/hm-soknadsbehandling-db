@@ -273,15 +273,16 @@ data class HjelpemiddelItem(
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val ganghjelpemiddelInfo: GanghjelpemiddelInfo? = null,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
-    val bruksarena: List<HjmBruksarena> = emptyList(),
+    val bruksarena: List<Bruksarena>? = null, // TODO Kan fjerne nullable når ny rammeavtale gangehjelpemidler er lansert (etter 2. jan 2023)
 )
 
-enum class HjmBruksarena {
+enum class Bruksarena {
     EGET_HJEM,
     EGET_HJEM_IKKE_AVLASTNING,
     OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
@@ -344,6 +345,21 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
     HOBBY_FRITID_U26,
     ANNET,
 }
+
+enum class BruksområdeGanghjelpemiddel {
+    TIL_FORFLYTNING,
+    TIL_TRENING_OG_ANNET
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class GanghjelpemiddelInfo(
+    val brukerErFylt26År: Boolean?,
+    val hovedformålErForflytning: Boolean?,
+    val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val bruksområde: BruksområdeGanghjelpemiddel?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ElektriskVendesystemInfo(
