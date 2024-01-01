@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
+import no.nav.hjelpemidler.soknad.db.domain.kommune_api.HjmBruksarena
 import java.util.Date
 import java.util.UUID
 
@@ -298,12 +299,8 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
-            bruksarena = it["bruksarena"]?.let {
-                bruksarenaReader.readValue(
-                    it
-                )
-            } ?: emptyList(),
-        )
+            bruksarena = bruksarena(it)
+            )
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
@@ -530,6 +527,11 @@ private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): Posisjonering
     )
 }
 
+private fun bruksarena(hjelpemiddel: JsonNode): List<Bruksarena> {
+    val bruksarenaJson = hjelpemiddel["bruksarena"] ?: return emptyList()
+    return objectMapper.treeToValue(bruksarenaJson)
+}
+
 private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
     val diverseInfoJson = hjelpemiddel["diverseInfo"] ?: return emptyMap()
     return objectMapper.treeToValue(diverseInfoJson)
@@ -647,6 +649,7 @@ enum class Bruksarena {
     GRUNN_ELLER_VIDEREGÅENDESKOLE,
     SKOLEFRITIDSORDNING,
     INSTITUSJON,
+    INSTITUSJON_BARNEBOLIG,
 }
 
 data class Bytte(
