@@ -262,6 +262,10 @@ private fun funksjonsnedsettelser(søknad: JsonNode): List<Funksjonsnedsettelse>
     return funksjonsnedsettelser
 }
 
+private val bruksarenaReader =
+    objectMapper.readerFor(object : TypeReference<List<Bruksarena>?>() {})
+
+
 private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
     val hjelpemidler = mutableListOf<Hjelpemiddel>()
     søknad["soknad"]["hjelpemidler"]["hjelpemiddelListe"].forEach {
@@ -294,6 +298,11 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
+            bruksarena = posisjoneringssystemInfoJson["bruksarena"]?.let {
+                bruksarenaReader.readValue(
+                    it
+                )
+            } ?: emptyList(),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -627,7 +636,18 @@ class Hjelpemiddel(
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
+    val bruksarena: List<Bruksarena>? = null, // TODO Kan fjerne nullable når ny rammeavtale gangehjelpemidler er lansert (etter 2. jan 2023)
 )
+
+enum class Bruksarena {
+    EGET_HJEM,
+    EGET_HJEM_IKKE_AVLASTNING,
+    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
+    BARNEHAGE,
+    GRUNN_ELLER_VIDEREGÅENDESKOLE,
+    SKOLEFRITIDSORDNING,
+    INSTITUSJON,
+}
 
 data class Bytte(
     val erTilsvarende: Boolean,
