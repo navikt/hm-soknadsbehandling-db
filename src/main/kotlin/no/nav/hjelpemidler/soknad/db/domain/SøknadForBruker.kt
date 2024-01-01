@@ -288,6 +288,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             varmehjelpemiddelInfo = varmehjelpemiddelInfo(it),
             sengeInfo = sengeInfo(it),
             elektriskVendesystemInfo = elektriskVendesystemInfo(it),
+            ganghjelpemiddelInfo = ganghjelpemiddelInfo(it),
             posisjoneringssystemInfo = posisjoneringssystemInfo(it),
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
             oppreisningsStolInfo = oppreisningsStolInfo(it),
@@ -462,6 +463,27 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
+private fun ganghjelpemiddelInfoBruksområde(value: String?): PosisjoneringsputeForBarnBruk? {
+    return when (value) {
+        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? {
+    val ganghjelpemiddelInfoJson = hjelpemiddel["ganghjelpemiddelInfo"] ?: return null
+    return GanghjelpemiddelInfo(
+        brukerErFylt26År = ganghjelpemiddelInfoJson["brukerErFylt26År"]?.booleanValue(),
+        hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
+        kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
+        bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
+        detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
+        planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
+    )
+}
+
 private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMontering? {
     val sengForMonteringJson = hjelpemiddel["sengForMontering"] ?: return null
     return SengForVendesystemMontering(
@@ -599,6 +621,7 @@ class Hjelpemiddel(
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val ganghjelpemiddelInfo: GanghjelpemiddelInfo?,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
@@ -673,6 +696,20 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
     HOBBY_FRITID_U26,
     ANNET,
 }
+
+enum class BruksområdeGanghjelpemiddel {
+    TIL_FORFLYTNING,
+    TIL_TRENING_OG_ANNET
+}
+
+data class GanghjelpemiddelInfo(
+    val brukerErFylt26År: Boolean?,
+    val hovedformålErForflytning: Boolean?,
+    val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val bruksområde: BruksområdeGanghjelpemiddel?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
 
 data class ElektriskVendesystemInfo(
     val sengForMontering: SengForVendesystemMontering?,
