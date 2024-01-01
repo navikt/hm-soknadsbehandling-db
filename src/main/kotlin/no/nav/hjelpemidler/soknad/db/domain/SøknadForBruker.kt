@@ -298,7 +298,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
-            bruksarena = posisjoneringssystemInfoJson["bruksarena"]?.let {
+            bruksarena = it["bruksarena"]?.let {
                 bruksarenaReader.readValue(
                     it
                 )
