@@ -478,7 +478,7 @@ private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghj
     }
 }
 
-private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): GanghjelpemiddelSomTrengerGodkjenning? {
+private fun ganghjelpemiddelInfoType(value: String?): GanghjelpemiddelType? {
     return when (value) {
         "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
         "SPARKESYKKEL" -> GanghjelpemiddelSomTrengerGodkjenning.SPARKESYKKEL
@@ -494,7 +494,7 @@ private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? 
         brukerErFylt26År = ganghjelpemiddelInfoJson["brukerErFylt26År"]?.booleanValue(),
         hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
         kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
-        kreverGodkjenningType = ganghjelpemiddelInfoKreverGodkjenningType(ganghjelpemiddelInfoJson["kreverGodkjenningType"]?.textValue()),
+        type = ganghjelpemiddelInfoType(ganghjelpemiddelInfoJson["type"]?.textValue()),
         bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
         detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
         planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
@@ -736,17 +736,18 @@ enum class BruksområdeGanghjelpemiddel {
     TIL_TRENING_OG_ANNET
 }
 
-enum class GanghjelpemiddelSomTrengerGodkjenning {
+enum class GanghjelpemiddelType {
     GÅBORD,
     SPARKESYKKEL,
     KRYKKE,
+    GÅTRENING
 }
 
 data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
     val hovedformålErForflytning: Boolean?,
     val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
-    val kreverGodkjenningType: GanghjelpemiddelSomTrengerGodkjenning?,
+    val type: GanghjelpemiddelSomTrengerGodkjenning?,
     val bruksområde: BruksområdeGanghjelpemiddel?,
     val detErLagetEnMålrettetPlan: Boolean?,
     val planenOppbevaresIKommunen: Boolean?,
