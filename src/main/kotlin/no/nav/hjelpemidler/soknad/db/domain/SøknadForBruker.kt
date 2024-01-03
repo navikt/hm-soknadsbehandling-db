@@ -469,10 +469,20 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
-private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
+private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): BruksområdeGanghjelpemiddel? {
     return when (value) {
         "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
         "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): BruksområdeGanghjelpemiddel? {
+    return when (value) {
+        "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
+        "SPARKESYKKEL" -> GanghjelpemiddelSomTrengerGodkjenning.SPARKESYKKEL
+        "KRYKKE" -> GanghjelpemiddelSomTrengerGodkjenning.KRYKKE
         null -> null
         else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
     }
@@ -484,7 +494,8 @@ private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? 
         brukerErFylt26År = ganghjelpemiddelInfoJson["brukerErFylt26År"]?.booleanValue(),
         hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
         kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
-        bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
+        kreverGodkjenningType = ganghjelpemiddelInfoKreverGodkjenningType(ganghjelpemiddelInfoJson["kreverGodkjenningType"]?.textValue()),
+        bruksområde = ganghjelpemiddelInfoKreverGodkjenningType(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
         detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
         planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
     )
@@ -725,10 +736,17 @@ enum class BruksområdeGanghjelpemiddel {
     TIL_TRENING_OG_ANNET
 }
 
+enum class GanghjelpemiddelSomTrengerGodkjenning {
+    GÅBORD,
+    SPARKESYKKEL,
+    KRYKKE,
+}
+
 data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
     val hovedformålErForflytning: Boolean?,
     val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val kreverGodkjenningType: GanghjelpemiddelSomTrengerGodkjenning?,
     val bruksområde: BruksområdeGanghjelpemiddel?,
     val detErLagetEnMålrettetPlan: Boolean?,
     val planenOppbevaresIKommunen: Boolean?,
