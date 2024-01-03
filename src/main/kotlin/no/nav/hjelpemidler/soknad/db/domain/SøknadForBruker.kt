@@ -469,6 +469,15 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
+private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
+    return when (value) {
+        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
 private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): GanghjelpemiddelSomTrengerGodkjenning? {
     return when (value) {
         "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
@@ -486,7 +495,7 @@ private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? 
         hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
         kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
         kreverGodkjenningType = ganghjelpemiddelInfoKreverGodkjenningType(ganghjelpemiddelInfoJson["kreverGodkjenningType"]?.textValue()),
-        bruksområde = ganghjelpemiddelInfoKreverGodkjenningType(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
+        bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
         detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
         planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
     )
