@@ -471,7 +471,7 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
 
 private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
     return when (value) {
-        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_FORFLYTNING
         "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
         null -> null
         else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
