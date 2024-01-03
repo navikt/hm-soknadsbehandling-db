@@ -471,15 +471,6 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
 
 private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): BruksområdeGanghjelpemiddel? {
     return when (value) {
-        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
-        "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
-        null -> null
-        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
-    }
-}
-
-private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): BruksområdeGanghjelpemiddel? {
-    return when (value) {
         "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
         "SPARKESYKKEL" -> GanghjelpemiddelSomTrengerGodkjenning.SPARKESYKKEL
         "KRYKKE" -> GanghjelpemiddelSomTrengerGodkjenning.KRYKKE
