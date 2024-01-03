@@ -469,7 +469,7 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
-private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): BruksområdeGanghjelpemiddel? {
+private fun ganghjelpemiddelInfoKreverGodkjenningType(value: String?): GanghjelpemiddelSomTrengerGodkjenning? {
     return when (value) {
         "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
         "SPARKESYKKEL" -> GanghjelpemiddelSomTrengerGodkjenning.SPARKESYKKEL
