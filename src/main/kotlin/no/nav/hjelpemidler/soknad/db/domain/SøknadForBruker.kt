@@ -480,9 +480,9 @@ private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghj
 
 private fun ganghjelpemiddelInfoType(value: String?): GanghjelpemiddelType? {
     return when (value) {
-        "GÅBORD" -> GanghjelpemiddelSomTrengerGodkjenning.GÅBORD
-        "SPARKESYKKEL" -> GanghjelpemiddelSomTrengerGodkjenning.SPARKESYKKEL
-        "KRYKKE" -> GanghjelpemiddelSomTrengerGodkjenning.KRYKKE
+        "GÅBORD" -> GanghjelpemiddelType.GÅBORD
+        "SPARKESYKKEL" -> GanghjelpemiddelType.SPARKESYKKEL
+        "KRYKKE" -> GanghjelpemiddelType.KRYKKE
         null -> null
         else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
     }
@@ -747,7 +747,7 @@ data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
     val hovedformålErForflytning: Boolean?,
     val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
-    val type: GanghjelpemiddelSomTrengerGodkjenning?,
+    val type: GanghjelpemiddelType?,
     val bruksområde: BruksområdeGanghjelpemiddel?,
     val detErLagetEnMålrettetPlan: Boolean?,
     val planenOppbevaresIKommunen: Boolean?,
