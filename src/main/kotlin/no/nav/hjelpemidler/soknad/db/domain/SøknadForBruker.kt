@@ -483,6 +483,8 @@ private fun ganghjelpemiddelInfoType(value: String?): GanghjelpemiddelType? {
         "GÅBORD" -> GanghjelpemiddelType.GÅBORD
         "SPARKESYKKEL" -> GanghjelpemiddelType.SPARKESYKKEL
         "KRYKKE" -> GanghjelpemiddelType.KRYKKE
+        "GÅTRENING" -> GanghjelpemiddelType.GÅTRENING
+        "GÅSTOL" -> GanghjelpemiddelType.GÅSTOL
         null -> null
         else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
     }
@@ -740,7 +742,8 @@ enum class GanghjelpemiddelType {
     GÅBORD,
     SPARKESYKKEL,
     KRYKKE,
-    GÅTRENING
+    GÅTRENING,
+    GÅSTOL
 }
 
 data class GanghjelpemiddelInfo(

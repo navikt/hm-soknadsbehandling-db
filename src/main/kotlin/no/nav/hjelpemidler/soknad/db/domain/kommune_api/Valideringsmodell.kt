@@ -355,7 +355,8 @@ enum class GanghjelpemiddelType {
     GÅBORD,
     SPARKESYKKEL,
     KRYKKE,
-    GÅTRENING
+    GÅTRENING,
+    GÅSTOL
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
