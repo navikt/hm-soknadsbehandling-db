@@ -351,11 +351,20 @@ enum class BruksområdeGanghjelpemiddel {
     TIL_TRENING_OG_ANNET
 }
 
+enum class GanghjelpemiddelType {
+    GÅBORD,
+    SPARKESYKKEL,
+    KRYKKE,
+    GÅTRENING,
+    GÅSTOL
+}
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
     val hovedformålErForflytning: Boolean?,
     val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val type: GanghjelpemiddelType?,
     val bruksområde: BruksområdeGanghjelpemiddel?,
     val detErLagetEnMålrettetPlan: Boolean?,
     val planenOppbevaresIKommunen: Boolean?,

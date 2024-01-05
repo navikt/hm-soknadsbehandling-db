@@ -471,8 +471,20 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
 
 private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
     return when (value) {
-        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_FORFLYTNING
         "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+private fun ganghjelpemiddelInfoType(value: String?): GanghjelpemiddelType? {
+    return when (value) {
+        "GÅBORD" -> GanghjelpemiddelType.GÅBORD
+        "SPARKESYKKEL" -> GanghjelpemiddelType.SPARKESYKKEL
+        "KRYKKE" -> GanghjelpemiddelType.KRYKKE
+        "GÅTRENING" -> GanghjelpemiddelType.GÅTRENING
+        "GÅSTOL" -> GanghjelpemiddelType.GÅSTOL
         null -> null
         else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
     }
@@ -484,6 +496,7 @@ private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? 
         brukerErFylt26År = ganghjelpemiddelInfoJson["brukerErFylt26År"]?.booleanValue(),
         hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
         kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
+        type = ganghjelpemiddelInfoType(ganghjelpemiddelInfoJson["type"]?.textValue()),
         bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
         detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
         planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
@@ -725,10 +738,19 @@ enum class BruksområdeGanghjelpemiddel {
     TIL_TRENING_OG_ANNET
 }
 
+enum class GanghjelpemiddelType {
+    GÅBORD,
+    SPARKESYKKEL,
+    KRYKKE,
+    GÅTRENING,
+    GÅSTOL
+}
+
 data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
     val hovedformålErForflytning: Boolean?,
     val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val type: GanghjelpemiddelType?,
     val bruksområde: BruksområdeGanghjelpemiddel?,
     val detErLagetEnMålrettetPlan: Boolean?,
     val planenOppbevaresIKommunen: Boolean?,
