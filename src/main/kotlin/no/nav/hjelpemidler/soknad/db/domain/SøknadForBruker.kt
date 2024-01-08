@@ -336,7 +336,7 @@ private fun vilkaar(hjelpemiddel: JsonNode): List<HjelpemiddelVilkar> {
     hjelpemiddel["vilkarliste"]?.filter { it["checked"].asBoolean() }?.forEach {
         vilkarListe.add(
             HjelpemiddelVilkar(
-                vilkaartekst = it["vilkartekst"].textValue(),
+                vilkaarTekst = it["vilkartekst"].textValue(),
                 tilleggsinfo = it["tilleggsinfo"]?.textValue()
             )
         )
@@ -878,7 +878,7 @@ enum class KontaktpersonType {
 }
 
 class HjelpemiddelVilkar(
-    val vilkaartekst: String,
+    val vilkaarTekst: String,
     val tilleggsinfo: String?,
 )
 
