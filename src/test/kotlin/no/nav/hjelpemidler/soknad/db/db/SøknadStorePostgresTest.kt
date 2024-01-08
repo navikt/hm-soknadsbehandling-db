@@ -71,7 +71,7 @@ internal class SøknadStorePostgresTest {
                 )
                 assertEquals(
                     "Tilleggsinfo",
-                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsInfo
+                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsinfo
                 )
                 assertEquals(1, hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.size)
                 assertEquals("654321", hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.hmsnr)

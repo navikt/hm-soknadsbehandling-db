@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
-import no.nav.hjelpemidler.soknad.db.domain.kommune_api.HjmBruksarena
 import java.util.Date
 import java.util.UUID
 
@@ -334,11 +333,11 @@ private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
 
 private fun vilkaar(hjelpemiddel: JsonNode): List<HjelpemiddelVilkar> {
     val vilkarListe = mutableListOf<HjelpemiddelVilkar>()
-    hjelpemiddel["vilkarliste"]?.forEach {
+    hjelpemiddel["vilkarliste"]?.filter { it["checked"].asBoolean() }?.forEach {
         vilkarListe.add(
             HjelpemiddelVilkar(
                 vilkaarTekst = it["vilkartekst"].textValue(),
-                tilleggsInfo = it["tilleggsinfo"]?.textValue()
+                tilleggsinfo = it["tilleggsinfo"]?.textValue()
             )
         )
     }
@@ -880,7 +879,7 @@ enum class KontaktpersonType {
 
 class HjelpemiddelVilkar(
     val vilkaarTekst: String,
-    val tilleggsInfo: String?,
+    val tilleggsinfo: String?,
 )
 
 class Tilbehor(

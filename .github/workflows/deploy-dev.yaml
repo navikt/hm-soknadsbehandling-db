@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - INNSENDT_FULLMAKT_IKKE_PÅKREVD
-      - ganghjelpemidler
+      - respekter-checked-vilkar
 
 jobs:
   build:
