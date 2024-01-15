@@ -140,13 +140,20 @@ private fun bruker(søknad: JsonNode): Bruker {
         postnummer = brukerNode["postnummer"]?.textValue(),
         poststed = brukerNode["poststed"]?.textValue(),
         boform = brukerSituasjonNode["bostedRadioButton"]?.textValue(),
-        bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) BruksarenaBruker.DAGLIGLIVET else BruksarenaBruker.UKJENT,
+        bruksarena = bruksarenaBruker(søknad["soknad"]["brukersituasjon"]),
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
         kroppsmaal = kroppsmaal(brukerNode),
         brukernummer = brukerNode["brukernummer"]?.textValue(),
         bekreftedeVilkår = bekreftedeVilkår,
     )
+}
+
+fun bruksarenaBruker(brukersituasjon: JsonNode): BruksarenaBruker {
+    return when (brukersituasjon["bruksarenaErDagliglivet"]?.booleanValue()) {
+        true -> BruksarenaBruker.DAGLIGLIVET
+        else -> BruksarenaBruker.UKJENT
+    }
 }
 
 fun kroppsmaal(brukerNode: JsonNode): Kroppsmaal? {
