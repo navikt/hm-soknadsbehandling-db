@@ -262,10 +262,6 @@ private fun funksjonsnedsettelser(søknad: JsonNode): List<Funksjonsnedsettelse>
     return funksjonsnedsettelser
 }
 
-private val bruksarenaReader =
-    objectMapper.readerFor(object : TypeReference<List<Bruksarena>?>() {})
-
-
 private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
     val hjelpemidler = mutableListOf<Hjelpemiddel>()
     søknad["soknad"]["hjelpemidler"]["hjelpemiddelListe"].forEach {

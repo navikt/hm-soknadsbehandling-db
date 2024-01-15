@@ -279,7 +279,7 @@ data class HjelpemiddelItem(
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
-    val bruksarena: List<Bruksarena>? = null, // TODO Kan fjerne nullable når ny rammeavtale gangehjelpemidler er lansert (etter 2. jan 2023)
+    val bruksarena: List<Bruksarena>? = null,
 )
 
 enum class Bruksarena {
