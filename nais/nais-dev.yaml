@@ -47,6 +47,7 @@ spec:
     outbound:
       rules:
         - application: hm-grunndata-api
+        - application: hm-grunndata-search
         - application: hm-roller
       external:
         - host: hooks.slack.com

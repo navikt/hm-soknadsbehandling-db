@@ -301,7 +301,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
             bruksarena = bruksarena(it)
-            )
+        )
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
@@ -918,6 +918,7 @@ data class SøknadForBrukerOrdrelinje(
         hmdbBeskrivelse = produkt.produktbeskrivelse
         hmdbKategori = produkt.isotittel
         hmdbBilde = produkt.blobUrlLite
+        // TODO: FIXME: Hent fra graphql i stede for å generere her
         if (produkt.produktId != null && produkt.artikkelId != null) {
             hmdbURL =
                 "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${produkt.produktId}&art0=${produkt.artikkelId}&nart=1"

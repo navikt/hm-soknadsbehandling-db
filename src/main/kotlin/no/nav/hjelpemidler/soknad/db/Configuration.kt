@@ -27,6 +27,7 @@ private val localProperties = ConfigurationMap(
         "INFLUX_PASSWORD" to "password",
 
         "GRUNNDATA_API_URL" to "https://hm-grunndata-api.dev.intern.nav.no",
+        "GRUNNDATA_API_NG_URL" to "https://hm-grunndata-search.dev.intern.nav.no",
         "HM_ROLLER_URL" to "https://localhost",
         "HM_ROLLER_AUDIENCE" to "audience",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_local",
@@ -39,6 +40,7 @@ private val devProperties = ConfigurationMap(
         "userclaim" to "pid",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "GRUNNDATA_API_NG_URL" to "http://hm-grunndata-search",
         "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "dev-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_dev",
@@ -50,6 +52,7 @@ private val prodProperties = ConfigurationMap(
         "userclaim" to "pid",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-api",
+        "GRUNNDATA_API_NG_URL" to "http://hm-grunndata-search",
         "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "prod-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_prod",
@@ -91,6 +94,7 @@ internal object Configuration {
         val INFLUX_USER: String? = config[Key("INFLUX_USER", stringType)],
         val INFLUX_PASSWORD: String? = config[Key("INFLUX_PASSWORD", stringType)],
         val grunndataApiURL: String = config[Key("GRUNNDATA_API_URL", stringType)],
+        val grunndataApiNgURL: String = config[Key("GRUNNDATA_API_NG_URL", stringType)],
         val hmRollerUrl: String = config[Key("HM_ROLLER_URL", stringType)],
         val hmRollerAudience: String = config[Key("HM_ROLLER_AUDIENCE", stringType)],
     )

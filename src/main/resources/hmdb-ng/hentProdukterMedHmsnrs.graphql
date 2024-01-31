@@ -1,0 +1,18 @@
+query HentProdukterMedHmsnrs($hmsnrs: [String!]!) {
+  produkter: products(hmsnrs: $hmsnrs) {
+    id # id
+    hmsArtNr # hmsnr
+    identifier # artikkelId
+    articleName # artikkelnavn
+    seriesId # produktId
+    attributes {
+      text # produktbeskrivelse
+    }
+    isoCategoryTitle # isotittel
+    media {
+      type
+      uri # blobUrlLite
+      priority
+    }
+  }
+}
