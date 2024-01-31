@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
+import no.nav.hjelpemidler.soknad.db.domain.BruksarenaBruker
 import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -48,7 +48,7 @@ internal class SøknadStorePostgresTest {
                 assertEquals("epost@adad.com", hentSoknad?.søknadsdata?.formidler?.epost)
                 assertNull(hentSoknad?.søknadsdata?.oppfolgingsansvarlig)
                 assertEquals("Hjemme", hentSoknad?.søknadsdata?.bruker?.boform)
-                assertEquals(Bruksarena.DAGLIGLIVET, hentSoknad?.søknadsdata?.bruker?.bruksarena)
+                assertEquals(BruksarenaBruker.DAGLIGLIVET, hentSoknad?.søknadsdata?.bruker?.bruksarena)
                 assertEquals(
                     listOf(Funksjonsnedsettelse.BEVEGELSE, Funksjonsnedsettelse.HØRSEL),
                     hentSoknad?.søknadsdata?.bruker?.funksjonsnedsettelser
@@ -71,7 +71,7 @@ internal class SøknadStorePostgresTest {
                 )
                 assertEquals(
                     "Tilleggsinfo",
-                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsInfo
+                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsinfo
                 )
                 assertEquals(1, hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.size)
                 assertEquals("654321", hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.hmsnr)

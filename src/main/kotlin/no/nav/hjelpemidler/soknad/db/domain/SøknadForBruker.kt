@@ -139,14 +139,21 @@ private fun bruker(søknad: JsonNode): Bruker {
         adresse = brukerNode["adresse"]?.textValue(),
         postnummer = brukerNode["postnummer"]?.textValue(),
         poststed = brukerNode["poststed"]?.textValue(),
-        boform = brukerSituasjonNode["bostedRadioButton"].textValue(),
-        bruksarena = if (søknad["soknad"]["brukersituasjon"]["bruksarenaErDagliglivet"].booleanValue()) Bruksarena.DAGLIGLIVET else Bruksarena.UKJENT,
+        boform = brukerSituasjonNode["bostedRadioButton"]?.textValue(),
+        bruksarena = bruksarenaBruker(søknad["soknad"]["brukersituasjon"]),
         funksjonsnedsettelser = funksjonsnedsettelser(søknad),
         signatur = signaturType(søknad),
         kroppsmaal = kroppsmaal(brukerNode),
         brukernummer = brukerNode["brukernummer"]?.textValue(),
         bekreftedeVilkår = bekreftedeVilkår,
     )
+}
+
+fun bruksarenaBruker(brukersituasjon: JsonNode): BruksarenaBruker {
+    return when (brukersituasjon["bruksarenaErDagliglivet"]?.booleanValue()) {
+        true -> BruksarenaBruker.DAGLIGLIVET
+        else -> BruksarenaBruker.UKJENT
+    }
 }
 
 fun kroppsmaal(brukerNode: JsonNode): Kroppsmaal? {
@@ -287,12 +294,14 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             varmehjelpemiddelInfo = varmehjelpemiddelInfo(it),
             sengeInfo = sengeInfo(it),
             elektriskVendesystemInfo = elektriskVendesystemInfo(it),
+            ganghjelpemiddelInfo = ganghjelpemiddelInfo(it),
             posisjoneringssystemInfo = posisjoneringssystemInfo(it),
             posisjoneringsputeForBarnInfo = posisjoneringsputeForBarnInfo(it),
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
-        )
+            bruksarena = bruksarena(it)
+            )
         hjelpemidler.add(hjelpemiddel)
     }
     return hjelpemidler
@@ -326,11 +335,11 @@ private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
 
 private fun vilkaar(hjelpemiddel: JsonNode): List<HjelpemiddelVilkar> {
     val vilkarListe = mutableListOf<HjelpemiddelVilkar>()
-    hjelpemiddel["vilkarliste"]?.forEach {
+    hjelpemiddel["vilkarliste"]?.filter { it["checked"].asBoolean() }?.forEach {
         vilkarListe.add(
             HjelpemiddelVilkar(
                 vilkaarTekst = it["vilkartekst"].textValue(),
-                tilleggsInfo = it["tilleggsinfo"]?.textValue()
+                tilleggsinfo = it["tilleggsinfo"]?.textValue()
             )
         )
     }
@@ -461,6 +470,40 @@ private fun elektriskVendesystemInfo(hjelpemiddel: JsonNode): ElektriskVendesyst
     )
 }
 
+private fun ganghjelpemiddelInfoBruksområde(value: String?): BruksområdeGanghjelpemiddel? {
+    return when (value) {
+        "TIL_FORFLYTNING" -> BruksområdeGanghjelpemiddel.TIL_FORFLYTNING
+        "TIL_TRENING_OG_ANNET" -> BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+private fun ganghjelpemiddelInfoType(value: String?): GanghjelpemiddelType? {
+    return when (value) {
+        "GÅBORD" -> GanghjelpemiddelType.GÅBORD
+        "SPARKESYKKEL" -> GanghjelpemiddelType.SPARKESYKKEL
+        "KRYKKE" -> GanghjelpemiddelType.KRYKKE
+        "GÅTRENING" -> GanghjelpemiddelType.GÅTRENING
+        "GÅSTOL" -> GanghjelpemiddelType.GÅSTOL
+        null -> null
+        else -> throw IllegalArgumentException("Ukjent enum verdi '$value'")
+    }
+}
+
+private fun ganghjelpemiddelInfo(hjelpemiddel: JsonNode): GanghjelpemiddelInfo? {
+    val ganghjelpemiddelInfoJson = hjelpemiddel["ganghjelpemiddelInfo"] ?: return null
+    return GanghjelpemiddelInfo(
+        brukerErFylt26År = ganghjelpemiddelInfoJson["brukerErFylt26År"]?.booleanValue(),
+        hovedformålErForflytning = ganghjelpemiddelInfoJson["hovedformålErForflytning"]?.booleanValue(),
+        kanIkkeBrukeMindreAvansertGanghjelpemiddel = ganghjelpemiddelInfoJson["kanIkkeBrukeMindreAvansertGanghjelpemiddel"]?.booleanValue(),
+        type = ganghjelpemiddelInfoType(ganghjelpemiddelInfoJson["type"]?.textValue()),
+        bruksområde = ganghjelpemiddelInfoBruksområde(ganghjelpemiddelInfoJson["bruksområde"]?.textValue()),
+        detErLagetEnMålrettetPlan = ganghjelpemiddelInfoJson["detErLagetEnMålrettetPlan"]?.booleanValue(),
+        planenOppbevaresIKommunen = ganghjelpemiddelInfoJson["planenOppbevaresIKommunen"]?.booleanValue(),
+    )
+}
+
 private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMontering? {
     val sengForMonteringJson = hjelpemiddel["sengForMontering"] ?: return null
     return SengForVendesystemMontering(
@@ -498,6 +541,11 @@ private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): Posisjonering
     )
 }
 
+private fun bruksarena(hjelpemiddel: JsonNode): List<Bruksarena> {
+    val bruksarenaJson = hjelpemiddel["bruksarena"] ?: return emptyList()
+    return objectMapper.treeToValue(bruksarenaJson)
+}
+
 private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
     val diverseInfoJson = hjelpemiddel["diverseInfo"] ?: return emptyMap()
     return objectMapper.treeToValue(diverseInfoJson)
@@ -525,8 +573,8 @@ class Bruker(
     val adresse: String?,
     val postnummer: String?,
     val poststed: String?,
-    val boform: String,
-    val bruksarena: Bruksarena,
+    val boform: String?,
+    val bruksarena: BruksarenaBruker,
     val funksjonsnedsettelser: List<Funksjonsnedsettelse>,
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
@@ -545,7 +593,7 @@ enum class BrukersituasjonVilkår {
 }
 
 enum class SignaturType { BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE }
-enum class Bruksarena { DAGLIGLIVET, UKJENT }
+enum class BruksarenaBruker { DAGLIGLIVET, UKJENT }
 enum class Funksjonsnedsettelse { BEVEGELSE, HØRSEL, KOGNISJON }
 
 data class Kroppsmaal(
@@ -598,12 +646,26 @@ class Hjelpemiddel(
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val ganghjelpemiddelInfo: GanghjelpemiddelInfo?,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
+    val bruksarena: List<Bruksarena>? = null, // TODO Kan fjerne nullable når ny rammeavtale gangehjelpemidler er lansert (etter 2. jan 2023)
 )
+
+enum class Bruksarena {
+    EGET_HJEM,
+    EGET_HJEM_IKKE_AVLASTNING,
+    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
+    BARNEHAGE,
+    GRUNN_ELLER_VIDEREGÅENDESKOLE,
+    SKOLEFRITIDSORDNING,
+    INSTITUSJON,
+    INSTITUSJON_BARNEBOLIG,
+    INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK,
+}
 
 data class Bytte(
     val erTilsvarende: Boolean,
@@ -672,6 +734,29 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
     HOBBY_FRITID_U26,
     ANNET,
 }
+
+enum class BruksområdeGanghjelpemiddel {
+    TIL_FORFLYTNING,
+    TIL_TRENING_OG_ANNET
+}
+
+enum class GanghjelpemiddelType {
+    GÅBORD,
+    SPARKESYKKEL,
+    KRYKKE,
+    GÅTRENING,
+    GÅSTOL
+}
+
+data class GanghjelpemiddelInfo(
+    val brukerErFylt26År: Boolean?,
+    val hovedformålErForflytning: Boolean?,
+    val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val type: GanghjelpemiddelType?,
+    val bruksområde: BruksområdeGanghjelpemiddel?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
 
 data class ElektriskVendesystemInfo(
     val sengForMontering: SengForVendesystemMontering?,
@@ -796,7 +881,7 @@ enum class KontaktpersonType {
 
 class HjelpemiddelVilkar(
     val vilkaarTekst: String,
-    val tilleggsInfo: String?,
+    val tilleggsinfo: String?,
 )
 
 class Tilbehor(

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
+import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
 import no.nav.hjelpemidler.soknad.db.domain.HøyGrindValg
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.VarmehjelpemiddelInfo
@@ -272,12 +273,26 @@ data class HjelpemiddelItem(
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo?,
     val sengeInfo: SengeInfo?,
     val elektriskVendesystemInfo: ElektriskVendesystemInfo?,
+    val ganghjelpemiddelInfo: GanghjelpemiddelInfo? = null,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo?,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
+    val bruksarena: List<Bruksarena>? = null,
 )
+
+enum class Bruksarena {
+    EGET_HJEM,
+    EGET_HJEM_IKKE_AVLASTNING,
+    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
+    BARNEHAGE,
+    GRUNN_ELLER_VIDEREGÅENDESKOLE,
+    SKOLEFRITIDSORDNING,
+    INSTITUSJON,
+    INSTITUSJON_BARNEBOLIG,
+    INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK,
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Bytte(
@@ -331,6 +346,30 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
     HOBBY_FRITID_U26,
     ANNET,
 }
+
+enum class BruksområdeGanghjelpemiddel {
+    TIL_FORFLYTNING,
+    TIL_TRENING_OG_ANNET
+}
+
+enum class GanghjelpemiddelType {
+    GÅBORD,
+    SPARKESYKKEL,
+    KRYKKE,
+    GÅTRENING,
+    GÅSTOL
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class GanghjelpemiddelInfo(
+    val brukerErFylt26År: Boolean?,
+    val hovedformålErForflytning: Boolean?,
+    val kanIkkeBrukeMindreAvansertGanghjelpemiddel: Boolean?,
+    val type: GanghjelpemiddelType?,
+    val bruksområde: BruksområdeGanghjelpemiddel?,
+    val detErLagetEnMålrettetPlan: Boolean?,
+    val planenOppbevaresIKommunen: Boolean?,
+)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ElektriskVendesystemInfo(
