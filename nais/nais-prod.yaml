@@ -8,7 +8,6 @@ metadata:
   namespace: teamdigihot
 spec:
   image: {{ image }}
-  team: teamdigihot
   envFrom:
     - secret: hm-influxdb-secret
     - secret: hm-slack-hook
@@ -69,7 +68,7 @@ spec:
         highAvailability: true
         diskSize: 20
         diskAutoresize: true
-        autoBackupTime: "03:00"
+        autoBackupHour: 3
         databases:
           - name: hm-soknadsbehandling-db-v3-prod
             envVarPrefix: DB
