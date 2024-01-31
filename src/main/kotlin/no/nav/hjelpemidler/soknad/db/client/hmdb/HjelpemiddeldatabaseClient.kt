@@ -59,7 +59,8 @@ object HjelpemiddeldatabaseClient {
                                 old.produktId != new.seriesId?.removePrefix("HMDB-") ||
                                 old.produktbeskrivelse != new.attributes.text ||
                                 old.isotittel != new.isoCategoryTitle ||
-                                new.media.find { it.type == MediaType.IMAGE && it.priority == 1 } != null
+                                old.blobUrlLite != null &&
+                                    new.media.find { it.type == MediaType.IMAGE && it.priority == 1 } == null
                             ) {
                                 unexpectedDataHmsnrs[old.hmsnr] = Pair(old.toString(), new.toString())
                             } else {
