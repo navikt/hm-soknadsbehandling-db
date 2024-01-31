@@ -237,7 +237,6 @@ private fun kontaktPersonType(søknad: JsonNode): KontaktpersonType {
 private fun signaturType(søknad: JsonNode): SignaturType =
     objectMapper.treeToValue(søknad["soknad"]["bruker"]["signatur"])
 
-
 private fun leveringsMaate(søknad: JsonNode): Leveringsmaate? {
     val leveringNode = søknad["soknad"]["levering"]
 
