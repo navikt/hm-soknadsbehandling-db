@@ -63,7 +63,7 @@ spec:
   gcp:
     sqlInstances:
       - name: hm-soknadsbehandling-db-v3-prod
-        type: POSTGRES_12
+        type: POSTGRES_15
         tier: db-custom-2-7680
         diskType: SSD
         highAvailability: true
