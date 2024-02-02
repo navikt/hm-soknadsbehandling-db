@@ -43,7 +43,8 @@ internal class BrukerpassbytteStorePostgres(private val ds: DataSource) : Bruker
                                 INSERT INTO v1_brukerpassbytte (id, fnr_bruker, data, bytte_gjelder) 
                                 VALUES (:id, :fnr_bruker, :data, :bytte_gjelder) 
                                 ON CONFLICT DO NOTHING
-                            """.trimIndent(), mapOf(
+                            """.trimIndent(),
+                            mapOf(
                                 "id" to data.id,
                                 "fnr_bruker" to data.fnr,
                                 "data" to PGobject().apply {
@@ -62,7 +63,7 @@ internal class BrukerpassbytteStorePostgres(private val ds: DataSource) : Bruker
         val result = session.run(
             queryOf(
                 // TODO trenger vi 2 lag med select her? Kan vi ta SELECT STATUS direkte?
-                "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT STATUS FROM V1_STATUS WHERE SOKNADS_ID = ? ORDER BY created DESC LIMIT 1)",
+                "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = ? ORDER BY created DESC LIMIT 1)",
                 brukerpassbytteId
             ).map {
                 it.stringOrNull("STATUS")
@@ -70,7 +71,6 @@ internal class BrukerpassbytteStorePostgres(private val ds: DataSource) : Bruker
         ) ?: return false /* special case where there is no status in the database (søknad is being added now) */
         return result == status.name
     }
-
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
         Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
@@ -85,5 +85,4 @@ internal class BrukerpassbytteStorePostgres(private val ds: DataSource) : Bruker
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
-
 }
