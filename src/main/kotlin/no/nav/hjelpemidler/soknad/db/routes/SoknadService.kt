@@ -14,12 +14,14 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import no.nav.hjelpemidler.soknad.db.db.BrukerpassbytteStore
 import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
+import no.nav.hjelpemidler.soknad.db.domain.BrukerpassbytteData
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
@@ -181,6 +183,7 @@ internal fun Route.azureAdRoutes(
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
     midlertidigPrisforhandletTilbehoerStorePostgres: MidlertidigPrisforhandletTilbehoerStorePostgres,
+    brukerpassbytteStore: BrukerpassbytteStore,
     metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadsId}") {
@@ -214,6 +217,17 @@ internal fun Route.azureAdRoutes(
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved lagring av ordrelinje" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
+        }
+    }
+
+    post("/brukerpassbytte") {
+        try {
+            val brukerpassbytteData = call.receive<BrukerpassbytteData>()
+            brukerpassbytteStore.save(brukerpassbytteData)
+            call.respond("OK")
+        } catch (e: Exception) {
+            logger.error(e) { "Feilet ved lagring av brukerpassbytte" }
+            call.respond(HttpStatusCode.InternalServerError, "Feilet ved lagring av brukerpassbytte")
         }
     }
 
