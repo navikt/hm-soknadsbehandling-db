@@ -525,10 +525,13 @@ internal fun Route.azureAdRoutes(
     put("/soknad/journalpost-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newJournalpostId = call.receive<Map<String, String>>()
+            val newJournalpostDto = call.receive<Map<String, String>>()
+            val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
+            val sakstype = newJournalpostDto["sakstype"]
             val rowsUpdated = søknadStore.oppdaterJournalpostId(
                 soknadsId,
-                newJournalpostId["journalpostId"] ?: throw Exception("journalpostId mangler i body")
+                journalpostId,
+                sakstype
             )
             call.respond(rowsUpdated)
         } catch (e: Exception) {

@@ -55,7 +55,7 @@ internal interface SøknadStore {
     fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int
     fun slettSøknad(soknadsId: UUID): Int
     fun slettUtløptSøknad(soknadsId: UUID): Int
-    fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int
+    fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String, sakstype: String?): Int
     fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String): Int
     fun hentFnrForSoknad(soknadsId: UUID): String
     fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
@@ -371,16 +371,16 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
 
-    override fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int {
+    override fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String, sakstype: String?): Int {
         val bigIntJournalPostId = BigInteger(journalpostId)
+        val query = when(sakstype) {
+            "BRUKERPASSBYTTE" -> "UPDATE v1_brukerpassbytte SET JOURNALPOSTID = ?, UPDATED = now() WHERE ID = ?"
+            else -> "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ?"
+        }
         return time("oppdater_journalpostId") {
             using(sessionOf(ds)) { session ->
                 session.run(
-                    queryOf(
-                        "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ?",
-                        bigIntJournalPostId,
-                        soknadsId
-                    ).asUpdate
+                    queryOf(query, bigIntJournalPostId, soknadsId).asUpdate
                 )
             }
         }
