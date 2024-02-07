@@ -543,11 +543,10 @@ internal fun Route.azureAdRoutes(
     put("/soknad/oppgave-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newOppgaveId = call.receive<Map<String, String>>()
-            val rowsUpdated = søknadStore.oppdaterOppgaveId(
-                soknadsId,
-                newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            )
+            val newOppgaveDto = call.receive<Map<String, String>>()
+            val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
+            val sakstype = newOppgaveDto["sakstype"]
+            val rowsUpdated = søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId, sakstype)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av oppgave-id" }
