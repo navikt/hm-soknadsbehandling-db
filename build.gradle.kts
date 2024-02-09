@@ -1,7 +1,5 @@
-
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 
 plugins {
     application
@@ -170,6 +168,6 @@ graphql {
 }
 
 val graphqlIntrospectSchema by tasks.getting(GraphQLIntrospectSchemaTask::class) {
-    endpoint.set("https://hm-grunndata-search.dev.intern.nav.no/graphql")
+    endpoint.set("https://hm-grunndata-search.intern.dev.nav.no/graphql")
     outputFile.set(file("src/main/resources/hmdb/schema.graphqls"))
 }
