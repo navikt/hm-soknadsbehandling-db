@@ -15,7 +15,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.hjelpemidler.soknad.db.db.BrukerpassbytteStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
@@ -58,7 +57,6 @@ fun Application.module() {
     val infotrygdStore = InfotrygdStorePostgres(dataSource)
     val hotsakStore = HotsakStorePostgres(dataSource)
     val midlertidigPrisforhandletTilbehoerStorePostgres = MidlertidigPrisforhandletTilbehoerStorePostgres(dataSource)
-    val brukerpassbytteStore = BrukerpassbytteStorePostgres(dataSource)
     val metrics = Metrics(søknadStore)
     val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     val rolleService = RolleService(RolleClient(tokendingsService))
@@ -92,7 +90,6 @@ fun Application.module() {
                         infotrygdStore,
                         hotsakStore,
                         midlertidigPrisforhandletTilbehoerStorePostgres,
-                        brukerpassbytteStore,
                         metrics
                     )
                 }
@@ -105,7 +102,6 @@ fun Application.module() {
                             infotrygdStore,
                             hotsakStore,
                             midlertidigPrisforhandletTilbehoerStorePostgres,
-                            brukerpassbytteStore,
                             metrics
                         )
                     }

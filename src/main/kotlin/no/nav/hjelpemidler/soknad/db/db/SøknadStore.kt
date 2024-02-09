@@ -388,7 +388,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
     override fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String, sakstype: String?): Int {
         val bigIntOppgaveId = BigInteger(oppgaveId)
-        val query = when(sakstype) {
+        val query = when (sakstype) {
             "BRUKERPASSBYTTE" -> "UPDATE v1_brukerpassbytte SET OPPGAVEID = ?, UPDATED = now() WHERE ID = ? AND OPPGAVEID IS NULL"
             else -> "UPDATE V1_SOKNAD SET OPPGAVEID = ?, UPDATED = now() WHERE SOKNADS_ID = ? AND OPPGAVEID IS NULL"
         }

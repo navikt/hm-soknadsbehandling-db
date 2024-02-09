@@ -14,14 +14,12 @@ import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import no.nav.hjelpemidler.soknad.db.db.BrukerpassbytteStore
 import no.nav.hjelpemidler.soknad.db.db.HotsakStore
 import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.BrukerpassbytteData
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
@@ -60,9 +58,11 @@ internal fun Route.tokenXRoutes(
                 soknad == null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 soknad.fnrBruker != fnr -> {
                     call.respond(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
                 }
+
                 else -> {
                     // Fetch ordrelinjer belonging to søknad
                     soknad.ordrelinjer = ordreStore.ordreForSoknad(soknad.søknadId)
@@ -163,9 +163,11 @@ internal fun Route.tokenXRoutes(
                 soknad == null -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
                 }
+
                 soknad.fnrBruker != fnr -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
                 }
+
                 else -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(soknad.status == Status.VENTER_GODKJENNING))
                 }
@@ -183,7 +185,6 @@ internal fun Route.azureAdRoutes(
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
     midlertidigPrisforhandletTilbehoerStorePostgres: MidlertidigPrisforhandletTilbehoerStorePostgres,
-    brukerpassbytteStore: BrukerpassbytteStore,
     metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadsId}") {
@@ -217,17 +218,6 @@ internal fun Route.azureAdRoutes(
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved lagring av ordrelinje" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
-        }
-    }
-
-    post("/brukerpassbytte") {
-        try {
-            val brukerpassbytteData = call.receive<BrukerpassbytteData>()
-            brukerpassbytteStore.save(brukerpassbytteData)
-            call.respond("OK")
-        } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av brukerpassbytte" }
-            call.respond(HttpStatusCode.InternalServerError, "Feilet ved lagring av brukerpassbytte")
         }
     }
 
@@ -283,6 +273,7 @@ internal fun Route.azureAdRoutes(
     get("/infotrygd/søknadsType/{soknadsId}") {
         val soknadsId = UUID.fromString(soknadsId())
         val søknadsType = infotrygdStore.hentTypeForSøknad(soknadsId)
+
         data class Response(val søknadsType: String?)
         call.respond(Response(søknadsType))
     }
@@ -392,6 +383,7 @@ internal fun Route.azureAdRoutes(
                 soknadFinnes -> {
                     call.respond("soknadFinnes" to true)
                 }
+
                 else -> {
                     call.respond("soknadFinnes" to false)
                 }
@@ -415,6 +407,7 @@ internal fun Route.azureAdRoutes(
                 fnrOgJournalpostIdFinnes -> {
                     call.respond("fnrOgJournalpostIdFinnes" to true)
                 }
+
                 else -> {
                     call.respond("fnrOgJournalpostIdFinnes" to false)
                 }
@@ -434,6 +427,7 @@ internal fun Route.azureAdRoutes(
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 else -> {
                     call.respond(soknad)
                 }
@@ -484,6 +478,7 @@ internal fun Route.azureAdRoutes(
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 else -> {
                     call.respond(opprettetDato)
                 }
@@ -624,7 +619,8 @@ internal fun Route.azureAdRoutes(
         }
 
         runCatching {
-            val soknader = søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
+            val soknader =
+                søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
             call.respond(soknader)
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
