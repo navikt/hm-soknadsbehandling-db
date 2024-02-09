@@ -6,7 +6,14 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Date
+import java.util.Timer
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.timerTask
 
 private val logg = KotlinLogging.logger {}
 
@@ -14,6 +21,20 @@ internal class Metrics(
     private val søknadStore: SøknadStore,
     private val aivenMetrics: AivenMetrics = AivenMetrics(),
 ) {
+
+    init {
+        Timer("metrics", true).schedule(
+            timerTask {
+                runBlocking {
+                    launch {
+                        countApplicationsByStatus()
+                    }
+                }
+            },
+            midnatt(),
+            TimeUnit.DAYS.toMillis(1),
+        )
+    }
 
     fun measureElapsedTimeBetweenStatusChanges(soknadsId: UUID, status: Status) {
         runBlocking {
@@ -124,4 +145,10 @@ internal class Metrics(
         const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
         const val COUNT_OF_SOKNAD_BY_STATUS = "hm-soknadsbehandling.event.count_of_soknad_by_status"
     }
+}
+
+private fun midnatt() = LocalDate.now().plusDays(1).atStartOfDay().toDate()
+
+private fun LocalDateTime.toDate(): Date {
+    return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
 }
