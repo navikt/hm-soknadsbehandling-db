@@ -55,8 +55,8 @@ internal interface SøknadStore {
     fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int
     fun slettSøknad(soknadsId: UUID): Int
     fun slettUtløptSøknad(soknadsId: UUID): Int
-    fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String, sakstype: String?): Int
-    fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String, sakstype: String?): Int
+    fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int
+    fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String): Int
     fun hentFnrForSoknad(soknadsId: UUID): String
     fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
     fun soknadFinnes(soknadsId: UUID): Boolean
@@ -67,7 +67,11 @@ internal interface SøknadStore {
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
-    fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
+    fun hentSoknaderForKommuneApiet(
+        kommunenummer: String,
+        nyereEnn: UUID?,
+        nyereEnnTidsstempel: Long?
+    ): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -371,31 +375,37 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
 
-    override fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String, sakstype: String?): Int {
+    override fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int {
         val bigIntJournalPostId = BigInteger(journalpostId)
-        val query = when (sakstype) {
-            "BRUKERPASSBYTTE" -> "UPDATE v1_brukerpassbytte SET JOURNALPOSTID = ?, UPDATED = now() WHERE ID = ?"
-            else -> "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ?"
-        }
         return time("oppdater_journalpostId") {
             using(sessionOf(ds)) { session ->
                 session.run(
-                    queryOf(query, bigIntJournalPostId, soknadsId).asUpdate
+                    queryOf(
+                        """
+                            UPDATE V1_SOKNAD 
+                            SET JOURNALPOSTID = :journalpostId, UPDATED = now() 
+                            WHERE SOKNADS_ID = :soknadsId
+                        """.trimIndent(),
+                        mapOf("journalpostId" to bigIntJournalPostId, "soknadsId" to soknadsId)
+                    ).asUpdate
                 )
             }
         }
     }
 
-    override fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String, sakstype: String?): Int {
+    override fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String): Int {
         val bigIntOppgaveId = BigInteger(oppgaveId)
-        val query = when (sakstype) {
-            "BRUKERPASSBYTTE" -> "UPDATE v1_brukerpassbytte SET OPPGAVEID = ?, UPDATED = now() WHERE ID = ? AND OPPGAVEID IS NULL"
-            else -> "UPDATE V1_SOKNAD SET OPPGAVEID = ?, UPDATED = now() WHERE SOKNADS_ID = ? AND OPPGAVEID IS NULL"
-        }
         return time("oppdater_oppgaveId") {
             using(sessionOf(ds)) { session ->
                 session.run(
-                    queryOf(query, bigIntOppgaveId, soknadsId).asUpdate
+                    queryOf(
+                        """
+                        UPDATE V1_SOKNAD 
+                        SET OPPGAVEID = :oppgaveId, UPDATED = now() 
+                        WHERE SOKNADS_ID = :soknadsId AND OPPGAVEID IS NULL   
+                        """.trimIndent(),
+                        mapOf("oppgaveId" to bigIntOppgaveId, "soknadsId" to soknadsId)
+                    ).asUpdate
                 )
             }
         }
@@ -717,8 +727,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
-    override fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
-        val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+    override fun hentSoknaderForKommuneApiet(
+        kommunenummer: String,
+        nyereEnn: UUID?,
+        nyereEnnTidsstempel: Long?
+    ): List<SøknadForKommuneApi> {
+        val extraWhere1 =
+            if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
 
         @Language("PostgreSQL") val statement =
@@ -763,7 +778,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             },
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
-                                LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
+                                LocalDateTime.ofInstant(
+                                    Instant.ofEpochSecond(nyereEnnTidsstempel),
+                                    ZoneId.systemDefault()
+                                )
                             },
                         )
                     ).map {
@@ -775,7 +793,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logID)" }
                             synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                                 if (
-                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(LocalDateTime.now().minusHours(1)) &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
+                                        LocalDateTime.now().minusHours(1)
+                                    ) &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&

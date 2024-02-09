@@ -412,13 +412,13 @@ internal class SøknadStorePostgresTest {
             }
 
             SøknadStorePostgres(DataSource.instance).apply {
-                this.oppdaterOppgaveId(id, oppgaveId, "SOKNAD").also {
+                this.oppdaterOppgaveId(id, oppgaveId).also {
                     it shouldBe 1
                 }
             }
 
             SøknadStorePostgres(DataSource.instance).apply {
-                this.oppdaterOppgaveId(id, oppgaveId, "SOKNAD").also {
+                this.oppdaterOppgaveId(id, oppgaveId).also {
                     it shouldBe 0
                 }
             }

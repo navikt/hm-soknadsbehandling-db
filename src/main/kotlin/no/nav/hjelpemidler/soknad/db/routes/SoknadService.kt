@@ -522,12 +522,7 @@ internal fun Route.azureAdRoutes(
             val soknadsId = UUID.fromString(soknadsId())
             val newJournalpostDto = call.receive<Map<String, String>>()
             val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            val sakstype = newJournalpostDto["sakstype"]
-            val rowsUpdated = søknadStore.oppdaterJournalpostId(
-                soknadsId,
-                journalpostId,
-                sakstype
-            )
+            val rowsUpdated = søknadStore.oppdaterJournalpostId(soknadsId, journalpostId)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av journalpost-id" }
@@ -540,8 +535,7 @@ internal fun Route.azureAdRoutes(
             val soknadsId = UUID.fromString(soknadsId())
             val newOppgaveDto = call.receive<Map<String, String>>()
             val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            val sakstype = newOppgaveDto["sakstype"]
-            val rowsUpdated = søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId, sakstype)
+            val rowsUpdated = søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av oppgave-id" }
