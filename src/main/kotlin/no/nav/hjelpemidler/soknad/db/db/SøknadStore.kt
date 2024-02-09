@@ -670,13 +670,17 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun tellStatuser(): List<StatusCountRow> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT STATUS AS STATUS, COUNT(SOKNADS_ID) AS COUNT FROM (
-                SELECT V1_STATUS.SOKNADS_ID, V1_STATUS.STATUS FROM V1_STATUS
-                                    LEFT JOIN V1_STATUS last_status ON
-                            V1_STATUS.SOKNADS_ID = last_status.SOKNADS_ID AND
-                            V1_STATUS.created < last_status.created
-                WHERE last_status.SOKNADS_ID IS NULL) last_statuses
-                GROUP BY STATUS                                
+                WITH siste_status AS (SELECT SOKNADS_ID, STATUS
+                      FROM (SELECT SOKNADS_ID,
+                                   STATUS,
+                                   RANK() OVER (PARTITION BY SOKNADS_ID ORDER BY CREATED DESC) AS rangering
+                            FROM v1_status) t
+                      WHERE rangering = 1)
+
+                SELECT STATUS,
+                       COUNT(SOKNADS_ID) as COUNT
+                FROM siste_status
+                GROUP BY STATUS
             """.trimIndent()
 
         return using(sessionOf(ds)) { session ->
