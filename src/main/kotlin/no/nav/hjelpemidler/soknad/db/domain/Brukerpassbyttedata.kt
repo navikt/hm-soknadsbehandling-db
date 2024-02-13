@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import java.util.UUID
 
-data class Brukerpassbytte(
+data class Brukerpassbyttedata(
     val id: UUID,
     val hjelpemiddel: BytteHjelpemiddel,
     val bytteårsak: BrukerpassBytteårsak,

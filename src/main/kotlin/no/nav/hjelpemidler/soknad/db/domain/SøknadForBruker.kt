@@ -18,7 +18,7 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
-    val brukerpassbytte: Brukerpassbytte?,
+    val brukerpassbyttedata: Brukerpassbyttedata?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -45,16 +45,6 @@ class SøknadForBruker private constructor(
             søknadType: String?,
             valgteÅrsaker: List<String>,
         ): SøknadForBruker {
-            val søknadsdata = when (behovsmeldingType) {
-                BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> Søknadsdata(søknad, kommunenavn)
-                BehovsmeldingType.BRUKERPASSBYTTE -> null
-            }
-
-            val brukerpassbytte = when (behovsmeldingType) {
-                BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                BehovsmeldingType.BRUKERPASSBYTTE -> objectMapper.treeToValue<Brukerpassbytte>(søknad["brukerpassbytte"])
-            }
-
             return SøknadForBruker(
                 søknadId = søknadId,
                 behovsmeldingType = behovsmeldingType,
@@ -64,8 +54,14 @@ class SøknadForBruker private constructor(
                 status = status,
                 fullmakt = fullmakt,
                 fnrBruker = fnrBruker,
-                søknadsdata = søknadsdata,
-                brukerpassbytte = brukerpassbytte,
+                søknadsdata = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> Søknadsdata(søknad, kommunenavn)
+                    BehovsmeldingType.BRUKERPASSBYTTE -> null
+                },
+                brukerpassbyttedata = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
+                    BehovsmeldingType.BRUKERPASSBYTTE -> objectMapper.treeToValue<Brukerpassbyttedata>(søknad["brukerpassbytte"])
+                },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
                 ordrelinjer = ordrelinjer,
