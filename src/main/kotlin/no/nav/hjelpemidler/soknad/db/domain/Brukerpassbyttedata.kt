@@ -6,6 +6,7 @@ data class Brukerpassbyttedata(
     val id: UUID,
     val hjelpemiddel: BytteHjelpemiddel,
     val bytteårsak: BrukerpassBytteårsak,
+    val byttebegrunnelse: String? = null,
     val utleveringsmåte: BytteUtleveringsmåte,
     val brukersNavn: String,
     val folkeregistrertAdresse: BytteAdresse?,
