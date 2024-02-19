@@ -633,7 +633,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE status.STATUS IN (?, ?, ?) 
+                WHERE status.STATUS IN (?, ?, ?, ?) 
                     AND (soknad.CREATED + interval '$dager day') < now() 
                     AND soknad.oppgaveid IS NULL
                     AND soknad.created > '2021-04-13' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
@@ -647,6 +647,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         Status.GODKJENT_MED_FULLMAKT.name,
                         Status.GODKJENT.name,
                         Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
+                        Status.BRUKERPASSBYTTE_INNSENDT.name,
                     ).map {
                         it.string("SOKNADS_ID")
                     }.asList
