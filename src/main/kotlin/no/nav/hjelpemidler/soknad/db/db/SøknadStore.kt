@@ -624,9 +624,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE status.STATUS IN (?, ?, ?) 
-                    AND (soknad.CREATED + interval '$dager day') < now() 
                     AND soknad.oppgaveid IS NULL
-                    AND soknad.created > '2021-04-13' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
+                    AND soknad.CREATED < now() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
+                    AND soknad.created > now() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
             """
 
         return time("godkjente_soknader_uten_oppgave") {

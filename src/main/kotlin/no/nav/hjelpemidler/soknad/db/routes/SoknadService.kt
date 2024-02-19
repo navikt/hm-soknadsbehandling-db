@@ -491,21 +491,6 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/godkjentUtenOppgave/{dager}") {
-        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
-
-        try {
-            val godkjenteSoknaderUtenOppgave = søknadStore.hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager)
-            call.respond(godkjenteSoknaderUtenOppgave)
-        } catch (e: Exception) {
-            logger.error(e) { "Error on fetching godkjente søknader uten oppgave" }
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                "Feil ved henting av godkjente søknader uten oppgave: ${e.message}"
-            )
-        }
-    }
-
     put("/soknad/journalpost-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())

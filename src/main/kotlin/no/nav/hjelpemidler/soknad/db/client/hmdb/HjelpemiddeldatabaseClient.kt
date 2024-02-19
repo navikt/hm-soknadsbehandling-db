@@ -60,7 +60,7 @@ object HjelpemiddeldatabaseClient {
                                 old.produktbeskrivelse != new.attributes.text ||
                                 old.isotittel != new.isoCategoryTitle ||
                                 old.blobUrlLite != null &&
-                                    new.media.find { it.type == MediaType.IMAGE && it.priority == 1 } == null
+                                new.media.find { it.type == MediaType.IMAGE && it.priority == 1 } == null
                             ) {
                                 unexpectedDataHmsnrs[old.hmsnr] = Pair(old.toString(), new.toString())
                             } else {
