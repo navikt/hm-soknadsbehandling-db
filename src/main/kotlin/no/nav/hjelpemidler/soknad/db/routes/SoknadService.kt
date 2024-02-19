@@ -353,7 +353,6 @@ internal fun Route.azureAdRoutes(
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(soknadsId, newStatus)
-            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -367,7 +366,6 @@ internal fun Route.azureAdRoutes(
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
-            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -499,21 +497,6 @@ internal fun Route.azureAdRoutes(
         } catch (e: Exception) {
             logger.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
             call.respond(HttpStatusCode.InternalServerError, e)
-        }
-    }
-
-    get("/soknad/godkjentUtenOppgave/{dager}") {
-        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
-
-        try {
-            val godkjenteSoknaderUtenOppgave = søknadStore.hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager)
-            call.respond(godkjenteSoknaderUtenOppgave)
-        } catch (e: Exception) {
-            logger.error(e) { "Error on fetching godkjente søknader uten oppgave" }
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                "Feil ved henting av godkjente søknader uten oppgave: ${e.message}"
-            )
         }
     }
 

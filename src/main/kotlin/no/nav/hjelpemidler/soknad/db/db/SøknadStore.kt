@@ -634,9 +634,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
                 WHERE status.STATUS IN (?, ?, ?, ?) 
-                    AND (soknad.CREATED + interval '$dager day') < now() 
                     AND soknad.oppgaveid IS NULL
-                    AND soknad.created > '2021-04-13' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
+                    AND soknad.CREATED < now() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
+                    AND soknad.created > now() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
             """
 
         return time("godkjente_soknader_uten_oppgave") {
@@ -681,13 +681,17 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun tellStatuser(): List<StatusCountRow> {
         @Language("PostgreSQL") val statement =
             """
-                SELECT STATUS AS STATUS, COUNT(SOKNADS_ID) AS COUNT FROM (
-                SELECT V1_STATUS.SOKNADS_ID, V1_STATUS.STATUS FROM V1_STATUS
-                                    LEFT JOIN V1_STATUS last_status ON
-                            V1_STATUS.SOKNADS_ID = last_status.SOKNADS_ID AND
-                            V1_STATUS.created < last_status.created
-                WHERE last_status.SOKNADS_ID IS NULL) last_statuses
-                GROUP BY STATUS                                
+                WITH siste_status AS (SELECT SOKNADS_ID, STATUS
+                      FROM (SELECT SOKNADS_ID,
+                                   STATUS,
+                                   RANK() OVER (PARTITION BY SOKNADS_ID ORDER BY CREATED DESC) AS rangering
+                            FROM v1_status) t
+                      WHERE rangering = 1)
+
+                SELECT STATUS,
+                       COUNT(SOKNADS_ID) as COUNT
+                FROM siste_status
+                GROUP BY STATUS
             """.trimIndent()
 
         return using(sessionOf(ds)) { session ->

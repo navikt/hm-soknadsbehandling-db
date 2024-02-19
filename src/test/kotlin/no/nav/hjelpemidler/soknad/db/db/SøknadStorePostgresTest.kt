@@ -370,27 +370,6 @@ internal class SøknadStorePostgresTest {
     }
 
     @Test
-    fun `hentGodkjenteSoknaderUtenOppgaveEldreEnn() skal ikke returnere søknader opprettet før 2021-04-12`() {
-        withMigratedDb {
-
-            val id = UUID.randomUUID()
-
-            SøknadStorePostgres(DataSource.instance).apply {
-                this.save(mockSøknad(id, Status.GODKJENT))
-
-                val session = sessionOf(DataSource.instance)
-                session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = '2021-04-14' WHERE SOKNADS_ID = '$id' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
-                    .also { it.size shouldBe 1 }
-
-                session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = '2021-04-12' WHERE SOKNADS_ID = '$id' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
-                    .also { it.size shouldBe 0 }
-            }
-        }
-    }
-
-    @Test
     fun `Oppdater oppgaveId og ikke overskriv eksisterende oppgaveId`() {
         val id = UUID.randomUUID()
         val oppgaveId = "57983"
