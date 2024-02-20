@@ -351,19 +351,19 @@ internal class SøknadStorePostgresTest {
 
                 val session = sessionOf(DataSource.instance)
                 session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '2 day') WHERE SOKNADS_ID = '$id1' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                this.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2)
                     .also { it.size shouldBe 1 }
 
                 session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '3 day') WHERE SOKNADS_ID = '$id2' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                this.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2)
                     .also { it.size shouldBe 2 }
 
                 session.run(queryOf("UPDATE V1_SOKNAD SET CREATED = (now() - interval '1 day') WHERE SOKNADS_ID = '$id1' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                this.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2)
                     .also { it.size shouldBe 1 }
 
                 session.run(queryOf("UPDATE V1_SOKNAD SET oppgaveid = '12345' WHERE SOKNADS_ID = '$id2' ").asExecute)
-                this.hentGodkjenteSoknaderUtenOppgaveEldreEnn(2)
+                this.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2)
                     .also { it.size shouldBe 0 }
             }
         }

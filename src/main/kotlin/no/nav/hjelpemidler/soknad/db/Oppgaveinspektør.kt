@@ -49,15 +49,19 @@ internal class Oppgaveinspektør(
     private suspend fun rapporterBehovsmeldingerSomManglerOppgave(søknadStore: SøknadStore) {
         logger.info { "Sjekk om det finnes behovsmeldinger som mangler oppgave..." }
         try {
-            val godkjenteSøknaderUtenOppgave = søknadStore.hentGodkjenteSoknaderUtenOppgaveEldreEnn(MINIMUM_DAGER)
+            val godkjenteBehovsmeldingerUtenOppgave = søknadStore
+                .hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(MINIMUM_DAGER)
                 .filter { it !in ignoreList }
 
-            if (godkjenteSøknaderUtenOppgave.isEmpty()) return
+            if (godkjenteBehovsmeldingerUtenOppgave.isEmpty()) {
+                logger.info { "Fant ingen behovsmeldinger som mangler oppgave." }
+                return
+            }
 
             val message = """
-                    Det finnes ${godkjenteSøknaderUtenOppgave.size} godkjente søknader uten oppgave som er eldre enn $MINIMUM_DAGER dager.
+                    Det finnes ${godkjenteBehovsmeldingerUtenOppgave.size} godkjente søknader uten oppgave som er eldre enn $MINIMUM_DAGER dager.
                     Undersøk hvorfor disse har stoppet opp i systemet.
-                    søknads-IDer (max 10): ${godkjenteSøknaderUtenOppgave.take(10).joinToString()}
+                    søknads-IDer (max 10): ${godkjenteBehovsmeldingerUtenOppgave.take(10).joinToString()}
             """.trimIndent()
 
             if (Configuration.application.profile == Profile.PROD) {

@@ -63,7 +63,7 @@ internal interface SøknadStore {
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
-    fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String>
+    fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
@@ -614,7 +614,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         }
     }
 
-    override fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String> {
+    override fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String> {
         @Language("PostgreSQL") val statement =
             """
                 WITH soknader_med_siste_status_godkjent AS (
