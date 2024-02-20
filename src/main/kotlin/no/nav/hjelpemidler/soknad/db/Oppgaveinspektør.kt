@@ -80,7 +80,7 @@ internal class Oppgaveinspektør(
     }
 }
 
-private fun midnatt() = LocalDate.now().atStartOfDay().toDate()
+private fun midnatt() = LocalDate.now().plusDays(1).atStartOfDay().toDate()
 
 private fun LocalDateTime.toDate(): Date {
     return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
