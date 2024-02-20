@@ -617,14 +617,22 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager: Int): List<String> {
         @Language("PostgreSQL") val statement =
             """
+                WITH soknader_med_siste_status_godkjent AS (
+                SELECT *
+                FROM (SELECT soknads_id,
+                             status,
+                             RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
+                      FROM V1_STATUS
+                      WHERE created > NOW() - INTERVAL '90 DAYS') AS t
+                WHERE rangering = 1
+                  AND STATUS IN (?, ?, ?)
+                )
+
                 SELECT soknad.soknads_id
                 FROM V1_SOKNAD AS soknad
-                LEFT JOIN V1_STATUS AS status
-                ON status.ID = (
-                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
-                )
-                WHERE status.STATUS IN (?, ?, ?) 
-                    AND soknad.oppgaveid IS NULL
+                         INNER JOIN soknader_med_siste_status_godkjent
+                                    ON soknad.soknads_id = soknader_med_siste_status_godkjent.soknads_id
+                WHERE soknad.oppgaveid IS NULL
                     AND soknad.CREATED < now() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
                     AND soknad.created > now() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
             """
