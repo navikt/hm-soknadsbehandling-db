@@ -635,7 +635,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                       FROM V1_STATUS
                       WHERE created > NOW() - INTERVAL '90 DAYS') AS t
                 WHERE rangering = 1
-                  AND STATUS IN (?, ?, ?)
+                  AND STATUS IN (?, ?, ?, ?)
                 )
 
                 SELECT soknad.soknads_id
@@ -655,6 +655,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         Status.GODKJENT_MED_FULLMAKT.name,
                         Status.GODKJENT.name,
                         Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
+                        Status.BRUKERPASSBYTTE_INNSENDT.name,
                     ).map {
                         it.string("SOKNADS_ID")
                     }.asList
