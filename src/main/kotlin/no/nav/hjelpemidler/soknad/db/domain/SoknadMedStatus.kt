@@ -65,7 +65,7 @@ class SoknadMedStatus private constructor(
                 datoOppdatert,
                 status,
                 fullmakt,
-                formidlerNavn(søknad),
+                formidlerNavn(søknad, behovsmeldingType),
                 er_digital,
                 soknadGjelder,
                 valgteÅrsaker
@@ -73,8 +73,8 @@ class SoknadMedStatus private constructor(
     }
 }
 
-private fun formidlerNavn(soknad: JsonNode): String? {
-    if (soknad["behovsmeldingType"].textValue() == BehovsmeldingType.BRUKERPASSBYTTE.name) {
+private fun formidlerNavn(soknad: JsonNode, behovsmeldingType: BehovsmeldingType): String? {
+    if (behovsmeldingType == BehovsmeldingType.BRUKERPASSBYTTE) {
         return null
     }
     val leveringNode = soknad["soknad"]["levering"]
