@@ -67,7 +67,11 @@ internal interface SøknadStore {
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(soknadsId: UUID): List<StatusRow>
-    fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi>
+    fun hentSoknaderForKommuneApiet(
+        kommunenummer: String,
+        nyereEnn: UUID?,
+        nyereEnnTidsstempel: Long?
+    ): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
@@ -377,9 +381,12 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        "UPDATE V1_SOKNAD SET JOURNALPOSTID = ?, UPDATED = now() WHERE SOKNADS_ID = ?",
-                        bigIntJournalPostId,
-                        soknadsId
+                        """
+                            UPDATE V1_SOKNAD 
+                            SET JOURNALPOSTID = :journalpostId, UPDATED = now() 
+                            WHERE SOKNADS_ID = :soknadsId
+                        """.trimIndent(),
+                        mapOf("journalpostId" to bigIntJournalPostId, "soknadsId" to soknadsId)
                     ).asUpdate
                 )
             }
@@ -392,9 +399,12 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        "UPDATE V1_SOKNAD SET OPPGAVEID = ?, UPDATED = now() WHERE SOKNADS_ID = ? AND OPPGAVEID IS NULL",
-                        bigIntOppgaveId,
-                        soknadsId
+                        """
+                        UPDATE V1_SOKNAD 
+                        SET OPPGAVEID = :oppgaveId, UPDATED = now() 
+                        WHERE SOKNADS_ID = :soknadsId AND OPPGAVEID IS NULL   
+                        """.trimIndent(),
+                        mapOf("oppgaveId" to bigIntOppgaveId, "soknadsId" to soknadsId)
                     ).asUpdate
                 )
             }
@@ -625,7 +635,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                       FROM V1_STATUS
                       WHERE created > NOW() - INTERVAL '90 DAYS') AS t
                 WHERE rangering = 1
-                  AND STATUS IN (?, ?, ?)
+                  AND STATUS IN (?, ?, ?, ?)
                 )
 
                 SELECT soknad.soknads_id
@@ -645,6 +655,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         Status.GODKJENT_MED_FULLMAKT.name,
                         Status.GODKJENT.name,
                         Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
+                        Status.BRUKERPASSBYTTE_INNSENDT.name,
                     ).map {
                         it.string("SOKNADS_ID")
                     }.asList
@@ -729,8 +740,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
-    override fun hentSoknaderForKommuneApiet(kommunenummer: String, nyereEnn: UUID?, nyereEnnTidsstempel: Long?): List<SøknadForKommuneApi> {
-        val extraWhere1 = if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+    override fun hentSoknaderForKommuneApiet(
+        kommunenummer: String,
+        nyereEnn: UUID?,
+        nyereEnnTidsstempel: Long?
+    ): List<SøknadForKommuneApi> {
+        val extraWhere1 =
+            if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
 
         @Language("PostgreSQL") val statement =
@@ -775,7 +791,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             },
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
-                                LocalDateTime.ofInstant(Instant.ofEpochSecond(nyereEnnTidsstempel), ZoneId.systemDefault())
+                                LocalDateTime.ofInstant(
+                                    Instant.ofEpochSecond(nyereEnnTidsstempel),
+                                    ZoneId.systemDefault()
+                                )
                             },
                         )
                     ).map {
@@ -787,7 +806,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logID)" }
                             synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                                 if (
-                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(LocalDateTime.now().minusHours(1)) &&
+                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
+                                        LocalDateTime.now().minusHours(1)
+                                    ) &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&

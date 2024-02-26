@@ -131,7 +131,9 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.FNR_INNSENDER = :fnrInnsender AND soknad.SOKNADS_ID = :soknadId $behovsmeldingTypeClause
+                WHERE soknad.FNR_INNSENDER = :fnrInnsender 
+                AND soknad.DATA ->> 'behovsmeldingType' <> 'BRUKERPASSBYTTE'
+                AND soknad.SOKNADS_ID = :soknadId $behovsmeldingTypeClause
                 AND soknad.created > :minimumDato
                 AND (
                     status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')

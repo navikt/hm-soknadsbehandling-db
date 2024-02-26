@@ -18,6 +18,7 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
+    val brukerpassbyttedata: Brukerpassbyttedata?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -43,24 +44,33 @@ class SøknadForBruker private constructor(
             fagsakId: String?,
             søknadType: String?,
             valgteÅrsaker: List<String>,
-        ) =
-            SøknadForBruker(
-                søknadId,
-                behovsmeldingType,
-                journalpostId,
-                datoOpprettet,
-                datoOppdatert,
-                status,
-                fullmakt,
-                fnrBruker,
-                Søknadsdata(søknad, kommunenavn),
-                er_digital,
-                soknadGjelder,
-                ordrelinjer,
-                fagsakId,
-                søknadType,
-                valgteÅrsaker,
+        ): SøknadForBruker {
+            return SøknadForBruker(
+                søknadId = søknadId,
+                behovsmeldingType = behovsmeldingType,
+                journalpostId = journalpostId,
+                datoOpprettet = datoOpprettet,
+                datoOppdatert = datoOppdatert,
+                status = status,
+                fullmakt = fullmakt,
+                fnrBruker = fnrBruker,
+                søknadsdata = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> Søknadsdata(søknad, kommunenavn)
+                    BehovsmeldingType.BRUKERPASSBYTTE -> null
+                },
+                brukerpassbyttedata = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
+                    BehovsmeldingType.BRUKERPASSBYTTE -> objectMapper.treeToValue<Brukerpassbyttedata>(søknad["brukerpassbytte"])
+                },
+                er_digital = er_digital,
+                soknadGjelder = soknadGjelder,
+                ordrelinjer = ordrelinjer,
+                fagsakId = fagsakId,
+                søknadType = søknadType,
+                valgteÅrsaker = valgteÅrsaker,
             )
+        }
+
 
         fun newEmptySøknad(
             søknadId: UUID,
@@ -87,6 +97,7 @@ class SøknadForBruker private constructor(
                 status,
                 fullmakt,
                 fnrBruker,
+                null,
                 null,
                 er_digital,
                 soknadGjelder,

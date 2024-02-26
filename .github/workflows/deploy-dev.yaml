@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - respekter-checked-vilkar
+      - brukerpassbytte
 
 jobs:
   build:
