@@ -71,7 +71,6 @@ class SøknadForBruker private constructor(
             )
         }
 
-
         fun newEmptySøknad(
             søknadId: UUID,
             behovsmeldingType: BehovsmeldingType,
