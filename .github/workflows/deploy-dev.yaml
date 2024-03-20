@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - grunndata-search
 
 jobs:
   build:
