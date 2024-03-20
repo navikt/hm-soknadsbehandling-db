@@ -13,6 +13,7 @@ internal class BehovsmeldingDataValideringTest {
         val node = ObjectMapper().readTree(
             """
             {
+                "id": "92827da5-da3d-429f-a415-b6c0b9aa6cd6",
                 "soknad": {
                     "id": "92827da5-da3d-429f-a415-b6c0b9aa6cd6",
                     "date": "2023-01-17",

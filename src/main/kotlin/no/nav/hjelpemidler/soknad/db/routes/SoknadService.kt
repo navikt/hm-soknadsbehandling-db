@@ -57,9 +57,11 @@ internal fun Route.tokenXRoutes(
                 soknad == null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 soknad.fnrBruker != fnr -> {
                     call.respond(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
                 }
+
                 else -> {
                     // Fetch ordrelinjer belonging to søknad
                     soknad.ordrelinjer = ordreStore.ordreForSoknad(soknad.søknadId)
@@ -160,9 +162,11 @@ internal fun Route.tokenXRoutes(
                 soknad == null -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
                 }
+
                 soknad.fnrBruker != fnr -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
                 }
+
                 else -> {
                     call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(soknad.status == Status.VENTER_GODKJENNING))
                 }
@@ -266,6 +270,7 @@ internal fun Route.azureAdRoutes(
     get("/infotrygd/søknadsType/{soknadsId}") {
         val soknadsId = UUID.fromString(soknadsId())
         val søknadsType = infotrygdStore.hentTypeForSøknad(soknadsId)
+
         data class Response(val søknadsType: String?)
         call.respond(Response(søknadsType))
     }
@@ -345,7 +350,6 @@ internal fun Route.azureAdRoutes(
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(soknadsId, newStatus)
-            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -359,7 +363,6 @@ internal fun Route.azureAdRoutes(
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
-            metrics.countApplicationsByStatus()
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -375,6 +378,7 @@ internal fun Route.azureAdRoutes(
                 soknadFinnes -> {
                     call.respond("soknadFinnes" to true)
                 }
+
                 else -> {
                     call.respond("soknadFinnes" to false)
                 }
@@ -398,6 +402,7 @@ internal fun Route.azureAdRoutes(
                 fnrOgJournalpostIdFinnes -> {
                     call.respond("fnrOgJournalpostIdFinnes" to true)
                 }
+
                 else -> {
                     call.respond("fnrOgJournalpostIdFinnes" to false)
                 }
@@ -417,6 +422,7 @@ internal fun Route.azureAdRoutes(
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 else -> {
                     call.respond(soknad)
                 }
@@ -467,6 +473,7 @@ internal fun Route.azureAdRoutes(
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
+
                 else -> {
                     call.respond(opprettetDato)
                 }
@@ -490,29 +497,12 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/godkjentUtenOppgave/{dager}") {
-        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
-
-        try {
-            val godkjenteSoknaderUtenOppgave = søknadStore.hentGodkjenteSoknaderUtenOppgaveEldreEnn(dager)
-            call.respond(godkjenteSoknaderUtenOppgave)
-        } catch (e: Exception) {
-            logger.error(e) { "Error on fetching godkjente søknader uten oppgave" }
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                "Feil ved henting av godkjente søknader uten oppgave: ${e.message}"
-            )
-        }
-    }
-
     put("/soknad/journalpost-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newJournalpostId = call.receive<Map<String, String>>()
-            val rowsUpdated = søknadStore.oppdaterJournalpostId(
-                soknadsId,
-                newJournalpostId["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            )
+            val newJournalpostDto = call.receive<Map<String, String>>()
+            val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
+            val rowsUpdated = søknadStore.oppdaterJournalpostId(soknadsId, journalpostId)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av journalpost-id" }
@@ -523,11 +513,9 @@ internal fun Route.azureAdRoutes(
     put("/soknad/oppgave-id/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val newOppgaveId = call.receive<Map<String, String>>()
-            val rowsUpdated = søknadStore.oppdaterOppgaveId(
-                soknadsId,
-                newOppgaveId["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            )
+            val newOppgaveDto = call.receive<Map<String, String>>()
+            val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
+            val rowsUpdated = søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId)
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved oppdatering av oppgave-id" }
@@ -605,7 +593,8 @@ internal fun Route.azureAdRoutes(
         }
 
         runCatching {
-            val soknader = søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
+            val soknader =
+                søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
             call.respond(soknader)
         }.getOrElse { e ->
             logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }

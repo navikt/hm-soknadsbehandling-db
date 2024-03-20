@@ -39,7 +39,8 @@ import java.util.UUID
 data class Behovsmelding(
     val behovsmeldingType: BehovsmeldingType,
     val bestillingsordningsjekk: JsonNode?,
-    val soknad: Soknad
+    val soknad: Soknad,
+    val id: UUID,
 ) {
     fun filtrerForKommuneApiet() = this.copy(
         bestillingsordningsjekk = null,

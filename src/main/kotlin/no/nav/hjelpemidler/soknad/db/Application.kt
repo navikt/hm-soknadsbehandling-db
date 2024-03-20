@@ -58,6 +58,8 @@ fun Application.module() {
     val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     val rolleService = RolleService(RolleClient(tokendingsService))
 
+    Oppgaveinspektør(søknadStore)
+
     authentication {
         azure { }
         tokenX { }
