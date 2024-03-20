@@ -13,7 +13,6 @@ import org.flywaydb.core.api.output.MigrateResult
 import org.intellij.lang.annotations.Language
 import java.net.Socket
 import java.time.LocalDateTime
-import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -34,10 +33,6 @@ internal fun waitForDB(timeout: Duration, config: Configuration): Boolean {
         if (LocalDateTime.now().isAfter(deadline)) break
     }
     return false
-}
-
-fun Row.uuid(columnLabel: String): UUID = string(columnLabel).let {
-    UUID.fromString(it)
 }
 
 fun Row.jsonNode(columnLabel: String): JsonNode =

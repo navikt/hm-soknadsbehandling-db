@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.db.HotsakStore
-import no.nav.hjelpemidler.soknad.db.db.MidlertidigPrisforhandletTilbehoerStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
@@ -184,7 +183,6 @@ internal fun Route.azureAdRoutes(
     ordreStore: OrdreStore,
     infotrygdStore: InfotrygdStore,
     hotsakStore: HotsakStore,
-    midlertidigPrisforhandletTilbehoerStorePostgres: MidlertidigPrisforhandletTilbehoerStorePostgres,
     metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadsId}") {
@@ -202,7 +200,6 @@ internal fun Route.azureAdRoutes(
         try {
             val soknadToBeSaved = call.receive<SoknadData>()
             søknadStore.save(soknadToBeSaved)
-            midlertidigPrisforhandletTilbehoerStorePostgres.lagStatistikkForPrisforhandletTilbehoer(soknadToBeSaved) // FIXME: Remove when test done.
             call.respond("OK")
         } catch (e: Exception) {
             logger.error(e) { "Feilet ved lagring av søknad" }

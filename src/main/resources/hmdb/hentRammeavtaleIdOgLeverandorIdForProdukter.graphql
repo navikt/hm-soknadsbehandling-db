@@ -1,7 +1,0 @@
-query HentRammeavtaleIdOgLeverandorIdForProdukter($hmsnrs: [String!]!) {
-  produkter: hentProdukterMedHmsnrs(hmsnrs: $hmsnrs) {
-    hmsnr
-    rammeavtaleId
-    leverandorId
-  }
-}

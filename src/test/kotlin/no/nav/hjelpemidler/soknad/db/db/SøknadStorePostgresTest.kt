@@ -213,7 +213,7 @@ internal class SøknadStorePostgresTest {
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
                 assertEquals("15084300133", hentSoknad!!.søknadsdata!!.bruker.fnummer)
-                assertEquals(true, hentSoknad?.er_digital)
+                assertEquals(true, hentSoknad.er_digital)
                 assertEquals(LeveringTilleggsinfo.UTLEVERING_KALENDERAPP, hentSoknad.søknadsdata!!.levering.tilleggsinfo.first())
             }
         }
