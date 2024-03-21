@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Produkt
+import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
+import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import java.util.Date
 import java.util.UUID
 
@@ -918,21 +919,20 @@ data class SøknadForBrukerOrdrelinje(
     var hmdbBilde: String? = null,
     var hmdbURL: String? = null,
 ) {
-    fun berik(produkt: Produkt?): SøknadForBrukerOrdrelinje {
+    fun berik(produkt: Product?): SøknadForBrukerOrdrelinje {
         if (produkt == null) {
             hmdbBeriket = false
             return this
         }
         hmdbBeriket = true
-        hmdbProduktNavn = produkt.artikkelnavn
-        hmdbBeskrivelse = produkt.produktbeskrivelse
-        hmdbKategori = produkt.isotittel
-        hmdbBilde = produkt.blobUrlLite
-        // TODO: FIXME: Hent fra graphql i stede for å generere her
-        if (produkt.produktId != null && produkt.artikkelId != null) {
-            hmdbURL =
-                "https://www.hjelpemiddeldatabasen.no/r11x.asp?linkinfo=${produkt.produktId}&art0=${produkt.artikkelId}&nart=1"
-        }
+        hmdbProduktNavn = produkt.articleName
+        hmdbBeskrivelse = produkt.attributes.text
+        hmdbKategori = produkt.isoCategoryTitle
+        hmdbURL = produkt.productVariantURL
+        hmdbBilde = produkt.media
+            .filter { it.type == MediaType.IMAGE }
+            .minByOrNull { it.priority }
+            ?.uri?.let { "https://finnhjelpemiddel.nav.no/imageproxy/400d/$it" }
         return this
     }
 }
