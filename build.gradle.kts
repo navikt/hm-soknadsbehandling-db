@@ -77,7 +77,7 @@ dependencies {
     // implementation("com.github.navikt.tms-ktor-token-support:token-support-authentication-installer:$tokenSupportVersion")
     implementation("com.github.navikt.tms-ktor-token-support:token-support-azure-validation:$tokenSupportVersion")
     constraints {
-        implementation("com.nimbusds:nimbus-jose-jwt:9.37.1") {
+        implementation("com.nimbusds:nimbus-jose-jwt:9.37.2") {
             because("json-smart: Uncontrolled Resource Consumption vulnerability in json-smart (Resource Exhaustion), since 9.19 has a shaded json-smart")
         }
     }
