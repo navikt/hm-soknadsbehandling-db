@@ -141,7 +141,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
 
         val produkter = HjelpemiddeldatabaseClient
             .hentProdukterMedHmsnrs(ordrelinjer.map { it.artikkelNr }.toSet())
-            .groupBy { it.hmsnr }
+            .groupBy { it.hmsArtNr }
             .mapValues { it.value.first() }
 
         return ordrelinjer.map {

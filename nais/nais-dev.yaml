@@ -46,7 +46,6 @@ spec:
           cluster: dev-gcp
     outbound:
       rules:
-        - application: hm-grunndata-api
         - application: hm-grunndata-search
         - application: hm-roller
       external:
