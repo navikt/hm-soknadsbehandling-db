@@ -17,9 +17,9 @@ import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.Profile
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_HjelpemiddelListe
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Soknad
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.SoknadMedStatus
@@ -29,8 +29,8 @@ import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.domain.kommune_api.Behovsmelding
-import no.nav.hjelpemidler.soknad.db.domain.kommune_api.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
@@ -62,7 +62,7 @@ internal interface SøknadStore {
     fun soknadFinnes(soknadsId: UUID): Boolean
     fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler>
+    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler>
     fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
@@ -70,14 +70,15 @@ internal interface SøknadStore {
     fun hentSoknaderForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
-        nyereEnnTidsstempel: Long?
+        nyereEnnTidsstempel: Long?,
     ): List<SøknadForKommuneApi>
 }
 
 internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
     override fun soknadFinnes(soknadsId: UUID): Boolean {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT SOKNADS_ID
                 FROM V1_SOKNAD
@@ -92,7 +93,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         soknadsId,
                     ).map {
                         UUID.fromString(it.string("SOKNADS_ID"))
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
@@ -100,7 +101,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     override fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT SOKNADS_ID
                 FROM V1_SOKNAD
@@ -116,7 +118,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         journalpostId,
                     ).map {
                         it.uuid("SOKNADS_ID")
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
@@ -124,12 +126,13 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     override fun hentSoknad(soknadsId: UUID): SøknadForBruker? {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER, 
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
-                ) THEN true ELSE false END) as fullmakt
+                ) THEN TRUE ELSE FALSE END) AS fullmakt
                 FROM V1_SOKNAD AS soknad 
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
@@ -152,7 +155,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             SøknadForBruker.newEmptySøknad(
                                 søknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
                                 ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -169,14 +172,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fagsakId = null,
                                 søknadType = null,
                                 valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                    it.stringOrNull("ARSAKER") ?: "[]",
                                 ),
                             )
                         } else {
                             SøknadForBruker.new(
                                 søknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
                                 ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -195,18 +198,19 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 fagsakId = null,
                                 søknadType = null,
                                 valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                    it.stringOrNull("ARSAKER") ?: "[]",
                                 ),
                             )
                         }
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
     }
 
     override fun hentSoknadOpprettetDato(soknadsId: UUID): Date? {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT CREATED
                 FROM V1_SOKNAD
@@ -220,13 +224,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                     soknadsId,
                 ).map {
                     it.sqlTimestamp("created")
-                }.asSingle
+                }.asSingle,
             )
         }
     }
 
     override fun hentSoknadData(soknadsId: UUID): SoknadData? {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, soknad.FNR_INNSENDER, soknad.DATA, soknad.KOMMUNENAVN, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS
                 FROM V1_SOKNAD AS soknad
@@ -255,14 +260,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             er_digital = it.boolean("ER_DIGITAL"),
                             soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                         )
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
     }
 
     override fun hentFnrForSoknad(soknadsId: UUID): String {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT FNR_BRUKER
                 FROM V1_SOKNAD
@@ -278,7 +284,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknadsId,
                         ).map {
                             it.string("FNR_BRUKER")
-                        }.asSingle
+                        }.asSingle,
                     )
                 }
             }
@@ -307,15 +313,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     type = "jsonb"
                                     value = valgteÅrsakerToJsonString(it)
                                 }
-                            }
-                        ).asUpdate
+                            },
+                        ).asUpdate,
                     )
                     // Oppdatere UPDATED felt når man legger til ny status for søknad
                     transaction.run(
                         queryOf(
                             "UPDATE V1_SOKNAD SET UPDATED = now() WHERE SOKNADS_ID = ?",
                             statusMedÅrsak.søknadId,
-                        ).asUpdate
+                        ).asUpdate,
                     )
                 }
 
@@ -333,15 +339,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         queryOf(
                             "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
                             soknadsId,
-                            status.name
-                        ).asUpdate
+                            status.name,
+                        ).asUpdate,
                     )
                     // Oppdatere UPDATED felt når man legger til ny status for søknad
                     transaction.run(
                         queryOf(
                             "UPDATE V1_SOKNAD SET UPDATED = now() WHERE SOKNADS_ID = ?",
                             soknadsId,
-                        ).asUpdate
+                        ).asUpdate,
                     )
                 }
 
@@ -362,14 +368,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         queryOf(
                             "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
                             soknadsId,
-                            status.name
-                        ).asUpdate
+                            status.name,
+                        ).asUpdate,
                     )
                     transaction.run(
                         queryOf(
                             "UPDATE V1_SOKNAD SET UPDATED = now(), DATA = NULL WHERE SOKNADS_ID = ?",
                             soknadsId,
-                        ).asUpdate
+                        ).asUpdate,
                     )
                 }
             }
@@ -386,8 +392,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             SET JOURNALPOSTID = :journalpostId, UPDATED = now() 
                             WHERE SOKNADS_ID = :soknadsId
                         """.trimIndent(),
-                        mapOf("journalpostId" to bigIntJournalPostId, "soknadsId" to soknadsId)
-                    ).asUpdate
+                        mapOf("journalpostId" to bigIntJournalPostId, "soknadsId" to soknadsId),
+                    ).asUpdate,
                 )
             }
         }
@@ -404,20 +410,21 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         SET OPPGAVEID = :oppgaveId, UPDATED = now() 
                         WHERE SOKNADS_ID = :soknadsId AND OPPGAVEID IS NULL   
                         """.trimIndent(),
-                        mapOf("oppgaveId" to bigIntOppgaveId, "soknadsId" to soknadsId)
-                    ).asUpdate
+                        mapOf("oppgaveId" to bigIntOppgaveId, "soknadsId" to soknadsId),
+                    ).asUpdate,
                 )
             }
         }
     }
 
     override fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus> {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER,
                 (CASE WHEN EXISTS (
                     SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
-                ) THEN true ELSE false END) as fullmakt
+                ) THEN TRUE ELSE FALSE END) AS fullmakt
                 FROM V1_SOKNAD AS soknad
                 LEFT JOIN V1_STATUS AS status
                 ON status.ID = (
@@ -441,7 +448,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             SoknadMedStatus.newSøknadUtenFormidlernavn(
                                 soknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType") ?: "SØKNAD"
+                                    it.stringOrNull("behovsmeldingType") ?: "SØKNAD",
                                 ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -454,14 +461,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                    it.stringOrNull("ARSAKER") ?: "[]",
                                 ),
                             )
                         } else {
                             SoknadMedStatus.newSøknadMedFormidlernavn(
                                 soknadId = it.uuid("SOKNADS_ID"),
                                 behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
                                 ),
                                 journalpostId = it.stringOrNull("JOURNALPOSTID"),
                                 status = Status.valueOf(it.string("STATUS")),
@@ -475,18 +482,19 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 er_digital = it.boolean("ER_DIGITAL"),
                                 soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                                 valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]"
+                                    it.stringOrNull("ARSAKER") ?: "[]",
                                 ),
                             )
                         }
-                    }.asList
+                    }.asList,
                 )
             }
         }
     }
 
     override fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, status.STATUS
                 FROM V1_SOKNAD AS soknad
@@ -508,9 +516,9 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         UtgåttSøknad(
                             søknadId = it.uuid("SOKNADS_ID"),
                             status = Status.valueOf(it.string("STATUS")),
-                            fnrBruker = it.string("FNR_BRUKER")
+                            fnrBruker = it.string("FNR_BRUKER"),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -521,13 +529,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             using(sessionOf(ds)) { session ->
                 session.transaction { transaction ->
                     // Add the new status to the status table
-                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                            soknadData.soknadId,
-                            soknadData.status.name,
-                        ).asUpdate
-                    )
+                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) {
+                        transaction.run(
+                            queryOf(
+                                "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
+                                soknadData.soknadId,
+                                soknadData.status.name,
+                            ).asUpdate,
+                        )
+                    }
                     // Add the new Søknad into the Søknad table
                     transaction.run(
                         queryOf(
@@ -543,7 +553,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknadData.kommunenavn,
                             true,
                             soknadData.soknadGjelder ?: "Søknad om hjelpemidler",
-                        ).asUpdate
+                        ).asUpdate,
                     )
                 }
             }
@@ -553,10 +563,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         val result = session.run(
             queryOf(
                 "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = ? ORDER BY created DESC LIMIT 1)",
-                soknadsId
+                soknadsId,
             ).map {
                 it.stringOrNull("STATUS")
-            }.asSingle
+            }.asSingle,
         ) ?: return false /* special case where there is no status in the database (søknad is being added now) */
         if (result != status.name) return false
         return true
@@ -566,13 +576,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         time("insert_papirsoknad") {
             using(sessionOf(ds)) { session ->
                 session.transaction { transaction ->
-                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                            soknadData.soknadId,
-                            soknadData.status.name,
-                        ).asUpdate
-                    )
+                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) {
+                        transaction.run(
+                            queryOf(
+                                "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
+                                soknadData.soknadId,
+                                soknadData.status.name,
+                            ).asUpdate,
+                        )
+                    }
                     transaction.run(
                         queryOf(
                             "INSERT INTO V1_SOKNAD (SOKNADS_ID,FNR_BRUKER, ER_DIGITAL, JOURNALPOSTID, NAVN_BRUKER ) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING",
@@ -580,15 +592,16 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknadData.fnrBruker,
                             false,
                             soknadData.journalpostid,
-                            soknadData.navnBruker
-                        ).asUpdate
+                            soknadData.navnBruker,
+                        ).asUpdate,
                     )
                 }
             }
         }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehoer_Hjelpemidler> {
-        @Language("PostgreSQL") val statement =
+    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler> {
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT DATA, CREATED FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
             """
@@ -600,23 +613,23 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         statement,
                     ).map {
                         val hjelpemiddel =
-                            objectMapper.readValue<ForslagsmotorTilbehoer_Hjelpemidler>(it.string("DATA"))
+                            objectMapper.readValue<ForslagsmotorTilbehørHjelpemidler>(it.string("DATA"))
                         hjelpemiddel.created = it.localDateTime("CREATED")
                         hjelpemiddel
-                    }.asList
+                    }.asList,
                 )
             }
         }
 
         // Filter out products with no accessories (ca. 2/3 of the cases)
         return soknader.map { soknad ->
-            ForslagsmotorTilbehoer_Hjelpemidler(
-                soknad = ForslagsmotorTilbehoer_Soknad(
+            ForslagsmotorTilbehørHjelpemidler(
+                soknad = ForslagsmotorTilbehørSøknad(
                     id = soknad.soknad.id,
-                    hjelpemidler = ForslagsmotorTilbehoer_HjelpemiddelListe(
+                    hjelpemidler = ForslagsmotorTilbehørHjelpemiddelListe(
                         hjelpemiddelListe = soknad.soknad.hjelpemidler.hjelpemiddelListe.filter {
                             it.tilbehorListe?.isNotEmpty() ?: false
-                        }.toTypedArray(),
+                        },
                     ),
                 ),
                 created = soknad.created,
@@ -625,7 +638,8 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     }
 
     override fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String> {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 WITH soknader_med_siste_status_godkjent AS (
                 SELECT *
@@ -658,14 +672,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         Status.BRUKERPASSBYTTE_INNSENDT.name,
                     ).map {
                         it.string("SOKNADS_ID")
-                    }.asList
+                    }.asList,
                 )
             }
         }
     }
 
     override fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType? {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType
                 FROM V1_SOKNAD AS soknad
@@ -680,14 +695,15 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         soknadsId,
                     ).map {
                         BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" })
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
     }
 
     override fun tellStatuser(): List<StatusCountRow> {
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 WITH siste_status AS (SELECT SOKNADS_ID, STATUS
                       FROM (SELECT SOKNADS_ID,
@@ -697,7 +713,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                       WHERE rangering = 1)
 
                 SELECT STATUS,
-                       COUNT(SOKNADS_ID) as COUNT
+                       COUNT(SOKNADS_ID) AS COUNT
                 FROM siste_status
                 GROUP BY STATUS
             """.trimIndent()
@@ -705,19 +721,20 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         return using(sessionOf(ds)) { session ->
             session.run(
                 queryOf(
-                    statement
+                    statement,
                 ).map {
                     StatusCountRow(
                         Status.valueOf(it.string("STATUS")),
                         it.int("COUNT"),
                     )
-                }.asList
+                }.asList,
             )
         }
     }
 
     override fun hentStatuser(soknadsId: UUID): List<StatusRow> {
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             SELECT STATUS, V1_STATUS.CREATED AS CREATED, ER_DIGITAL 
             FROM V1_STATUS JOIN V1_SOKNAD ON V1_STATUS.SOKNADS_ID = V1_SOKNAD.SOKNADS_ID 
             WHERE V1_STATUS.SOKNADS_ID = ? ORDER BY CREATED DESC
@@ -727,14 +744,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             session.run(
                 queryOf(
                     statement,
-                    soknadsId
+                    soknadsId,
                 ).map {
                     StatusRow(
                         Status.valueOf(it.string("STATUS")),
                         it.sqlTimestamp("CREATED"),
                         it.boolean("ER_DIGITAL"),
                     )
-                }.asList
+                }.asList,
             )
         }
     }
@@ -743,13 +760,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentSoknaderForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
-        nyereEnnTidsstempel: Long?
+        nyereEnnTidsstempel: Long?,
     ): List<SøknadForKommuneApi> {
         val extraWhere1 =
             if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
 
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT
                     FNR_BRUKER,
@@ -793,10 +811,10 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                                 LocalDateTime.ofInstant(
                                     Instant.ofEpochSecond(nyereEnnTidsstempel),
-                                    ZoneId.systemDefault()
+                                    ZoneId.systemDefault(),
                                 )
                             },
-                        )
+                        ),
                     ).map {
                         val data = it.jsonNodeOrDefault("DATA", "{}")
 
@@ -807,7 +825,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                                 if (
                                     hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
-                                        LocalDateTime.now().minusHours(1)
+                                        LocalDateTime.now().minusHours(1),
                                     ) &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
@@ -828,7 +846,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                                 "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
                                                 "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
                                                 "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                                "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logID"
+                                                "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logID",
                                         )
                                     }
                                 }
@@ -858,7 +876,7 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                             opprettet = it.localDateTime("CREATED"),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }

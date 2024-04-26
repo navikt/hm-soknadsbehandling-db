@@ -31,7 +31,7 @@ private val localProperties = ConfigurationMap(
         "HM_ROLLER_AUDIENCE" to "audience",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_local",
         "GCP_TEAM_PROJECT_ID" to "teamdigihot",
-    )
+    ),
 )
 private val devProperties = ConfigurationMap(
     mapOf(
@@ -42,7 +42,7 @@ private val devProperties = ConfigurationMap(
         "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "dev-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_dev",
-    )
+    ),
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
@@ -53,7 +53,7 @@ private val prodProperties = ConfigurationMap(
         "HM_ROLLER_URL" to "http://hm-roller",
         "HM_ROLLER_AUDIENCE" to "prod-gcp:teamdigihot:hm-roller",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_prod",
-    )
+    ),
 )
 
 private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME")) {
@@ -75,7 +75,7 @@ internal object Configuration {
         val port: String = config[Key("db.port", stringType)],
         val name: String = config[Key("db.database", stringType)],
         val user: String? = config.getOrNull(Key("db.username", stringType)),
-        val password: String? = config.getOrNull(Key("db.password", stringType))
+        val password: String? = config.getOrNull(Key("db.password", stringType)),
     )
 
     data class Application(
@@ -105,5 +105,7 @@ internal object Configuration {
 }
 
 enum class Profile {
-    LOCAL, DEV, PROD
+    LOCAL,
+    DEV,
+    PROD,
 }

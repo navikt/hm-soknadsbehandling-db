@@ -45,7 +45,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                         vedtaksresultatData.saksnr,
                         null,
                         null,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
@@ -66,7 +66,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                         vedtaksdato,
                         soknadsType,
                         søknadId,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
@@ -75,7 +75,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
     override fun hentSøknadIdFraVedtaksresultat(
         fnrBruker: String,
         saksblokkOgSaksnr: String,
-        vedtaksdato: LocalDate
+        vedtaksdato: LocalDate,
     ): UUID? {
         val uuids: List<UUID> = time("hent_søknadid_fra_resultat") {
             using(sessionOf(ds)) { session ->
@@ -88,7 +88,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                         vedtaksdato,
                     ).map {
                         UUID.fromString(it.string("SOKNADS_ID"))
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -121,7 +121,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             UUID.fromString(it.string("SOKNADS_ID")),
                             it.localDateOrNull("VEDTAKSDATO"),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -149,7 +149,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
                             vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
                         )
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
@@ -175,7 +175,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
                         )
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
@@ -195,7 +195,7 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
                         søknadId,
                     ).map {
                         it.stringOrNull("SOKNADSTYPE")
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }

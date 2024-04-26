@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.soknad.db.rolle
 
 class RolleService(
-    private val client: RolleClient
+    private val client: RolleClient,
 ) {
     suspend fun hentRolle(token: String): InnsenderRolle? {
         val rolleResultat = client.hentRolle(token)

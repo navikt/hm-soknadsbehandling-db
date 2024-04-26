@@ -13,7 +13,6 @@ internal class InfotrygdStoreTest {
 
     @Test
     fun `Lag knytning mellom endeleg journalført digital søknad og Infotrygd basert på fagsakId`() {
-
         val søknadId = UUID.randomUUID() // Digital søknad får denne i kanalreferanseId frå Joark
         val fnrBruker = "15084300133"
         val fagsakId = "4703C13"

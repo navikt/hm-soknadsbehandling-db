@@ -34,7 +34,7 @@ internal class Oppgaveinspektør(
                 }
             },
             startTime,
-            TimeUnit.DAYS.toMillis(1)
+            TimeUnit.DAYS.toMillis(1),
         )
     }
 

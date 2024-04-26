@@ -16,7 +16,7 @@ internal interface HotsakStore {
     fun lagreVedtaksresultat(
         søknadId: UUID,
         vedtaksresultat: String,
-        vedtaksdato: LocalDate
+        vedtaksdato: LocalDate,
     ): Int
 
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatHotsakData?
@@ -39,7 +39,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                         hotsakTilknytningData.saksnr,
                         null,
                         null,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
@@ -47,7 +47,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
     override fun lagreVedtaksresultat(
         søknadId: UUID,
         vedtaksresultat: String,
-        vedtaksdato: LocalDate
+        vedtaksdato: LocalDate,
     ): Int =
         time("oppdater_vedtaksresultat_fra_hotsak") {
             using(sessionOf(ds)) { session ->
@@ -57,7 +57,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                         vedtaksresultat,
                         vedtaksdato,
                         søknadId,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
@@ -76,7 +76,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                             vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
                             vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
                         )
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
@@ -87,10 +87,10 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
             session.run(
                 queryOf(
                     "SELECT SOKNADS_ID FROM V1_HOTSAK_DATA WHERE SAKSNUMMER = ? ",
-                    saksnummer
+                    saksnummer,
                 ).map {
                     UUID.fromString(it.string("SOKNADS_ID"))
-                }.asSingle
+                }.asSingle,
             )
         }
         return søknadsId
@@ -104,7 +104,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                     søknadId,
                 ).map {
                     true
-                }.asSingle
+                }.asSingle,
             )
         } ?: false
     }
@@ -117,7 +117,7 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
                     søknadId,
                 ).map {
                     it.string("SAKSNUMMER")
-                }.asSingle
+                }.asSingle,
             )
         }
     }

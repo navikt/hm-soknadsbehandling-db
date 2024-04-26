@@ -13,13 +13,12 @@ internal class HotsakStoreTest {
 
     @Test
     fun `Lag knytning mellom endeleg journalført digital søknad og Hotsak basert på sakId`() {
-
         val søknadId = UUID.randomUUID() // Digital søknad får denne i kanalreferanseId frå Joark
         val sakId = "1001"
 
         val hotsakTilknytningData = HotsakTilknytningData(
             søknadId,
-            saksnr = sakId
+            saksnr = sakId,
         )
 
         withMigratedDb {
@@ -41,7 +40,7 @@ internal class HotsakStoreTest {
         // Før vedtak blir gjort
         val hotsakTilknytningData = HotsakTilknytningData(
             søknadId,
-            saksnr = sakId
+            saksnr = sakId,
         )
 
         // Etter vedtak er gjort

@@ -10,7 +10,7 @@ internal fun mockSøknad(
     id: UUID,
     status: Status = Status.VENTER_GODKJENNING,
     fnrInnsender: String = "12345678910",
-    behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD
+    behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
 ) =
     SoknadData(
         "15084300133",
@@ -96,7 +96,7 @@ internal fun mockSøknad(
                                    "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker"
                               }
                           }
-                        } """
+                        } """,
         ),
         status = status,
         kommunenavn = null,
@@ -227,7 +227,7 @@ internal fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GO
     "merknadTilUtlevering": ""
 }
 }
-}"""
+}""",
     ),
     status = status,
     kommunenavn = null,

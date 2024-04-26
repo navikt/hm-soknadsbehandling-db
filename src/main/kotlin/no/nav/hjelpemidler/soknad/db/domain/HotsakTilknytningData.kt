@@ -4,5 +4,5 @@ import java.util.UUID
 
 internal data class HotsakTilknytningData(
     val søknadId: UUID,
-    val saksnr: String
+    val saksnr: String,
 )

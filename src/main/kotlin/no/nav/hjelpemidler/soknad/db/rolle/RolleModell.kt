@@ -31,11 +31,15 @@ data class FormidlerRolle(
 )
 
 enum class FormidlerRolleFeil {
-    GODKJENNINGSKURS, ALLOWLIST, ALTINN
+    GODKJENNINGSKURS,
+    ALLOWLIST,
+    ALTINN,
 }
 
 enum class BestillerRolleFeil {
-    GODKJENNINGSKURS, AAREG, ALLOWLIST
+    GODKJENNINGSKURS,
+    AAREG,
+    ALLOWLIST,
 }
 
 data class Godkjenningskurs(
@@ -58,5 +62,6 @@ data class Næringskode(
 )
 
 enum class InnsenderRolle {
-    FORMIDLER, BESTILLER
+    FORMIDLER,
+    BESTILLER,
 }

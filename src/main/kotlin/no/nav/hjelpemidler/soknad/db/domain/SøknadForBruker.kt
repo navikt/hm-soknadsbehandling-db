@@ -205,7 +205,7 @@ private fun oppfolgingsansvarlig(søknad: JsonNode): Oppfolgingsansvarlig? {
         arbeidssted = leveringNode["opfArbeidssted"].textValue(),
         stilling = leveringNode["opfStilling"].textValue(),
         telefon = leveringNode["opfTelefon"].textValue(),
-        ansvarFor = leveringNode["opfAnsvarFor"].textValue()
+        ansvarFor = leveringNode["opfAnsvarFor"].textValue(),
     )
 }
 
@@ -220,7 +220,7 @@ private fun levering(søknad: JsonNode): Levering {
         adresse = if (leveringsMaate == Leveringsmaate.ANNEN_ADRESSE) "${leveringNode["utleveringPostadresse"].textValue()} ${leveringNode["utleveringPostnr"].textValue()} ${leveringNode["utleveringPoststed"].textValue()}" else null,
         kontaktPerson = kontaktPerson(søknad),
         merknad = leveringNode["merknadTilUtlevering"]?.textValue(),
-        tilleggsinfo = leveringNode["tilleggsinfo"]?.let { leveringTilleggsinfoReader.readValue(it) } ?: emptyList()
+        tilleggsinfo = leveringNode["tilleggsinfo"]?.let { leveringTilleggsinfoReader.readValue(it) } ?: emptyList(),
     )
 }
 
@@ -232,11 +232,11 @@ private fun kontaktPerson(søknad: JsonNode): KontaktPerson {
         KontaktPerson(
             navn = "${leveringNode["utleveringFornavn"].textValue()} ${leveringNode["utleveringEtternavn"].textValue()}",
             telefon = leveringNode["utleveringTelefon"].textValue(),
-            kontaktpersonType = kontaktPersonType
+            kontaktpersonType = kontaktPersonType,
         )
     } else {
         KontaktPerson(
-            kontaktpersonType = kontaktPersonType
+            kontaktpersonType = kontaktPersonType,
         )
     }
 }
@@ -311,7 +311,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
             oppreisningsStolInfo = oppreisningsStolInfo(it),
             diverseInfo = diverseInfo(it),
             bytter = bytter(it),
-            bruksarena = bruksarena(it)
+            bruksarena = bruksarena(it),
         )
         hjelpemidler.add(hjelpemiddel)
     }
@@ -350,8 +350,8 @@ private fun vilkaar(hjelpemiddel: JsonNode): List<HjelpemiddelVilkar> {
         vilkarListe.add(
             HjelpemiddelVilkar(
                 vilkaarTekst = it["vilkartekst"].textValue(),
-                tilleggsinfo = it["tilleggsinfo"]?.textValue()
-            )
+                tilleggsinfo = it["tilleggsinfo"]?.textValue(),
+            ),
         )
     }
     return vilkarListe
@@ -364,8 +364,8 @@ private fun tilbehor(hjelpemiddel: JsonNode): List<Tilbehor> {
             Tilbehor(
                 hmsnr = it["hmsnr"].textValue(),
                 navn = it["navn"].textValue(),
-                antall = it["antall"].intValue()
-            )
+                antall = it["antall"].intValue(),
+            ),
         )
     }
     return tilbehorListe
@@ -395,9 +395,9 @@ private fun elektriskRullestolInfo(hjelpemiddel: JsonNode): ElektriskRullestolIn
                 brukerOppfyllerKrav = elRullestolinfoJson["kabin"]["brukerOppfyllerKrav"].booleanValue(),
                 kanIkkeAvhjelpesMedEnklereArsak = elRullestolinfoJson["kabin"]["kanIkkeAvhjelpesMedEnklereArsak"]?.textValue(),
                 kanIkkeAvhjelpesMedEnklereBegrunnelse = elRullestolinfoJson["kabin"]["kanIkkeAvhjelpesMedEnklereBegrunnelse"]?.textValue(),
-                arsakForBehovBegrunnelse = elRullestolinfoJson["kabin"]["arsakForBehovBegrunnelse"]?.textValue()
+                arsakForBehovBegrunnelse = elRullestolinfoJson["kabin"]["arsakForBehovBegrunnelse"]?.textValue(),
             )
-        }
+        },
     )
 }
 
@@ -412,7 +412,7 @@ private fun rullestolinfo(hjelpemiddel: JsonNode): RullestolInfo? {
             "HarFraFor" -> SitteputeValg.HarFraFor
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")
-        }
+        },
     )
 }
 
@@ -433,7 +433,7 @@ private fun utlevertInfo(hjelpemiddel: JsonNode): UtlevertInfo? {
             "Annet" -> UtlevertType.Annet
             null -> null
             else -> throw java.lang.RuntimeException("ugyldig utlevertInfo")
-        }
+        },
     )
 }
 
@@ -451,7 +451,7 @@ private fun varmehjelpemiddelInfo(hjelpemiddel: JsonNode): VarmehjelpemiddelInfo
     return VarmehjelpemiddelInfo(
         harHelseopplysningerFraFør = varmehjelpemiddelInfoJson["harHelseopplysningerFraFør"]?.booleanValue(),
         legeBekrefterDiagnose = varmehjelpemiddelInfoJson["legeBekrefterDiagnose"]?.booleanValue(),
-        opplysningerFraLegeOppbevaresIKommune = varmehjelpemiddelInfoJson["opplysningerFraLegeOppbevaresIKommune"]?.booleanValue()
+        opplysningerFraLegeOppbevaresIKommune = varmehjelpemiddelInfoJson["opplysningerFraLegeOppbevaresIKommune"]?.booleanValue(),
     )
 }
 
@@ -469,7 +469,7 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")
         },
-        høyGrindValg = høyGrindValg?.let { objectMapper.treeToValue<HøyGrindValg>(it) }
+        høyGrindValg = høyGrindValg?.let { objectMapper.treeToValue<HøyGrindValg>(it) },
     )
 }
 
@@ -520,7 +520,7 @@ private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMonterin
     return SengForVendesystemMontering(
         hmsnr = sengForMonteringJson["hmsnr"]?.textValue(),
         navn = sengForMonteringJson["navn"]?.textValue(),
-        madrassbredde = sengForMonteringJson["madrassbredde"]?.intValue()
+        madrassbredde = sengForMonteringJson["madrassbredde"]?.intValue(),
     )
 }
 
@@ -535,10 +535,10 @@ private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): Posisjoneringssyst
         behov = posisjoneringsputeBehov(posisjoneringssystemInfoJson["behov"]?.textValue()),
         oppgaverIDagliglivet = posisjoneringssystemInfoJson["oppgaverIDagliglivet"]?.let {
             posisjoneringsputeOppgaverIDagliglivReader.readValue(
-                it
+                it,
             )
         } ?: emptyList(),
-        oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue()
+        oppgaverIDagliglivetAnnet = posisjoneringssystemInfoJson["oppgaverIDagliglivetAnnet"]?.textValue(),
     )
 }
 
@@ -590,7 +590,7 @@ class Bruker(
     val signatur: SignaturType,
     val kroppsmaal: Kroppsmaal?,
     val brukernummer: String?,
-    val bekreftedeVilkår: List<BrukersituasjonVilkår>
+    val bekreftedeVilkår: List<BrukersituasjonVilkår>,
 )
 
 enum class BrukersituasjonVilkår {
@@ -748,7 +748,7 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
 
 enum class BruksområdeGanghjelpemiddel {
     TIL_FORFLYTNING,
-    TIL_TRENING_OG_ANNET
+    TIL_TRENING_OG_ANNET,
 }
 
 enum class GanghjelpemiddelType {
@@ -756,7 +756,7 @@ enum class GanghjelpemiddelType {
     SPARKESYKKEL,
     KRYKKE,
     GÅTRENING,
-    GÅSTOL
+    GÅSTOL,
 }
 
 data class GanghjelpemiddelInfo(
@@ -792,7 +792,7 @@ data class SengeInfo(
 data class VarmehjelpemiddelInfo(
     val harHelseopplysningerFraFør: Boolean?,
     val legeBekrefterDiagnose: Boolean?,
-    val opplysningerFraLegeOppbevaresIKommune: Boolean?
+    val opplysningerFraLegeOppbevaresIKommune: Boolean?,
 )
 
 data class RullestolInfo(
@@ -811,11 +811,15 @@ data class PersonlofterInfo(
 )
 
 enum class SitteputeValg {
-    TrengerSittepute, HarFraFor, StandardSittepute, LeggesTilSeparat
+    TrengerSittepute,
+    HarFraFor,
+    StandardSittepute,
+    LeggesTilSeparat,
 }
 
 enum class MadrassValg {
-    TrengerMadrass, HarFraFor
+    TrengerMadrass,
+    HarFraFor,
 }
 
 data class HøyGrindValg(
@@ -835,7 +839,7 @@ enum class UtlevertType {
     FremskuttLager,
     Korttidslån,
     Overført,
-    Annet
+    Annet,
 }
 
 class ElektriskRullestolInfo(
@@ -849,18 +853,19 @@ class ElektriskRullestolInfo(
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,
     val plasseringAvHendel: HendelPlassering?,
-    val kabin: Kabin?
+    val kabin: Kabin?,
 )
 
 data class Kabin(
     val brukerOppfyllerKrav: Boolean,
     val kanIkkeAvhjelpesMedEnklereArsak: String?,
     val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
-    val arsakForBehovBegrunnelse: String?
+    val arsakForBehovBegrunnelse: String?,
 )
 
 enum class HendelPlassering {
-    Høyre, Venstre
+    Høyre,
+    Venstre,
 }
 
 class Levering(
@@ -883,11 +888,17 @@ class KontaktPerson(
 )
 
 enum class Leveringsmaate {
-    FOLKEREGISTRERT_ADRESSE, ANNEN_ADRESSE, HJELPEMIDDELSENTRAL, ALLEREDE_LEVERT
+    FOLKEREGISTRERT_ADRESSE,
+    ANNEN_ADRESSE,
+    HJELPEMIDDELSENTRAL,
+    ALLEREDE_LEVERT,
 }
 
 enum class KontaktpersonType {
-    HJELPEMIDDELBRUKER, HJELPEMIDDELFORMIDLER, ANNEN_KONTAKTPERSON, INGEN_KONTAKTPERSON
+    HJELPEMIDDELBRUKER,
+    HJELPEMIDDELFORMIDLER,
+    ANNEN_KONTAKTPERSON,
+    INGEN_KONTAKTPERSON,
 }
 
 class HjelpemiddelVilkar(
@@ -948,11 +959,13 @@ data class OppreisningsStolInfo(
 )
 
 enum class OppreisningsStolLøftType {
-    SKRÅLØFT, RETTLØFT
+    SKRÅLØFT,
+    RETTLØFT,
 }
 
 enum class OppreisningsStolBruksområde {
-    EGEN_BOENHET, FELLESAREAL
+    EGEN_BOENHET,
+    FELLESAREAL,
 }
 
 enum class OppreisningsStolBehov {
@@ -962,5 +975,6 @@ enum class OppreisningsStolBehov {
 }
 
 enum class SideBetjeningsPanelPosisjon {
-    HØYRE, VENSTRE
+    HØYRE,
+    VENSTRE,
 }

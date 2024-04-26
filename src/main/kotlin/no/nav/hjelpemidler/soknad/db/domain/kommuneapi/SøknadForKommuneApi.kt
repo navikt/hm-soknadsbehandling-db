@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.domain.kommune_api
+package no.nav.hjelpemidler.soknad.db.domain.kommuneapi
 
 import java.time.LocalDateTime
 import java.util.UUID

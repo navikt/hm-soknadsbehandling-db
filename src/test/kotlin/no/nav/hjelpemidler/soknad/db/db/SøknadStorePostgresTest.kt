@@ -29,7 +29,7 @@ internal class SøknadStorePostgresTest {
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadsId)
+                    mockSøknad(soknadsId),
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
                 assertEquals("15084300133", hentSoknad?.søknadsdata?.bruker?.fnummer)
@@ -51,7 +51,7 @@ internal class SøknadStorePostgresTest {
                 assertEquals(BruksarenaBruker.DAGLIGLIVET, hentSoknad?.søknadsdata?.bruker?.bruksarena)
                 assertEquals(
                     listOf(Funksjonsnedsettelse.BEVEGELSE, Funksjonsnedsettelse.HØRSEL),
-                    hentSoknad?.søknadsdata?.bruker?.funksjonsnedsettelser
+                    hentSoknad?.søknadsdata?.bruker?.funksjonsnedsettelser,
                 )
 
                 assertEquals(2, hentSoknad?.søknadsdata?.hjelpemiddelTotalAntall)
@@ -67,11 +67,11 @@ internal class SøknadStorePostgresTest {
                 assertEquals(1, hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.size)
                 assertEquals(
                     "Vilkår 1",
-                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.vilkaarTekst
+                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.vilkaarTekst,
                 )
                 assertEquals(
                     "Tilleggsinfo",
-                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsinfo
+                    hentSoknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsinfo,
                 )
                 assertEquals(1, hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.size)
                 assertEquals("654321", hentSoknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.hmsnr)
@@ -203,13 +203,13 @@ internal class SøknadStorePostgresTest {
                               "bruksarenaErDagliglivet": true
                             }
                           }
-                        } """
+                        } """,
                         ),
                         status = Status.VENTER_GODKJENNING,
                         kommunenavn = null,
                         er_digital = true,
                         soknadGjelder = null,
-                    )
+                    ),
                 )
                 val hentSoknad = this.hentSoknad(soknadsId)
                 assertEquals("15084300133", hentSoknad!!.søknadsdata!!.bruker.fnummer)
@@ -234,7 +234,7 @@ internal class SøknadStorePostgresTest {
                         kommunenavn = null,
                         er_digital = true,
                         soknadGjelder = null,
-                    )
+                    ),
                 ).also {
                     it shouldBe 1
                 }
@@ -244,13 +244,12 @@ internal class SøknadStorePostgresTest {
 
     @Test
     fun `Fullmakt for søknad innsendt av formidler`() {
-
         val soknadId = UUID.randomUUID()
 
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.GODKJENT_MED_FULLMAKT)
+                    mockSøknad(soknadId, Status.GODKJENT_MED_FULLMAKT),
                 ).also {
                     it shouldBe 1
                 }
@@ -268,13 +267,12 @@ internal class SøknadStorePostgresTest {
 
     @Test
     fun `Ikke fullmakt for søknad med brukers godkjenning`() {
-
         val soknadId = UUID.randomUUID()
 
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.VENTER_GODKJENNING)
+                    mockSøknad(soknadId, Status.VENTER_GODKJENNING),
                 ).also {
                     it shouldBe 1
                 }
@@ -296,7 +294,6 @@ internal class SøknadStorePostgresTest {
 
     @Test
     fun `Søknad is utgått`() {
-
         val id = UUID.randomUUID()
 
         withMigratedDb {
@@ -312,7 +309,7 @@ internal class SøknadStorePostgresTest {
                         kommunenavn = null,
                         er_digital = true,
                         soknadGjelder = null,
-                    )
+                    ),
                 ).also {
                     it shouldBe 1
                 }
@@ -386,7 +383,7 @@ internal class SøknadStorePostgresTest {
                         kommunenavn = null,
                         er_digital = true,
                         soknadGjelder = null,
-                    )
+                    ),
                 )
             }
 
@@ -414,8 +411,8 @@ internal class SøknadStorePostgresTest {
                     id,
                     Status.ENDELIG_JOURNALFØRT,
                     1234567,
-                    "Person"
-                )
+                    "Person",
+                ),
             ).also { it.shouldBe(1) }
         }
     }
@@ -430,8 +427,8 @@ internal class SøknadStorePostgresTest {
                     id,
                     Status.ENDELIG_JOURNALFØRT,
                     7654321,
-                    "Person"
-                )
+                    "Person",
+                ),
             )
             val soknad = this.hentSoknad(id)
             assertEquals(false, soknad?.er_digital)
@@ -443,7 +440,7 @@ internal class SøknadStorePostgresTest {
         val id = UUID.randomUUID()
         SøknadStorePostgres(DataSource.instance).apply {
             this.save(
-                mockSøknadMedRullestol(id)
+                mockSøknadMedRullestol(id),
             )
             val soknad = this.hentSoknad(id)
 
@@ -457,7 +454,7 @@ internal class SøknadStorePostgresTest {
             assertNotNull(soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo)
             assertEquals(
                 SitteputeValg.TrengerSittepute,
-                soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.sitteputeValg
+                soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.sitteputeValg,
             )
             assertEquals(true, soknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.skalBrukesIBil)
         }

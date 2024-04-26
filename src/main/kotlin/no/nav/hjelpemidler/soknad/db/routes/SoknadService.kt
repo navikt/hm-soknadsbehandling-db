@@ -19,7 +19,7 @@ import no.nav.hjelpemidler.soknad.db.db.OrdreStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehoer_Hjelpemidler
+import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -311,7 +311,7 @@ internal fun Route.azureAdRoutes(
             val rowUpdated = hotsakStore.lagreVedtaksresultat(
                 vedtaksresultatToBeSaved.søknadId,
                 vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato
+                vedtaksresultatToBeSaved.vedtaksdato,
             )
             call.respond(rowUpdated)
         } catch (e: Exception) {
@@ -391,11 +391,10 @@ internal fun Route.azureAdRoutes(
 
     post("/infotrygd/fnr-jounralpost") {
         try {
-
             val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
             val fnrOgJournalpostIdFinnes = søknadStore.fnrOgJournalpostIdFinnes(
                 fnrOgJournalpostIdFinnesDto.fnrBruker,
-                fnrOgJournalpostIdFinnesDto.journalpostId
+                fnrOgJournalpostIdFinnesDto.journalpostId,
             )
 
             when {
@@ -439,7 +438,7 @@ internal fun Route.azureAdRoutes(
             val soknadId = infotrygdStore.hentSøknadIdFraVedtaksresultat(
                 soknadFraVedtaksresultatDto.fnrBruker,
                 soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                soknadFraVedtaksresultatDto.vedtaksdato
+                soknadFraVedtaksresultatDto.vedtaksdato,
             )
 
             call.respond(mapOf(Pair("soknadId", soknadId)))
@@ -485,7 +484,6 @@ internal fun Route.azureAdRoutes(
     }
 
     get("/soknad/utgaatt/{dager}") {
-
         val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
 
         try {
@@ -532,7 +530,7 @@ internal fun Route.azureAdRoutes(
             logger.error(e) { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet"
+                "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet",
             )
         }
     }
@@ -546,7 +544,7 @@ internal fun Route.azureAdRoutes(
             logger.error(e) { "Feilet ved sjekk om en søknad har ordre" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                "Feilet ved sjekk om en søknad har ordre"
+                "Feilet ved sjekk om en søknad har ordre",
             )
         }
     }
@@ -566,7 +564,7 @@ internal fun Route.azureAdRoutes(
             logger.error(e) { "Kunne ikke hente ut behovsmeldingsType" }
             call.respond(
                 HttpStatusCode.BadRequest,
-                "Kunne ikke hente ut behovsmeldingsType"
+                "Kunne ikke hente ut behovsmeldingsType",
             )
         }
     }
@@ -605,7 +603,7 @@ internal fun Route.azureAdRoutes(
 
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
-            var result: List<ForslagsmotorTilbehoer_Hjelpemidler>?
+            var result: List<ForslagsmotorTilbehørHjelpemidler>?
 
             // The following withContext moves execution off onto another thread so that ktor can continue answering
             // other clients (eg. kubernetes liveness tests). Without this the app would be assumed dead and killed by
@@ -620,7 +618,7 @@ internal fun Route.azureAdRoutes(
             logger.error(e) { "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør" }
             call.respond(
                 HttpStatusCode.InternalServerError,
-                "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør"
+                "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør",
             )
         }
     }

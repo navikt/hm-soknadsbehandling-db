@@ -28,7 +28,7 @@ class SoknadMedStatus private constructor(
             fullmakt: Boolean,
             er_digital: Boolean,
             soknadGjelder: String?,
-            valgteÅrsaker: List<String>
+            valgteÅrsaker: List<String>,
         ) =
             SoknadMedStatus(
                 soknadId,
@@ -41,7 +41,7 @@ class SoknadMedStatus private constructor(
                 null,
                 er_digital,
                 soknadGjelder,
-                valgteÅrsaker
+                valgteÅrsaker,
             )
 
         fun newSøknadMedFormidlernavn(
@@ -55,7 +55,7 @@ class SoknadMedStatus private constructor(
             søknad: JsonNode,
             er_digital: Boolean,
             soknadGjelder: String?,
-            valgteÅrsaker: List<String>
+            valgteÅrsaker: List<String>,
         ) =
             SoknadMedStatus(
                 soknadId,
@@ -68,7 +68,7 @@ class SoknadMedStatus private constructor(
                 formidlerNavn(søknad, behovsmeldingType),
                 er_digital,
                 soknadGjelder,
-                valgteÅrsaker
+                valgteÅrsaker,
             )
     }
 }

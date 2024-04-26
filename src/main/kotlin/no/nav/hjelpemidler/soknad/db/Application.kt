@@ -39,7 +39,6 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @ExperimentalTime
 @Suppress("unused") // Referenced in application.conf
 fun Application.module() {
-
     if (!waitForDB(10.minutes, Configuration)) {
         throw Exception("database never became available within the deadline")
     }
@@ -86,7 +85,7 @@ fun Application.module() {
                         ordreStore,
                         infotrygdStore,
                         hotsakStore,
-                        metrics
+                        metrics,
                     )
                 }
 
@@ -97,7 +96,7 @@ fun Application.module() {
                             ordreStore,
                             infotrygdStore,
                             hotsakStore,
-                            metrics
+                            metrics,
                         )
                     }
                 }

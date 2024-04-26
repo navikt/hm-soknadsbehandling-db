@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.graphql)
-    // alias(libs.plugins.spotless)
+    alias(libs.plugins.spotless)
 }
 
 application {
@@ -74,16 +74,22 @@ dependencies {
     testImplementation(libs.wiremock)
 }
 
-//spotless {
-//    kotlin {
-//        ktlint()
-//        targetExclude("**/generated/**")
-//    }
-//    kotlinGradle {
-//        target("*.gradle.kts")
-//        ktlint()
-//    }
-//}
+spotless {
+    kotlin {
+        ktlint().editorConfigOverride(
+            mapOf(
+                "ktlint_standard_max-line-length" to "disabled",
+                "ktlint_standard_value-argument-comment" to "disabled",
+                "ktlint_standard_value-parameter-comment" to "disabled",
+            ),
+        )
+        targetExclude("**/generated/**")
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
+}
 
 kotlin { jvmToolchain(21) }
 

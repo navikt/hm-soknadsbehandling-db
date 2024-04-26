@@ -24,7 +24,7 @@ internal class SøknadStoreInnsenderTest {
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadsId)
+                    mockSøknad(soknadsId),
                 )
             }
             SøknadStoreInnsenderPostgres(DataSource.instance).apply {
@@ -42,10 +42,10 @@ internal class SøknadStoreInnsenderTest {
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadsId, fnrInnsender = fnrFormidler)
+                    mockSøknad(soknadsId, fnrInnsender = fnrFormidler),
                 )
                 this.save(
-                    mockSøknad(UUID.randomUUID(), fnrInnsender = fnrAnnenFormidler)
+                    mockSøknad(UUID.randomUUID(), fnrInnsender = fnrAnnenFormidler),
                 )
             }
             SøknadStoreInnsenderPostgres(DataSource.instance).apply {
@@ -61,13 +61,12 @@ internal class SøknadStoreInnsenderTest {
 
     @Test
     fun `Navn på bruker fjernes ikke ved sletting`() {
-
         val soknadId = UUID.randomUUID()
 
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.VENTER_GODKJENNING)
+                    mockSøknad(soknadId, Status.VENTER_GODKJENNING),
                 ).also {
                     it shouldBe 1
                 }
@@ -86,7 +85,6 @@ internal class SøknadStoreInnsenderTest {
 
     @Test
     fun `Henter ikke søknad som er 4 uker gammel`() {
-
         val id = UUID.randomUUID()
 
         withMigratedDb {
@@ -102,7 +100,7 @@ internal class SøknadStoreInnsenderTest {
                         kommunenavn = null,
                         er_digital = true,
                         soknadGjelder = null,
-                    )
+                    ),
                 ).also {
                     it shouldBe 1
                 }
@@ -131,13 +129,12 @@ internal class SøknadStoreInnsenderTest {
 
     @Test
     fun `Fullmakt for søknad for formidler`() {
-
         val soknadId = UUID.randomUUID()
 
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.GODKJENT_MED_FULLMAKT)
+                    mockSøknad(soknadId, Status.GODKJENT_MED_FULLMAKT),
                 ).also {
                     it shouldBe 1
                 }
@@ -155,20 +152,19 @@ internal class SøknadStoreInnsenderTest {
 
     @Test
     fun `Fullmakt er false hvis bruker skal bekrefte søknaden`() {
-
         val soknadId = UUID.randomUUID()
 
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.VENTER_GODKJENNING)
+                    mockSøknad(soknadId, Status.VENTER_GODKJENNING),
                 ).also {
                     it shouldBe 1
                 }
 
                 this.oppdaterStatus(
                     soknadId,
-                    Status.GODKJENT
+                    Status.GODKJENT,
                 ).also {
                     println(it)
                     it shouldBe 1
@@ -217,14 +213,14 @@ internal class SøknadStoreInnsenderTest {
         withMigratedDb {
             SøknadStorePostgres(DataSource.instance).apply {
                 this.save(
-                    mockSøknad(soknadId, Status.VENTER_GODKJENNING)
+                    mockSøknad(soknadId, Status.VENTER_GODKJENNING),
                 ).also {
                     it shouldBe 1
                 }
 
                 this.oppdaterStatus(
                     soknadId,
-                    Status.GODKJENT
+                    Status.GODKJENT,
                 ).also {
                     println(it)
                     it shouldBe 1

@@ -25,14 +25,14 @@ internal interface SøknadStoreInnsender {
     fun hentSøknaderForInnsender(
         fnrInnsender: String,
         innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS
+        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): List<SoknadForInnsender>
 
     fun hentSøknadForInnsender(
         fnrInnsender: String,
         soknadId: UUID,
         innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS
+        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SoknadForInnsender?
 }
 
@@ -41,15 +41,15 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
     override fun hentSøknaderForInnsender(
         fnrInnsender: String,
         innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int
+        ukerEtterEndeligStatus: Int,
     ): List<SoknadForInnsender> {
-
         val behovsmeldingTypeClause = when (innsenderRolle) {
             InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
             else -> ""
         }
 
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, 
                 soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,
@@ -88,11 +88,11 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
                         SoknadForInnsender(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             behovsmeldingType = BehovsmeldingType.valueOf(
-                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
                             ),
                             status = Status.valueOf(it.string("STATUS")),
                             valgteÅrsaker = objectMapper.readValue(
-                                it.stringOrNull("ARSAKER") ?: "[]"
+                                it.stringOrNull("ARSAKER") ?: "[]",
                             ),
                             fullmakt = it.boolean("fullmakt"),
                             datoOpprettet = it.sqlTimestamp("created"),
@@ -101,9 +101,9 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
                                 else -> it.sqlTimestamp("created")
                             },
                             fnrBruker = it.string("FNR_BRUKER"),
-                            navnBruker = it.stringOrNull("NAVN_BRUKER")
+                            navnBruker = it.stringOrNull("NAVN_BRUKER"),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -113,14 +113,15 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
         fnrInnsender: String,
         soknadId: UUID,
         innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int
+        ukerEtterEndeligStatus: Int,
     ): SoknadForInnsender? {
         val behovsmeldingTypeClause = when (innsenderRolle) {
             InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
             else -> ""
         }
 
-        @Language("PostgreSQL") val statement =
+        @Language("PostgreSQL")
+        val statement =
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,  
                 (CASE WHEN EXISTS (
@@ -157,12 +158,12 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
                             "fnrInnsender" to fnrInnsender,
                             "soknadId" to soknadId,
                             "minimumDato" to LocalDateTime.now().minusMonths(6),
-                        )
+                        ),
                     ).map {
                         SoknadForInnsender(
                             søknadId = UUID.fromString(it.string("SOKNADS_ID")),
                             behovsmeldingType = BehovsmeldingType.valueOf(
-                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" }
+                                it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
                             ),
                             status = Status.valueOf(it.string("STATUS")),
                             fullmakt = it.boolean("fullmakt"),
@@ -175,15 +176,15 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
                             navnBruker = it.stringOrNull("NAVN_BRUKER"),
                             søknadsdata = Søknadsdata(
                                 objectMapper.readTree(
-                                    it.string("DATA")
+                                    it.string("DATA"),
                                 ),
-                                null
+                                null,
                             ),
                             valgteÅrsaker = objectMapper.readValue(
-                                it.stringOrNull("ARSAKER") ?: "[]"
-                            )
+                                it.stringOrNull("ARSAKER") ?: "[]",
+                            ),
                         )
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }

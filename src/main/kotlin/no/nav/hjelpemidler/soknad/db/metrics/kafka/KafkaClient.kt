@@ -24,9 +24,9 @@ interface KafkaClient {
                     "kilde" to "hm-soknadsbehandling-db",
                     "data" to fields.mapValues { it.value.toString() }
                         .plus(tags)
-                        .filterKeys { it != "counter" }
-                )
-            )
+                        .filterKeys { it != "counter" },
+                ),
+            ),
         )
 }
 

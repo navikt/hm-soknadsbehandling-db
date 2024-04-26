@@ -15,7 +15,7 @@ object HjelpemiddeldatabaseClient {
         GraphQLKtorClient(
             url = URI("${Configuration.application.grunndataApiURL}/graphql").toURL(),
             httpClient = HttpClient(engineFactory = CIO),
-            serializer = GraphQLClientJacksonSerializer()
+            serializer = GraphQLClientJacksonSerializer(),
         )
 
     suspend fun hentProdukterMedHmsnrs(hmsnrs: Set<String>): List<HentproduktermedhmsnrsProdukt> {

@@ -5,5 +5,5 @@ import java.util.UUID
 class UtgåttSøknad(
     val søknadId: UUID,
     val status: Status,
-    val fnrBruker: String
+    val fnrBruker: String,
 )

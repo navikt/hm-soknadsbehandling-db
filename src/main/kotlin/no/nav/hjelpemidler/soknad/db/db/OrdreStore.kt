@@ -51,7 +51,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                             type = "jsonb"
                             value = ordrelinjeToJsonString(ordrelinje.data)
                         },
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
@@ -72,10 +72,10 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                 session.run(
                     queryOf(
                         query,
-                        soknadsId
+                        soknadsId,
                     ).map {
                         it.string("HJELPEMIDDELTYPE")
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -100,10 +100,10 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                 session.run(
                     queryOf(
                         query,
-                        soknadsId
+                        soknadsId,
                     ).map {
                         it.string("HJELPEMIDDELTYPE")
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -134,7 +134,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                             artikkelNr = it.string("ARTIKKELNR"),
                             datoUtsendelse = it.localDateOrNull("CREATED").toString(),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }

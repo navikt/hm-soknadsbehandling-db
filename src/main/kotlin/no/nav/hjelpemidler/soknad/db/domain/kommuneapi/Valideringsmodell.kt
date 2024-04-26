@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.domain.kommune_api
+package no.nav.hjelpemidler.soknad.db.domain.kommuneapi
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -44,7 +44,7 @@ data class Behovsmelding(
 ) {
     fun filtrerForKommuneApiet() = this.copy(
         bestillingsordningsjekk = null,
-        soknad = this.soknad.copy(innsender = null)
+        soknad = this.soknad.copy(innsender = null),
     )
 
     companion object {
@@ -66,7 +66,9 @@ data class Behovsmelding(
 }
 
 enum class BehovsmeldingType {
-    SØKNAD, BESTILLING, BYTTE
+    SØKNAD,
+    BESTILLING,
+    BYTTE,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -84,7 +86,7 @@ data class Soknad(
 data class Innsender(
     val godkjenningskurs: List<GodkjenningsKurs>?,
     val organisasjoner: List<Organisasjon>?,
-    val somRolle: InnsenderRolle
+    val somRolle: InnsenderRolle,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -104,7 +106,8 @@ data class Næringskode(
 )
 
 enum class InnsenderRolle {
-    FORMIDLER, BESTILLER
+    FORMIDLER,
+    BESTILLER,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -146,11 +149,15 @@ data class Fødselsnummer(@get:JsonValue val value: String) {
 }
 
 enum class Signaturtype {
-    BRUKER_BEKREFTER, FULLMAKT, FRITAK_FRA_FULLMAKT, IKKE_INNHENTET_FORDI_BYTTE
+    BRUKER_BEKREFTER,
+    FULLMAKT,
+    FRITAK_FRA_FULLMAKT,
+    IKKE_INNHENTET_FORDI_BYTTE,
 }
 
 enum class BrukerKilde {
-    PDL, FORMIDLER
+    PDL,
+    FORMIDLER,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -159,7 +166,7 @@ data class Kroppsmaal(
     val laarlengde: Int?,
     val legglengde: Int?,
     val hoyde: Int?,
-    val kroppsvekt: Int?
+    val kroppsvekt: Int?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -171,20 +178,20 @@ data class Brukersituasjon(
     val storreBehov: Boolean,
     val praktiskeProblem: Boolean,
     val skalIkkeBrukesTilAndreFormaal: Boolean?, // Kun for bestiller
-    val bekreftedeVilkår: List<BrukersituasjonVilkår>?
+    val bekreftedeVilkår: List<BrukersituasjonVilkår>?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class NedsattFunksjonTypes(
     val bevegelse: Boolean,
     val kognisjon: Boolean,
-    val horsel: Boolean
+    val horsel: Boolean,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemidler(
     val hjelpemiddelListe: List<HjelpemiddelItem>,
-    val hjelpemiddelTotaltAntall: Int
+    val hjelpemiddelTotaltAntall: Int,
 )
 
 // The fields hmfFornavn and hmfEtternavn are not incl. as they come from PDL
@@ -197,7 +204,7 @@ data class Kontaktinfo(
     val hmfPoststed: String,
     val hmfStilling: String,
     val hmfTelefon: String,
-    val hmfTreffesEnklest: String
+    val hmfTreffesEnklest: String,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -232,7 +239,8 @@ data class Levering(
 )
 
 enum class Oppfoelger {
-    Hjelpemiddelformidler, NoenAndre
+    Hjelpemiddelformidler,
+    NoenAndre,
 }
 
 enum class Kontaktperson {
@@ -350,7 +358,7 @@ enum class PosisjoneringsputeOppgaverIDagligliv {
 
 enum class BruksområdeGanghjelpemiddel {
     TIL_FORFLYTNING,
-    TIL_TRENING_OG_ANNET
+    TIL_TRENING_OG_ANNET,
 }
 
 enum class GanghjelpemiddelType {
@@ -358,7 +366,7 @@ enum class GanghjelpemiddelType {
     SPARKESYKKEL,
     KRYKKE,
     GÅTRENING,
-    GÅSTOL
+    GÅSTOL,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -407,7 +415,7 @@ data class HøyGrindValg(
 data class VarmehjelpemiddelInfo(
     val harHelseopplysningerFraFør: Boolean?,
     val legeBekrefterDiagnose: Boolean?,
-    val opplysningerFraLegeOppbevaresIKommune: Boolean?
+    val opplysningerFraLegeOppbevaresIKommune: Boolean?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -432,14 +440,14 @@ data class HjelpemiddelProdukt(
     @JsonAlias("technicalData", "techdata", "Techdata")
     var techdata: Array<Techdata>? = emptyArray(),
     var techdataAsText: String?,
-    var paakrevdGodkjenningskurs: PaakrevdGodkjenningsKurs?
+    var paakrevdGodkjenningskurs: PaakrevdGodkjenningsKurs?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Techdata(
     val techlabeldk: String?,
     val datavalue: String?,
-    val techdataunit: String?
+    val techdataunit: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -447,11 +455,12 @@ data class PaakrevdGodkjenningsKurs(
     val kursId: Int?,
     val tittel: String?,
     val isokode: String?,
-    val formidlersGjennomforing: FormidlersGjennomforingAvKurs?
+    val formidlersGjennomforing: FormidlersGjennomforingAvKurs?,
 )
 
 enum class FormidlersGjennomforingAvKurs {
-    GODKJENNINGSKURS_DB, VALGT_AV_FORMIDLER
+    GODKJENNINGSKURS_DB,
+    VALGT_AV_FORMIDLER,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -466,7 +475,7 @@ data class ElektriskRullestolInfo(
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,
     val plasseringAvHendel: PlasseringType?,
-    val kabin: Kabin?
+    val kabin: Kabin?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -474,7 +483,7 @@ data class Kabin(
     val brukerOppfyllerKrav: Boolean,
     val kanIkkeAvhjelpesMedEnklereArsak: String?,
     val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
-    val arsakForBehovBegrunnelse: String?
+    val arsakForBehovBegrunnelse: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -486,39 +495,42 @@ data class AppInfo(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class PersonlofterInfo(
-    val harBehovForSeilEllerSele: Boolean
+    val harBehovForSeilEllerSele: Boolean,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RullestolInfo(
     val skalBrukesIBil: Boolean?,
-    val sitteputeValg: SitteputeValg?
+    val sitteputeValg: SitteputeValg?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UtlevertInfo(
     val utlevertType: UtlevertType?,
     val overførtFraBruker: String?,
-    val annenKommentar: String?
+    val annenKommentar: String?,
 )
 
 enum class PlasseringType {
-    Venstre, Høyre
+    Venstre,
+    Høyre,
 }
 
 enum class UtlevertType {
     FremskuttLager,
     Korttidslån,
     Overført,
-    Annet
+    Annet,
 }
 
 enum class SitteputeValg {
-    TrengerSittepute, HarFraFor
+    TrengerSittepute,
+    HarFraFor,
 }
 
 enum class MadrassValg {
-    TrengerMadrass, HarFraFor
+    TrengerMadrass,
+    HarFraFor,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -531,7 +543,7 @@ data class Tilbehor(
 )
 
 enum class AutomatiskGenerertTilbehor {
-    Sittepute
+    Sittepute,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -545,7 +557,7 @@ data class HjelpemiddelVilkar(
     val vilkartekst: String,
     val checked: Boolean,
     val kreverTilleggsinfo: Boolean?,
-    val tilleggsinfo: String?
+    val tilleggsinfo: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -560,11 +572,13 @@ data class OppreisningsStolInfo(
 )
 
 enum class OppreisningsStolLøftType {
-    SKRÅLØFT, RETTLØFT
+    SKRÅLØFT,
+    RETTLØFT,
 }
 
 enum class OppreisningsStolBruksområde {
-    EGEN_BOENHET, FELLESAREAL
+    EGEN_BOENHET,
+    FELLESAREAL,
 }
 enum class OppreisningsStolBehov {
     OPPGAVER_I_DAGLIGLIVET,
@@ -573,5 +587,6 @@ enum class OppreisningsStolBehov {
 }
 
 enum class SideBetjeningsPanelPosisjon {
-    HØYRE, VENSTRE
+    HØYRE,
+    VENSTRE,
 }

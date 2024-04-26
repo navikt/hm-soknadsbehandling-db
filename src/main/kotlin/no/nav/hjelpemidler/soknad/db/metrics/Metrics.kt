@@ -44,14 +44,14 @@ internal class Metrics(
                     status,
                     TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
                     listOf(Status.VENTER_GODKJENNING),
-                    listOf(Status.GODKJENT)
+                    listOf(Status.GODKJENT),
                 )
                 recordForStatus(
                     soknadsId,
                     status,
                     TID_FRA_GODKJENT_TIL_JOURNALFORT,
                     listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
-                    listOf(Status.ENDELIG_JOURNALFØRT)
+                    listOf(Status.ENDELIG_JOURNALFØRT),
                 )
                 recordForStatus(
                     soknadsId,
@@ -65,7 +65,7 @@ internal class Metrics(
                         Status.VEDTAKSRESULTAT_INNVILGET,
                         Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
                         Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
-                    )
+                    ),
                 )
                 recordForStatus(
                     soknadsId,
@@ -79,7 +79,7 @@ internal class Metrics(
                         Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
                         Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                     ),
-                    listOf(Status.UTSENDING_STARTET)
+                    listOf(Status.UTSENDING_STARTET),
                 )
             }
         }
@@ -94,7 +94,6 @@ internal class Metrics(
     ) {
         try {
             if (status in validEndStatuses) {
-
                 val result = søknadStore.hentStatuser(soknadsId)
 
                 // TODO if multiple statuses converged to a single common status this would not be necessary
@@ -122,14 +121,14 @@ internal class Metrics(
         runBlocking {
             launch(Job()) {
                 try {
-
                     val result = søknadStore.tellStatuser()
 
                     val metricsToSend =
                         result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
 
-                    if (metricsToSend.isNotEmpty())
+                    if (metricsToSend.isNotEmpty()) {
                         aivenMetrics.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+                    }
                 } catch (e: Exception) {
                     logg.error(e) { "Feil ved sending antall per status metrikker." }
                 }

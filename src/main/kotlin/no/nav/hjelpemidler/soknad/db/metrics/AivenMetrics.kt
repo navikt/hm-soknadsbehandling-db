@@ -25,7 +25,7 @@ class AivenMetrics {
         influxUser,
         influxPassword.toCharArray(),
         influxDatabaseName,
-        "default_retention_policy"
+        "default_retention_policy",
     ).makeWriteApi()
 
     fun writeEvent(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) = runBlocking {
@@ -53,7 +53,7 @@ class AivenMetrics {
         private val DEFAULT_TAGS: Map<String, String> = mapOf(
             "application" to (Configuration.application.NAIS_APP_NAME ?: "hm-soknadsbehandling-db"),
             "cluster" to (Configuration.application.NAIS_CLUSTER_NAME ?: "dev-gcp"),
-            "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot")
+            "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot"),
         )
     }
 }

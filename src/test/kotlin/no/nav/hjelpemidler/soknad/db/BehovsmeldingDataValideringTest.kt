@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.hjelpemidler.soknad.db.domain.kommune_api.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -9,7 +9,6 @@ import kotlin.test.assertNull
 internal class BehovsmeldingDataValideringTest {
     @Test
     fun `Validering av en normal søknad i dagens format`() {
-
         val node = ObjectMapper().readTree(
             """
             {
@@ -193,7 +192,7 @@ internal class BehovsmeldingDataValideringTest {
                     "kanVæreBestilling": false
                 }
             }
-        """
+        """,
         )
 
         val data = Behovsmelding.fraJsonNode(node)

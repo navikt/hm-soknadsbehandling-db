@@ -11,21 +11,24 @@ data class Brukerpassbyttedata(
     val brukersNavn: String,
     val folkeregistrertAdresse: BytteAdresse?,
     val adresse: BytteAdresse?,
-    val dato: String
+    val dato: String,
 )
 
 data class BytteHjelpemiddel(
     val artnr: String,
     val navn: String,
-    val kategori: String
+    val kategori: String,
 )
 
 enum class BrukerpassBytteårsak {
-    UTSLITT, ØDELAGT, ANNEN_ÅRSAK
+    UTSLITT,
+    ØDELAGT,
+    ANNEN_ÅRSAK,
 }
 
 enum class BytteUtleveringsmåte {
-    FOLKEREGISTRERT_ADRESSE, OPPGITT_ADRESSE
+    FOLKEREGISTRERT_ADRESSE,
+    OPPGITT_ADRESSE,
 }
 
 data class BytteAdresse(
