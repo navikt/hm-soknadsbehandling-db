@@ -6,16 +6,16 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
-import no.nav.hjelpemidler.soknad.db.Configuration
-import no.nav.hjelpemidler.soknad.db.Profile
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
@@ -45,7 +45,7 @@ import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
-internal interface SøknadStore {
+interface SøknadStore {
     fun save(soknadData: SoknadData): Int
     fun savePapir(soknadData: PapirSøknadData): Int
     fun hentSoknad(soknadsId: UUID): SøknadForBruker?
@@ -74,7 +74,8 @@ internal interface SøknadStore {
     ): List<SøknadForKommuneApi>
 }
 
-internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
+class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
+    private val slack = slack()
 
     override fun soknadFinnes(soknadsId: UUID): Boolean {
         @Language("PostgreSQL")
@@ -830,14 +831,14 @@ internal class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
                                     hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
-                                    Configuration.application.profile != Profile.LOCAL
+                                    !Environment.current.tier.isLocal
                                 ) {
                                     hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
-                                    runBlocking {
-                                        slack().sendMessage(
+                                    runBlocking(Dispatchers.IO) {
+                                        slack.sendMessage(
                                             "hm-soknadsbehandling-db",
                                             slackIconEmoji(":this-is-fine-fire:"),
-                                            if (Configuration.application.profile == Profile.PROD) "#digihot-alerts" else "#digihot-alerts-dev",
+                                            if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
                                             "Søknad datamodellen har endret seg og kvittering av innsendte " +
                                                 "søknader tilbake til kommunen er satt på pause inntil noen har " +
                                                 "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +

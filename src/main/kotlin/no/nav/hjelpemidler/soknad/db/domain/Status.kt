@@ -26,7 +26,7 @@ enum class Status {
     fun isSlettetEllerUtløpt() = this == SLETTET || this == UTLØPT
 }
 
-internal data class StatusMedÅrsak(
+data class StatusMedÅrsak(
     val søknadId: UUID,
     val status: Status,
     val valgteÅrsaker: Set<String>?,

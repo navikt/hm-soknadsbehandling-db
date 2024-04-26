@@ -12,6 +12,8 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.configuration.LocalEnvironment
 import no.nav.hjelpemidler.soknad.db.db.HotsakStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.OrdreStorePostgres
 import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsenderPostgres
@@ -58,8 +60,8 @@ fun Application.module() {
     Oppgaveinspektør(søknadStore)
 
     authentication {
-        azure { }
-        tokenX { }
+        azure()
+        tokenX()
     }
 
     install(ContentNegotiation) {
@@ -78,8 +80,16 @@ fun Application.module() {
                 tokenXRoutes(søknadStore, ordreStore, infotrygdStore, hotsakStore, storeFormidler, rolleService)
             }
 
-            when (Configuration.application.profile) {
-                Profile.LOCAL -> {
+            when (Environment.current) {
+                LocalEnvironment -> azureAdRoutes(
+                    søknadStore,
+                    ordreStore,
+                    infotrygdStore,
+                    hotsakStore,
+                    metrics,
+                )
+
+                else -> authenticate(AzureAuthenticator.name) {
                     azureAdRoutes(
                         søknadStore,
                         ordreStore,
@@ -87,18 +97,6 @@ fun Application.module() {
                         hotsakStore,
                         metrics,
                     )
-                }
-
-                else -> {
-                    authenticate(AzureAuthenticator.name) {
-                        azureAdRoutes(
-                            søknadStore,
-                            ordreStore,
-                            infotrygdStore,
-                            hotsakStore,
-                            metrics,
-                        )
-                    }
                 }
             }
         }

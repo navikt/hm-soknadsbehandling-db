@@ -5,9 +5,10 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotliquery.Row
 import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.configuration.LocalEnvironment
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.JacksonMapper
-import no.nav.hjelpemidler.soknad.db.Profile
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
 import org.intellij.lang.annotations.Language
@@ -66,8 +67,8 @@ internal fun hikariConfigFrom(config: Configuration) =
         config.database.password?.let { password = it }
     }
 
-internal fun dataSourceFrom(config: Configuration): HikariDataSource = when (config.application.profile) {
-    Profile.LOCAL -> HikariDataSource(hikariConfigFrom(config))
+internal fun dataSourceFrom(config: Configuration): HikariDataSource = when (Environment.current) {
+    LocalEnvironment -> HikariDataSource(hikariConfigFrom(config))
     else -> HikariDataSource(hikariConfigFrom(config))
 }
 

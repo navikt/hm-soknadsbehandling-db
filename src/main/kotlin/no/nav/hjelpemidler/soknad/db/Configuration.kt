@@ -10,7 +10,6 @@ import com.natpryce.konfig.stringType
 private val localProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8082",
-        "application.profile" to "LOCAL",
         "db.host" to "host.docker.internal",
         "db.database" to "soknadsbehandling",
         "db.password" to "postgres",
@@ -35,7 +34,6 @@ private val localProperties = ConfigurationMap(
 )
 private val devProperties = ConfigurationMap(
     mapOf(
-        "application.profile" to "DEV",
         "userclaim" to "pid",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-search",
@@ -46,7 +44,6 @@ private val devProperties = ConfigurationMap(
 )
 private val prodProperties = ConfigurationMap(
     mapOf(
-        "application.profile" to "PROD",
         "userclaim" to "pid",
 
         "GRUNNDATA_API_URL" to "http://hm-grunndata-search",
@@ -80,7 +77,6 @@ internal object Configuration {
 
     data class Application(
         val id: String = config.getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),
-        val profile: Profile = config[Key("application.profile", stringType)].let { Profile.valueOf(it) },
         val userclaim: String = config[Key("userclaim", stringType)],
         val NAIS_APP_NAME: String? = config[Key("NAIS_APP_NAME", stringType)],
         val NAIS_CLUSTER_NAME: String? = config[Key("NAIS_CLUSTER_NAME", stringType)],
@@ -102,10 +98,4 @@ internal object Configuration {
         val keystore_path: String = config[Key("KAFKA_KEYSTORE_PATH", stringType)],
         val credstore_password: String = config[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
     )
-}
-
-enum class Profile {
-    LOCAL,
-    DEV,
-    PROD,
 }

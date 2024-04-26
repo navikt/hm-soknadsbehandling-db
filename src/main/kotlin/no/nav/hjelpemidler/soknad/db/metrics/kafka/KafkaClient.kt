@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
-import no.nav.hjelpemidler.soknad.db.Configuration
-import no.nav.hjelpemidler.soknad.db.Profile
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.configuration.LocalEnvironment
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -30,11 +30,10 @@ interface KafkaClient {
         )
 }
 
-fun createKafkaClient(profile: Profile = Configuration.application.profile) =
-    when (profile) {
-        Profile.LOCAL -> LocalKafkaClient()
-        else -> AivenKafkaClient()
-    }
+fun createKafkaClient() = when (Environment.current) {
+    LocalEnvironment -> LocalKafkaClient()
+    else -> AivenKafkaClient()
+}
 
 private val mapper = jacksonMapperBuilder()
     .addModule(JavaTimeModule())

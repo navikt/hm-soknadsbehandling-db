@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.UUID
 
-internal data class SoknadData(
+data class SoknadData(
     val fnrBruker: String,
     val navnBruker: String,
     val fnrInnsender: String?,

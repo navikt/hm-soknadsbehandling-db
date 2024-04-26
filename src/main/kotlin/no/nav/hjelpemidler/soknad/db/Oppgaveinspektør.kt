@@ -4,6 +4,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KLogger
 import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
@@ -23,6 +24,7 @@ internal class Oppgaveinspektør(
     private val søknadStore: SøknadStore,
     startTime: Date = midnatt(),
 ) {
+    private val slack = slack()
 
     init {
         Timer("SaksflytInspektør", true).schedule(
@@ -64,8 +66,8 @@ internal class Oppgaveinspektør(
                     søknads-IDer (max 10): ${godkjenteBehovsmeldingerUtenOppgave.take(10).joinToString()}
             """.trimIndent()
 
-            if (Configuration.application.profile == Profile.PROD) {
-                slack().sendMessage(
+            if (Environment.current.tier.isProd) {
+                slack.sendMessage(
                     username = "hm-soknadsbehandling-db",
                     icon = slackIconEmoji(":this-is-fine-fire:"),
                     channel = "#digihot-alerts",
