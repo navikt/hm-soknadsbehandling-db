@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.client.hmdb
 import com.expediagroup.graphql.client.jackson.GraphQLClientJacksonSerializer
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.apache.Apache
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
 import java.net.URI
@@ -14,7 +14,7 @@ object HjelpemiddeldatabaseClient {
     private val client =
         GraphQLKtorClient(
             url = URI("${Configuration.application.grunndataApiURL}/graphql").toURL(),
-            httpClient = HttpClient(engineFactory = CIO),
+            httpClient = HttpClient(engineFactory = Apache),
             serializer = GraphQLClientJacksonSerializer(),
         )
 
