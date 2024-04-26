@@ -12,7 +12,7 @@ import org.testcontainers.containers.wait.strategy.Wait
 
 internal object PostgresContainer {
     val instance by lazy {
-        PostgreSQLContainer<Nothing>("postgres:13.1").apply {
+        PostgreSQLContainer<Nothing>("postgres:15-alpine").apply {
             waitingFor(Wait.forListeningPort())
             start()
         }

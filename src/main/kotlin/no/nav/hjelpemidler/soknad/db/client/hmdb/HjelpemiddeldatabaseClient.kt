@@ -3,18 +3,18 @@ package no.nav.hjelpemidler.soknad.db.client.hmdb
 import com.expediagroup.graphql.client.jackson.GraphQLClientJacksonSerializer
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.cio.CIO
 import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
-import java.net.URL
+import java.net.URI
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product as HentproduktermedhmsnrsProdukt
 
 object HjelpemiddeldatabaseClient {
     private val logg = KotlinLogging.logger {}
     private val client =
         GraphQLKtorClient(
-            url = URL("${Configuration.application.grunndataApiURL}/graphql"),
-            httpClient = HttpClient(engineFactory = Apache),
+            url = URI("${Configuration.application.grunndataApiURL}/graphql").toURL(),
+            httpClient = HttpClient(engineFactory = CIO),
             serializer = GraphQLClientJacksonSerializer()
         )
 
@@ -29,11 +29,13 @@ object HjelpemiddeldatabaseClient {
                     logg.error { "Feil under henting av data fra hjelpemiddeldatabasen, hmsnrs=$hmsnrs, errors=${response.errors?.map { it.message }}" }
                     emptyList()
                 }
+
                 response.data != null -> {
                     val produkter = response.data?.produkter ?: emptyList()
                     logg.debug { "Hentet ${produkter.size} produkter fra hjelpemiddeldatabasen" }
                     produkter
                 }
+
                 else -> emptyList()
             }
         } catch (e: Exception) {

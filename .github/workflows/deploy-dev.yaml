@@ -1,4 +1,4 @@
-name: deploy-dev
+name: Bygg, deploy til dev-gcp og lag release
 
 on:
   push:
@@ -7,38 +7,32 @@ on:
 
 jobs:
   build:
-    name: Build app, docker image and  push docker image
+    name: Bygg, deploy til dev-gcp og lag release
     permissions:
       contents: write
       id-token: write
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: gradle
+      - name: Sjekk ut koden
+        uses: actions/checkout@v4
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/actions/wrapper-validation@v3
 
-      - uses: gradle/gradle-build-action@v2.7.0
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          arguments: build
+          distribution: temurin
+          java-version: 21
 
-      - name: Pre-deploy
-        uses: navikt/digihot-deploy/actions/pre-deploy@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Build and push docker image
+      - name: Bygg med Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Bygg og push Docker-image
         uses: nais/docker-build-push@v0
         id: docker-build-push
         with:
@@ -47,7 +41,12 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ env.VERSION_TAG }}
 
-      - name: Deploy to dev-gcp
+      - name: Pre-deploy
+        uses: navikt/digihot-deploy/actions/pre-deploy@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy til dev-gcp
         uses: nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
@@ -55,13 +54,13 @@ jobs:
           RESOURCE: nais/nais-dev.yaml,nais/alerts-dev.yaml
           IMAGE: ${{steps.docker-build-push.outputs.image}}
 
-      - name: post-deploy
+      - name: Post-deploy
         if: github.ref == 'refs/heads/main'
         uses: navikt/digihot-deploy/actions/post-deploy@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: draft release
+      - name: Lag release
         if: github.ref == 'refs/heads/main'
         uses: actions/create-release@latest
         env:

@@ -1,4 +1,5 @@
-name: deploy-prod
+name: Deploy til prod-gcp
+
 on:
   release:
     types: [ published ]
@@ -10,17 +11,17 @@ jobs:
       id-token: "write"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        name: Sjekk ut koden
 
       - uses: nais/login@v0
-        name: get image registry
-        id: nais-login
+        name: NAIS-login
         with:
           team: teamdigihot
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
 
-      - name: get image
+      - name: "Definer $IMAGE"
         env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
           REGISTRY: ${{ steps.nais-login.outputs.registry }}
@@ -31,13 +32,13 @@ jobs:
           echo $IMAGE
 
       - uses: nais/deploy/actions/deploy@v1
-        name: deploy to prod-gcp
+        name: Deploy til prod-gcp
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: nais/nais-prod.yaml,nais/alerts-prod.yaml
 
-      - name: post-production
+      - name: Post-deploy
         uses: navikt/digihot-deploy/actions/post-production@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
