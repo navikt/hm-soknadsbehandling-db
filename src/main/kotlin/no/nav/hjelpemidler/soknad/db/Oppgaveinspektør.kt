@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db
 
+import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KLogger
@@ -24,7 +25,7 @@ internal class Oppgaveinspektør(
     private val søknadStore: SøknadStore,
     startTime: Date = midnatt(),
 ) {
-    private val slack = slack()
+    private val slack = slack(engine = Apache.create())
 
     init {
         Timer("SaksflytInspektør", true).schedule(

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotliquery.Session
@@ -75,7 +76,7 @@ interface SøknadStore {
 }
 
 class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
-    private val slack = slack()
+    private val slack = slack(engine = Apache.create())
 
     override fun soknadFinnes(soknadsId: UUID): Boolean {
         @Language("PostgreSQL")
