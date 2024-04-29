@@ -39,7 +39,6 @@ spec:
         - application: hm-dinehjelpemidler
         - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
-        - application: hm-hjelpemiddelstatistikk
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
         - application: hm-oppgave-sink
