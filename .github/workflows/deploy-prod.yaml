@@ -22,7 +22,7 @@ jobs:
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
 
-      - name: "Definer $IMAGE"
+      - name: Definer IMAGE
         env:
           VERSION_TAG: ${{ github.event.release.tag_name }}
           REGISTRY: ${{ steps.nais-login.outputs.registry }}
