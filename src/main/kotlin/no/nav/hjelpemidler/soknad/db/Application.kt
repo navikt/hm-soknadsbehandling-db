@@ -70,7 +70,7 @@ fun Application.module() {
 
     install(CallLogging) {
         level = Level.TRACE
-        filter { call -> !call.request.path().startsWith("/internal") }
+        filter { call -> call.request.path().startsWith("/api") }
     }
 
     routing {

@@ -24,17 +24,21 @@ spec:
   port: 8080
   prometheus:
     enabled: true
-    path: /internal/metrics
+    path: /metrics
   replicas:
     max: 2
     min: 2
+  tokenx:
+    enabled: true
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     inbound:
       rules:
         - application: hm-dinehjelpemidler
         - application: hm-forslagsmotor-tilbehoer
         - application: hm-formidler
-        - application: hm-hjelpemiddelstatistikk
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
         - application: hm-oppgave-sink
@@ -44,11 +48,6 @@ spec:
         - application: hm-roller
       external:
         - host: hooks.slack.com
-  tokenx:
-    enabled: true
-  azure:
-    application:
-      enabled: true
   resources:
     limits:
       cpu: 800m
