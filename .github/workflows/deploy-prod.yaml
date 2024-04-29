@@ -15,6 +15,7 @@ jobs:
         name: Sjekk ut koden
 
       - uses: nais/login@v0
+        id: nais-login
         name: NAIS-login
         with:
           team: teamdigihot
