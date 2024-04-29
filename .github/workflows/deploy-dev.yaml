@@ -32,6 +32,11 @@ jobs:
       - name: Bygg med Gradle
         run: ./gradlew build --no-daemon
 
+      - name: Pre-deploy
+        uses: navikt/digihot-deploy/actions/pre-deploy@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Bygg og push Docker-image
         uses: nais/docker-build-push@v0
         id: docker-build-push
@@ -40,11 +45,6 @@ jobs:
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           tag: ${{ env.VERSION_TAG }}
-
-      - name: Pre-deploy
-        uses: navikt/digihot-deploy/actions/pre-deploy@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy til dev-gcp
         uses: nais/deploy/actions/deploy@v1
