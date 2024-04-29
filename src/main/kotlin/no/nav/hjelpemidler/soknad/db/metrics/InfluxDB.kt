@@ -5,6 +5,7 @@ import com.influxdb.client.domain.WritePrecision
 import com.influxdb.client.write.Point
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import no.nav.hjelpemidler.configuration.NaisEnvironmentVariable
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.createKafkaClient
@@ -12,7 +13,7 @@ import java.time.Instant
 
 private val logg = KotlinLogging.logger {}
 
-class AivenMetrics {
+class InfluxDB {
     private val influxHost = Configuration.application.INFLUX_HOST ?: "http://localhost"
     private val influxPort = Configuration.application.INFLUX_PORT ?: "1234"
     private val influxDatabaseName = Configuration.application.INFLUX_DATABASE_NAME ?: "defaultdb"
@@ -38,7 +39,7 @@ class AivenMetrics {
 
         client.writePoint(point)
         kafkaClient.hendelseOpprettet(measurement, fields, tags)
-        logg.info("Skriv point-objekt til Aiven: ${point.toLineProtocol()}")
+        logg.debug { "Sendte hendelse til InfluxDB og BigQuery: '${point.toLineProtocol()}'" }
     }
 
     fun registerElapsedTime(metricFieldName: String, tid: Long) {
@@ -51,9 +52,9 @@ class AivenMetrics {
 
     companion object {
         private val DEFAULT_TAGS: Map<String, String> = mapOf(
-            "application" to (Configuration.application.NAIS_APP_NAME ?: "hm-soknadsbehandling-db"),
-            "cluster" to (Configuration.application.NAIS_CLUSTER_NAME ?: "dev-gcp"),
-            "namespace" to (Configuration.application.NAIS_NAMESPACE ?: "teamdigihot"),
+            "application" to NaisEnvironmentVariable.NAIS_APP_NAME,
+            "cluster" to NaisEnvironmentVariable.NAIS_CLUSTER_NAME,
+            "namespace" to NaisEnvironmentVariable.NAIS_NAMESPACE,
         )
     }
 }

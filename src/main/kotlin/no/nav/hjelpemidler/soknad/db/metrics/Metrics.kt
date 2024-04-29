@@ -19,7 +19,7 @@ private val logg = KotlinLogging.logger {}
 
 internal class Metrics(
     private val søknadStore: SøknadStore,
-    private val aivenMetrics: AivenMetrics = AivenMetrics(),
+    private val influxDB: InfluxDB = InfluxDB(),
 ) {
 
     init {
@@ -110,7 +110,7 @@ internal class Metrics(
                 val finalMetricFieldName =
                     if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
 
-                aivenMetrics.registerElapsedTime(finalMetricFieldName, timeDifference)
+                influxDB.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
             logg.error(e) { "Feil ved sending av tid mellom status-metrikker" }
@@ -127,7 +127,7 @@ internal class Metrics(
                         result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
 
                     if (metricsToSend.isNotEmpty()) {
-                        aivenMetrics.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+                        influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
                     }
                 } catch (e: Exception) {
                     logg.error(e) { "Feil ved sending antall per status metrikker." }
