@@ -25,4 +25,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "hm-soknadsbehandling-db"
-include("app", "behovsmelding")
+include("app", "behovsmeldingsmodell")
