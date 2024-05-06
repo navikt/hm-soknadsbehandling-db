@@ -25,6 +25,7 @@ data class Soknad(
     val id: UUID,
     val levering: Levering,
     val innsender: Innsender,
+    val erHast: Boolean = false, // = false for bakoverkompabilitet. kan fjernes etter lansering
 )
 
 data class Innsender(
@@ -200,8 +201,15 @@ data class HjelpemiddelItem(
     val oppreisningsStolInfo: OppreisningsStolInfo? = null,
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
-    val bruksarena: List<Bruksarena>? = null, // TODO Kan fjerne nullable når ny rammeavtale gangehjelpemidler er lansert (etter 2. jan 2023)
+    val bruksarena: List<Bruksarena>,
+    val hasteårsaker: List<Hasteårsak> = emptyList(),
 )
+
+enum class Hasteårsak {
+    HINDRE_VIDERE_UTVIKLING_AV_TRYKKSÅR,
+    BEHANDLE_ELLER_HINDRE_VIDERE_UTVIKLING_AV_TRYKKSÅR,
+    TERMINALFASE,
+}
 
 enum class Bruksarena {
     EGET_HJEM,
