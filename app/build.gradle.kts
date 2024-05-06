@@ -1,10 +1,7 @@
 import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.ktor)
-    alias(libs.plugins.graphql)
-    alias(libs.plugins.spotless)
+    id("buildlogic.kotlin-application-conventions")
 }
 
 application {
@@ -13,8 +10,6 @@ application {
 }
 
 dependencies {
-    implementation(libs.kotlin.stdlib)
-
     // DigiHoT
     implementation(libs.hm.http) {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
@@ -78,26 +73,6 @@ dependencies {
     testImplementation(libs.wiremock)
 }
 
-spotless {
-    kotlin {
-        ktlint().editorConfigOverride(
-            mapOf(
-                "ktlint_standard_max-line-length" to "disabled",
-                "ktlint_standard_value-argument-comment" to "disabled",
-                "ktlint_standard_value-parameter-comment" to "disabled",
-            ),
-        )
-        targetExclude("**/generated/**")
-    }
-    kotlinGradle {
-        target("*.gradle.kts")
-        ktlint()
-    }
-}
-
-kotlin { jvmToolchain(21) }
-
-tasks.test { useJUnitPlatform() }
 tasks.shadowJar { mergeServiceFiles() }
 
 graphql {

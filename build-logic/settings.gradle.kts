@@ -1,10 +1,7 @@
-pluginManagement {
-    includeBuild("build-logic")
-}
-
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
+        gradlePluginPortal()
         mavenCentral()
         maven {
             url = uri("https://maven.pkg.github.com/navikt/*")
@@ -24,5 +21,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "hm-soknadsbehandling-db"
-include("app", "behovsmelding")
+rootProject.name = "build-logic"
