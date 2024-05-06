@@ -19,6 +19,6 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew :behovsmeldingsmodell:publishToMavenLocal --no-daemon
+      - run: ./gradlew :behovsmeldingsmodell:publish --no-daemon
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
