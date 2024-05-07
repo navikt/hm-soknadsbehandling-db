@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.modell
+package no.nav.hjelpemidler.behovsmeldingsmodell
 
 data class Organisasjon(
     val orgnr: String,

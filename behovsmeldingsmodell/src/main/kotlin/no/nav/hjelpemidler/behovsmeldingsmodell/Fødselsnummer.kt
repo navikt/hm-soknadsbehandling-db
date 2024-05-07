@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.modell
+package no.nav.hjelpemidler.behovsmeldingsmodell
 
 import com.fasterxml.jackson.annotation.JsonValue
 

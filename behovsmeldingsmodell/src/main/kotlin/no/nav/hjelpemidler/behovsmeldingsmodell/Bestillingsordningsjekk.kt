@@ -1,6 +1,8 @@
-package no.nav.hjelpemidler.soknad.modell
+package no.nav.hjelpemidler.behovsmeldingsmodell
 
-data class SoknadSjekkResultat(
+import com.fasterxml.jackson.annotation.JsonProperty
+
+data class Bestillingsordningsjekk(
     val kanVæreBestilling: Boolean,
     val kriterier: Kriterier,
     val metaInfo: MetaInfo,
@@ -8,8 +10,10 @@ data class SoknadSjekkResultat(
 )
 
 data class Kriterier(
-    val alleHovedProdukterPåBestillingsOrdning: Boolean,
-    val alleTilbehørPåBestillingsOrdning: Boolean,
+    @JsonProperty("alleHovedProdukterPåBestillingsOrdning")
+    val alleHovedprodukterPåBestillingsordning: Boolean,
+    @JsonProperty("alleTilbehørPåBestillingsOrdning")
+    val alleTilbehørPåBestillingsordning: Boolean,
     val brukerHarHjelpemidlerFraFør: Boolean? = null,
     val brukerHarInfotrygdVedtakFraFør: Boolean? = null,
     val brukerHarHotsakVedtakFraFør: Boolean? = null,
@@ -27,8 +31,10 @@ data class Kriterier(
 )
 
 data class MetaInfo(
-    val hovedProdukter: List<String>,
-    val hovedProdukterIkkePåBestillingsordning: List<String>,
+    @JsonProperty("hovedProdukter")
+    val hovedprodukter: List<String>,
+    @JsonProperty("hovedProdukterIkkePåBestillingsordning")
+    val hovedprodukterIkkePåBestillingsordning: List<String>,
     val tilbehør: List<String>,
     val tilbehørIkkePåBestillingsordning: List<String>,
 )

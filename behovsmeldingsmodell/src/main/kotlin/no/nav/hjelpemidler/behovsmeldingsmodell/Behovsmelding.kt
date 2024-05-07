@@ -1,127 +1,98 @@
-package no.nav.hjelpemidler.soknad.modell
+package no.nav.hjelpemidler.behovsmeldingsmodell
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.UUID
 
 data class Behovsmelding(
-    val behovsmeldingType: BehovsmeldingType,
-    val bestillingsordningsjekk: SoknadSjekkResultat? = null,
     val id: UUID,
-    val soknad: Soknad? = null,
-    val brukerpassbytte: BrukerpassBytteDTO? = null,
+    val behovsmeldingType: BehovsmeldingType,
+    val bestillingsordningsjekk: Bestillingsordningsjekk? = null,
+    @JsonProperty("soknad")
+    val søknad: Søknad? = null,
+    val brukerpassbytte: Brukerpassbytte? = null,
 )
 
-enum class BehovsmeldingType {
-    SØKNAD,
-    BESTILLING,
-    BYTTE,
-    BRUKERPASSBYTTE,
-}
-
-data class Soknad(
+data class Søknad(
+    val id: UUID,
     val bruker: Bruker,
     val brukersituasjon: Brukersituasjon,
     val date: String?,
     val hjelpemidler: Hjelpemidler,
-    val id: UUID,
     val levering: Levering,
     val innsender: Innsender,
     val erHast: Boolean = false, // = false for bakoverkompabilitet. kan fjernes etter lansering
 )
 
 data class Innsender(
-    val godkjenningskurs: List<GodkjenningsKurs>?,
+    val godkjenningskurs: List<Godkjenningskurs>?,
     val organisasjoner: List<Organisasjon>?,
     val somRolle: InnsenderRolle,
 )
 
-enum class InnsenderRolle {
-    FORMIDLER,
-    BESTILLER,
-}
-
-data class GodkjenningsKurs(
+data class Godkjenningskurs(
     val id: Int,
     val title: String,
     val kilde: String,
 )
 
 data class Bruker(
-    val etternavn: String,
-    val fnummer: Fødselsnummer,
+    @JsonProperty("fnummer")
+    val fnr: Fødselsnummer,
     val fornavn: String,
-    val signatur: Signaturtype,
-    val telefonNummer: String,
+    val etternavn: String,
+    @JsonProperty("signatur")
+    val signaturtype: Signaturtype,
+    @JsonProperty("telefonNummer")
+    val telefonnummer: String,
     val adresse: String?,
     val postnummer: String?,
     val poststed: String?,
-    val kilde: BrukerKilde?,
-    val kroppsmaal: Kroppsmaal?,
-    val erInformertOmRettigheter: Boolean?,
     val kommunenummer: String?,
     val brukernummer: String?,
-)
-
-enum class Signaturtype {
-    BRUKER_BEKREFTER,
-    FULLMAKT,
-    FRITAK_FRA_FULLMAKT,
-    IKKE_INNHENTET_FORDI_BYTTE,
-    IKKE_INNHENTET_FORDI_BRUKERPASSBYTTE,
+    val kilde: Brukerkilde?,
+    @JsonProperty("kroppsmaal")
+    val kroppsmål: Kroppsmål?,
+    val erInformertOmRettigheter: Boolean?,
+) {
+    val navn: Navn @JsonIgnore get() = Navn(fornavn, etternavn)
 }
 
-enum class BrukerKilde {
-    PDL,
-    FORMIDLER,
-}
-
-data class Kroppsmaal(
+data class Kroppsmål(
     val setebredde: Int?,
-    val laarlengde: Int?,
+    @JsonProperty("laarlengde")
+    val lårlengde: Int?,
     val legglengde: Int?,
-    val hoyde: Int?,
+    @JsonProperty("hoyde")
+    val høyde: Int?,
     val kroppsvekt: Int?,
 )
 
 data class Brukersituasjon(
     val bekreftedeVilkår: List<BrukersituasjonVilkår>,
-    val nedsattFunksjonTypes: NedsattFunksjonTypes,
+    @JsonProperty("nedsattFunksjonTypes")
+    val funksjonsnedsettelser: Funksjonsnedsettelser,
 )
 
-enum class BrukersituasjonVilkår {
-    PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
-    VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
-    KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1,
-    I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1,
-}
-
-data class NedsattFunksjonTypes(
+data class Funksjonsnedsettelser(
     val bevegelse: Boolean,
     val kognisjon: Boolean,
-    val horsel: Boolean,
+    @JsonProperty("horsel")
+    val hørsel: Boolean,
 )
 
 data class Hjelpemidler(
-    val hjelpemiddelListe: List<HjelpemiddelItem>,
-    val hjelpemiddelTotaltAntall: Int,
-)
-
-// The fields hmfFornavn and hmfEtternavn are not incl. as they come from PDL
-data class Kontaktinfo(
-    val hmfArbeidssted: String,
-    val hmfEpost: String,
-    val hmfPostadresse: String,
-    val hmfPostnr: String,
-    val hmfPoststed: String,
-    val hmfStilling: String,
-    val hmfTelefon: String,
-    val hmfTreffesEnklest: String,
+    @JsonProperty("hjelpemiddelListe")
+    val hjelpemidler: List<HjelpemiddelItem>,
+    @JsonProperty("hjelpemiddelTotaltAntall")
+    val totaltAntall: Int,
 )
 
 data class Levering(
     val hmfArbeidssted: String,
     val hmfEpost: String,
-    val hmfEtternavn: String,
     val hmfFornavn: String,
+    val hmfEtternavn: String,
     val hmfPostadresse: String,
     val hmfPostnr: String,
     val hmfPoststed: String,
@@ -131,65 +102,54 @@ data class Levering(
     val merknadTilUtlevering: String,
     val opfAnsvarFor: String?,
     val opfArbeidssted: String?,
-    val opfEtternavn: String?,
     val opfFornavn: String?,
-    val opfRadioButton: Oppfoelger,
+    val opfEtternavn: String?,
+    @JsonProperty("opfRadioButton")
+    val opf: Oppfølger,
     val opfStilling: String?,
     val opfTelefon: String?,
-    val utleveringEtternavn: String?,
     val utleveringFornavn: String?,
+    val utleveringEtternavn: String?,
     val utleveringPostadresse: String?,
     val utleveringPostnr: String?,
     val utleveringPoststed: String?,
     val utleveringTelefon: String?,
-    val utleveringskontaktpersonRadioButton: Kontaktperson?,
-    val utleveringsmaateRadioButton: UtleveringsMaate?,
+    @JsonProperty("utleveringskontaktpersonRadioButton")
+    val utleveringKontaktperson: Kontaktperson?,
+    @JsonProperty("utleveringsmaateRadioButton")
+    val utleveringsmåte: Utleveringsmåte?,
     val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
 )
 
-enum class LeveringTilleggsinfo {
-    UTLEVERING_KALENDERAPP,
-    ALLE_HJELPEMIDLER_ER_UTLEVERT,
-}
-
-enum class Oppfoelger {
-    Hjelpemiddelformidler,
-    NoenAndre,
-}
-
-enum class Kontaktperson {
-    Hjelpemiddelbruker,
-    Hjelpemiddelformidler,
-    AnnenKontaktperson,
-}
-
-enum class UtleveringsMaate {
-    FolkeregistrertAdresse,
-    AnnenBruksadresse,
-    Hjelpemiddelsentralen,
-    AlleredeUtlevertAvNav, // Deprecated
-}
-
 data class HjelpemiddelItem(
     val antall: Int,
-    val arsakForAntall: String? = null,
-    val arsakForAntallBegrunnelse: String? = null,
+    @JsonProperty("arsakForAntall")
+    val årsakForAntall: String? = null,
+    @JsonProperty("arsakForAntallBegrunnelse")
+    val årsakForAntallBegrunnelse: String? = null,
     val beskrivelse: String,
     val hjelpemiddelkategori: String,
-    val hmsNr: String,
+    @JsonProperty("hmsNr")
+    val hmsnr: String,
     val tilleggsinformasjon: String,
     val uniqueKey: String,
     val utlevertFraHjelpemiddelsentralen: Boolean,
-    val vilkaroverskrift: String? = null,
-    val vilkarliste: List<HjelpemiddelVilkar>? = null,
-    val tilbehorListe: List<Tilbehor>? = null,
-    val begrunnelsen: String? = null,
-    val kanIkkeTilsvarande: String? = null,
+    @JsonProperty("vilkaroverskrift")
+    val vilkårsoverskrift: String? = null,
+    @JsonProperty("vilkarliste")
+    val vilkår: List<HjelpemiddelVilkår>? = null,
+    @JsonProperty("tilbehorListe")
+    val tilbehør: List<Tilbehor>? = null,
+    @JsonProperty("begrunnelsen") // hvorfor bestemt form?
+    val begrunnelse: String? = null,
+    @JsonProperty("kanIkkeTilsvarande") // nynorsk
+    val kanIkkeTilsvarende: String? = null,
     val navn: String? = null,
     val produkt: HjelpemiddelProdukt? = null,
     val rullestolInfo: RullestolInfo? = null,
     val utlevertInfo: UtlevertInfo? = null,
-    val personlofterInfo: PersonlofterInfo? = null,
+    @JsonProperty("personlofterInfo")
+    val personløfterInfo: PersonløfterInfo? = null,
     val elektriskRullestolInfo: ElektriskRullestolInfo? = null,
     val appInfo: AppInfo? = null,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo? = null,
@@ -198,30 +158,13 @@ data class HjelpemiddelItem(
     val ganghjelpemiddelInfo: GanghjelpemiddelInfo? = null,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo? = null,
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo? = null,
-    val oppreisningsStolInfo: OppreisningsStolInfo? = null,
+    @JsonProperty("oppreisningsStolInfo")
+    val oppreisningsstolInfo: OppreisningsstolInfo? = null,
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: List<Bruksarena>,
     val hasteårsaker: List<Hasteårsak> = emptyList(),
 )
-
-enum class Hasteårsak {
-    HINDRE_VIDERE_UTVIKLING_AV_TRYKKSÅR,
-    BEHANDLE_ELLER_HINDRE_VIDERE_UTVIKLING_AV_TRYKKSÅR,
-    TERMINALFASE,
-}
-
-enum class Bruksarena {
-    EGET_HJEM,
-    EGET_HJEM_IKKE_AVLASTNING,
-    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
-    BARNEHAGE,
-    GRUNN_ELLER_VIDEREGÅENDESKOLE,
-    SKOLEFRITIDSORDNING,
-    INSTITUSJON,
-    INSTITUSJON_BARNEBOLIG,
-    INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK,
-}
 
 data class Bytte(
     val erTilsvarende: Boolean,
@@ -232,47 +175,20 @@ data class Bytte(
     val årsak: BytteÅrsak? = null,
 )
 
-enum class BytteÅrsak {
-    UTSLITT,
-    VOKST_FRA,
-    ENDRINGER_I_INNBYGGERS_FUNKSJON,
-    FEIL_STØRRELSE,
-    VURDERT_SOM_ØDELAGT_AV_LOKAL_TEKNIKER,
-}
-
-data class OppreisningsStolInfo(
+data class OppreisningsstolInfo(
     val kanBrukerReiseSegSelvFraVanligStol: Boolean,
-    val behov: List<OppreisningsStolBehov>?,
+    val behov: List<OppreisningsstolBehov>?,
     val behovForStolBegrunnelse: String?,
-    val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
-    val bruksområde: OppreisningsStolBruksområde?,
+    @JsonProperty("sideBetjeningsPanel")
+    val sidebetjeningspanel: SidebetjeningspanelPosisjon?,
+    val bruksområde: OppreisningsstolBruksområde?,
     val annetTrekkKanBenyttes: Boolean,
-    val løftType: OppreisningsStolLøftType,
+    val løftType: OppreisningsstolLøftType,
 )
 
-enum class OppreisningsStolLøftType {
-    SKRÅLØFT,
-    RETTLØFT,
-}
-
-enum class OppreisningsStolBruksområde {
-    EGEN_BOENHET,
-    FELLESAREAL,
-}
-
-enum class OppreisningsStolBehov {
-    OPPGAVER_I_DAGLIGLIVET,
-    PLEID_I_HJEMMET,
-    FLYTTE_MELLOM_STOL_OG_RULLESTOL,
-}
-
-enum class SideBetjeningsPanelPosisjon {
-    HØYRE,
-    VENSTRE,
-}
-
 data class DiverseInfo(
-    val takhoydeStottestangCm: Int? = null,
+    @JsonProperty("takhoydeStottestangCm")
+    val takhøydeStøttestangCm: Int? = null,
     val sitteputeSkalBrukesIRullestolFraNav: Boolean? = null,
 )
 
@@ -283,11 +199,6 @@ data class PosisjoneringsputeForBarnInfo(
     val planenOppbevaresIKommunen: Boolean?,
 )
 
-enum class PosisjoneringsputeForBarnBruk {
-    TILRETTELEGGE_UTGANGSSTILLING,
-    TRENING_AKTIVITET_STIMULERING,
-}
-
 data class PosisjoneringssystemInfo(
     val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
     val skalIkkeBrukesTilRenSmertelindring: Boolean?,
@@ -295,32 +206,6 @@ data class PosisjoneringssystemInfo(
     val oppgaverIDagliglivet: List<PosisjoneringsputeOppgaverIDagligliv>?,
     val oppgaverIDagliglivetAnnet: String?,
 )
-
-enum class PosisjoneringsputeBehov {
-    STORE_LAMMELSER,
-    DIREKTE_AVHJELPE_I_DAGLIGLIVET,
-}
-
-enum class PosisjoneringsputeOppgaverIDagligliv {
-    SPISE_DRIKKE_OL,
-    BRUKE_DATAUTSTYR,
-    FØLGE_OPP_BARN,
-    HOBBY_FRITID_U26,
-    ANNET,
-}
-
-enum class BruksområdeGanghjelpemiddel {
-    TIL_FORFLYTNING,
-    TIL_TRENING_OG_ANNET,
-}
-
-enum class GanghjelpemiddelType {
-    GÅBORD,
-    SPARKESYKKEL,
-    KRYKKE,
-    GÅTRENING,
-    GÅSTOL,
-}
 
 data class GanghjelpemiddelInfo(
     val brukerErFylt26År: Boolean?,
@@ -353,9 +238,12 @@ data class SengeInfo(
 )
 
 data class AppInfo(
-    val brukerHarProvdProvelisens: Boolean,
-    val stottepersonSkalAdministrere: Boolean,
-    val stottepersonHarProvdProvelisens: Boolean?,
+    @JsonProperty("brukerHarProvdProvelisens")
+    val brukerHarPrøvdPrøvelisens: Boolean,
+    @JsonProperty("stottepersonSkalAdministrere")
+    val støttepersonSkalAdministrere: Boolean,
+    @JsonProperty("stottepersonHarProvdProvelisens")
+    val støttepersonHarPrøvdPrøvelisens: Boolean?,
 )
 
 data class VarmehjelpemiddelInfo(
@@ -380,12 +268,14 @@ data class ElektriskRullestolInfo(
 
 data class Kabin(
     val brukerOppfyllerKrav: Boolean,
-    val kanIkkeAvhjelpesMedEnklereArsak: String?,
+    @JsonProperty("kanIkkeAvhjelpesMedEnklereArsak")
+    val kanIkkeAvhjelpesMedEnklereÅrsak: String?,
     val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
-    val arsakForBehovBegrunnelse: String?,
+    @JsonProperty("arsakForBehovBegrunnelse")
+    val årsakForBehovBegrunnelse: String?,
 )
 
-data class PersonlofterInfo(
+data class PersonløfterInfo(
     val harBehovForSeilEllerSele: Boolean,
 )
 
@@ -400,30 +290,9 @@ data class UtlevertInfo(
     val annenKommentar: String?,
 )
 
-enum class PlasseringType {
-    Venstre,
-    Høyre,
-}
-
-enum class UtlevertType {
-    FremskuttLager,
-    Korttidslån,
-    Overført,
-    Annet,
-}
-
-enum class SitteputeValg {
-    TrengerSittepute,
-    HarFraFor,
-}
-
-enum class MadrassValg {
-    TrengerMadrass,
-    HarFraFor,
-}
-
 data class HøyGrindValg(
-    val erKjentMedTvangsAspekt: Boolean,
+    @JsonProperty("erKjentMedTvangsAspekt")
+    val erKjentMedTvangsaspekt: Boolean,
     val harForsøktOpptrening: Boolean,
     val harIkkeForsøktOpptreningBegrunnelse: String?,
     val erLagetPlanForOppfølging: Boolean,
@@ -433,22 +302,20 @@ data class Tilbehor(
     val hmsnr: String,
     val antall: Int?,
     val navn: String,
-    val automatiskGenerert: AutomatiskGenerertTilbehor?,
+    val automatiskGenerert: AutomatiskGenerertTilbehør?,
     val brukAvForslagsmotoren: BrukAvForslagsmotoren?,
 )
-
-enum class AutomatiskGenerertTilbehor {
-    Sittepute,
-}
 
 data class BrukAvForslagsmotoren(
     val lagtTilFraForslagsmotoren: Boolean,
     val oppslagAvNavn: Boolean,
 )
 
-data class HjelpemiddelVilkar(
-    val vilkartekst: String,
-    val checked: Boolean,
+data class HjelpemiddelVilkår(
+    @JsonProperty("vilkartekst")
+    val vilkårstekst: String,
+    @JsonProperty("checked")
+    val avhuket: Boolean,
     val kreverTilleggsinfo: Boolean?,
     val tilleggsinfo: String?,
 )

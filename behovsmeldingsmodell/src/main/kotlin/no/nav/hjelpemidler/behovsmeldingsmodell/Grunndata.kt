@@ -1,6 +1,7 @@
-package no.nav.hjelpemidler.soknad.modell
+package no.nav.hjelpemidler.behovsmeldingsmodell
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 
 data class HjelpemiddelProdukt(
     val stockid: String?,
@@ -21,9 +22,10 @@ data class HjelpemiddelProdukt(
     val isotitle: String?,
     var kategori: String?,
     @JsonAlias("technicalData", "techdata", "Techdata")
-    var techdata: Array<Techdata>? = emptyArray(),
+    var techdata: List<Techdata>? = emptyList(),
     var techdataAsText: String?,
-    var paakrevdGodkjenningskurs: PaakrevdGodkjenningsKurs?,
+    @JsonProperty("paakrevdGodkjenningskurs")
+    var påkrevdGodkjenningskurs: PåkrevdGodkjenningskurs?,
 )
 
 data class Techdata(
@@ -32,14 +34,15 @@ data class Techdata(
     val techdataunit: String?,
 )
 
-data class PaakrevdGodkjenningsKurs(
+data class PåkrevdGodkjenningskurs(
     val kursId: Int?,
     val tittel: String?,
     val isokode: String?,
-    val formidlersGjennomforing: FormidlersGjennomforingAvKurs?,
+    @JsonProperty("formidlersGjennomforing")
+    val formidlersGjennomføring: FormidlersGjennomføringAvKurs?,
 )
 
-enum class FormidlersGjennomforingAvKurs {
+enum class FormidlersGjennomføringAvKurs {
     GODKJENNINGSKURS_DB,
     VALGT_AV_FORMIDLER,
 }
