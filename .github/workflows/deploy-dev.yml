@@ -71,3 +71,8 @@ jobs:
           body: ${{ env.CHANGE_LOG }}
           draft: true
           prerelease: false
+
+      - name: Publiser behovsmeldingsmodell
+        run: ./gradlew :behovsmeldingsmodell:publish --no-daemon
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

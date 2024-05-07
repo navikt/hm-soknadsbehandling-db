@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "no.nav.hjelpemidler"
-version = System.getenv("GITHUB_REF_NAME") ?: "local"
+version = System.getenv("VERSION_TAG") ?: "local"
 
 dependencies {
 }
