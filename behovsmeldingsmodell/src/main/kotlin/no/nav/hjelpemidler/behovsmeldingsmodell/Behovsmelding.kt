@@ -139,7 +139,7 @@ data class HjelpemiddelItem(
     @JsonProperty("vilkarliste")
     val vilkår: List<HjelpemiddelVilkår>? = null,
     @JsonProperty("tilbehorListe")
-    val tilbehør: List<Tilbehor>? = null,
+    val tilbehør: List<Tilbehør>? = null,
     @JsonProperty("begrunnelsen") // hvorfor bestemt form?
     val begrunnelse: String? = null,
     @JsonProperty("kanIkkeTilsvarande") // nynorsk
@@ -298,7 +298,7 @@ data class HøyGrindValg(
     val erLagetPlanForOppfølging: Boolean,
 )
 
-data class Tilbehor(
+data class Tilbehør(
     val hmsnr: String,
     val antall: Int?,
     val navn: String,
