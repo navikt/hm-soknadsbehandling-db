@@ -2,9 +2,8 @@ package no.nav.hjelpemidler.soknad.db.rolle
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.headers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -16,23 +15,19 @@ private val logger = KotlinLogging.logger { }
 
 class RolleClient(
     private val tokendingsService: TokendingsService,
-    private val client: HttpClient = httpClient(),
     private val url: String = Configuration.application.hmRollerUrl,
     private val audience: String = Configuration.application.hmRollerAudience,
 ) {
-    suspend fun hentRolle(token: String): RolleResultat {
-        val exchangedToken = tokendingsService.exchangeToken(token, audience)
+    private val client: HttpClient = httpClient()
 
+    suspend fun hentRolle(token: String): RolleResultat {
         return try {
             withContext(Dispatchers.IO) {
-                client.get("$url/api/roller") {
-                    headers {
-                        header("Authorization", "Bearer $exchangedToken")
-                    }
-                }.body()
+                val exchangedToken = tokendingsService.exchangeToken(token, audience)
+                client.get("$url/api/roller") { bearerAuth(exchangedToken) }.body<RolleResultat>()
             }
         } catch (e: Exception) {
-            logger.error(e) { "Henting av rolle feilet" }
+            logger.error(e) { "Henting av roller feilet" }
             throw e
         }
     }
