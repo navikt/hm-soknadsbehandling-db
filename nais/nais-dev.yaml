@@ -7,7 +7,7 @@ metadata:
   name: hm-soknadsbehandling-db
   namespace: teamdigihot
 spec:
-  image: {{ image }}
+  image: { { image } }
   envFrom:
     - secret: hm-influxdb-secret
     - secret: hm-slack-hook
@@ -42,6 +42,9 @@ spec:
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
         - application: hm-oppgave-sink
+        - application: azure-token-generator
+          namespace: aura
+          cluster: dev-gcp
     outbound:
       rules:
         - application: hm-grunndata-search
