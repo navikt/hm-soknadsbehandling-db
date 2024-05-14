@@ -7,6 +7,8 @@ group = "no.nav.hjelpemidler"
 version = System.getenv("VERSION_TAG") ?: "local"
 
 dependencies {
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.bundles.jackson)
 }
 
 java { withSourcesJar() }

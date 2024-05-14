@@ -10,6 +10,8 @@ application {
 }
 
 dependencies {
+    implementation(project(":behovsmeldingsmodell"))
+
     // DigiHoT
     implementation(libs.hm.http) {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache

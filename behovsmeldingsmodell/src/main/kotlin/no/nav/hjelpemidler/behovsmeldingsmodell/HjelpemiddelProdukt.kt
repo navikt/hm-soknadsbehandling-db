@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class HjelpemiddelProdukt(
+    /**
+     * Hmsnr.
+     */
     val stockid: String?,
     val artid: String?,
     val prodid: String?,
@@ -21,28 +24,33 @@ data class HjelpemiddelProdukt(
     val isocode: String?,
     val isotitle: String?,
     var kategori: String?,
+    @JsonProperty("techdata")
     @JsonAlias("technicalData", "techdata", "Techdata")
-    var techdata: List<Techdata>? = emptyList(),
-    var techdataAsText: String?,
+    var technicalData: List<TechnicalDatum> = emptyList(),
+    @JsonProperty("techdataAsText")
+    var technicalDataAsText: String?,
     @JsonProperty("paakrevdGodkjenningskurs")
     var påkrevdGodkjenningskurs: PåkrevdGodkjenningskurs?,
-)
+) {
+    data class TechnicalDatum(
+        @JsonProperty("techlabeldk")
+        val label: String?,
+        @JsonProperty("datavalue")
+        val value: String?,
+        @JsonProperty("techdataunit")
+        val unit: String?,
+    )
 
-data class Techdata(
-    val techlabeldk: String?,
-    val datavalue: String?,
-    val techdataunit: String?,
-)
+    data class PåkrevdGodkjenningskurs(
+        val kursId: String?,
+        val tittel: String?,
+        val isokode: String?,
+        @JsonProperty("formidlersGjennomforing")
+        val formidlersGjennomføring: FormidlersGjennomføringAvKurs?,
+    )
 
-data class PåkrevdGodkjenningskurs(
-    val kursId: Int?,
-    val tittel: String?,
-    val isokode: String?,
-    @JsonProperty("formidlersGjennomforing")
-    val formidlersGjennomføring: FormidlersGjennomføringAvKurs?,
-)
-
-enum class FormidlersGjennomføringAvKurs {
-    GODKJENNINGSKURS_DB,
-    VALGT_AV_FORMIDLER,
+    enum class FormidlersGjennomføringAvKurs {
+        GODKJENNINGSKURS_DB,
+        VALGT_AV_FORMIDLER,
+    }
 }

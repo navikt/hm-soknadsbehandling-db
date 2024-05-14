@@ -1,10 +1,35 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 enum class BehovsmeldingType {
     SØKNAD,
     BESTILLING,
     BYTTE,
     BRUKERPASSBYTTE,
+}
+
+enum class BehovsmeldingStatus {
+    VENTER_GODKJENNING,
+    GODKJENT_MED_FULLMAKT,
+    INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+    BRUKERPASSBYTTE_INNSENDT,
+    GODKJENT,
+    SLETTET,
+    UTLØPT,
+    ENDELIG_JOURNALFØRT,
+    BESTILLING_FERDIGSTILT,
+    BESTILLING_AVVIST,
+    VEDTAKSRESULTAT_INNVILGET,
+    VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+    VEDTAKSRESULTAT_DELVIS_INNVILGET,
+    VEDTAKSRESULTAT_AVSLÅTT,
+    VEDTAKSRESULTAT_ANNET,
+    UTSENDING_STARTET,
+    VEDTAKSRESULTAT_HENLAGTBORTFALT,
+    ;
+
+    fun isSlettetEllerUtløpt(): Boolean = this == SLETTET || this == UTLØPT
 }
 
 enum class InnsenderRolle {
@@ -28,8 +53,15 @@ enum class Brukerkilde {
 enum class BrukersituasjonVilkår {
     PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
     VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
-    KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1,
-    I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1,
+
+    @JsonProperty("KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1")
+    KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1,
+
+    /**
+     * NB! Det var en skrivefeil i denne, derfor @JsonProperty.
+     */
+    @JsonProperty("I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1")
+    I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
 }
 
 enum class LeveringTilleggsinfo {
@@ -38,23 +70,37 @@ enum class LeveringTilleggsinfo {
 }
 
 enum class Oppfølger {
-    Hjelpemiddelformidler,
-    NoenAndre,
+    @JsonProperty("Hjelpemiddelformidler")
+    HJELPEMIDDELFORMIDLER,
+
+    @JsonProperty("NoenAndre")
+    NOEN_ANDRE,
 }
 
 enum class Kontaktperson {
-    Hjelpemiddelbruker,
-    Hjelpemiddelformidler,
-    AnnenKontaktperson,
+    @JsonProperty("Hjelpemiddelbruker")
+    HJELPEMIDDELBRUKER,
+
+    @JsonProperty("Hjelpemiddelformidler")
+    HJELPEMIDDELFORMIDLER,
+
+    @JsonProperty("AnnenKontaktperson")
+    ANNEN_KONTAKTPERSON,
 }
 
 enum class Utleveringsmåte {
-    FolkeregistrertAdresse,
-    AnnenBruksadresse,
-    Hjelpemiddelsentralen,
+    @JsonProperty("FolkeregistrertAdresse")
+    FOLKEREGISTRERT_ADRESSE,
+
+    @JsonProperty("AnnenBruksadresse")
+    ANNEN_BRUKSADRESSE,
+
+    @JsonProperty("Hjelpemiddelsentralen")
+    HJELPEMIDDELSENTRALEN,
 
     @Deprecated("Bruke ikke lenger")
-    AlleredeUtlevertAvNav,
+    @JsonProperty("AlleredeUtlevertAvNav")
+    ALLEREDE_UTLEVERT_AV_NAV,
 }
 
 enum class Hasteårsak {
@@ -68,7 +114,9 @@ enum class Bruksarena {
     EGET_HJEM_IKKE_AVLASTNING,
     OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
     BARNEHAGE,
-    GRUNN_ELLER_VIDEREGÅENDESKOLE,
+
+    @JsonProperty("GRUNN_ELLER_VIDEREGÅENDESKOLE")
+    GRUNN_ELLER_VIDEREGÅENDE_SKOLE,
     SKOLEFRITIDSORDNING,
     INSTITUSJON,
     INSTITUSJON_BARNEBOLIG,
@@ -136,27 +184,44 @@ enum class GanghjelpemiddelType {
 }
 
 enum class PlasseringType {
-    Venstre,
-    Høyre,
+    @JsonProperty("Venstre")
+    VENSTRE,
+
+    @JsonProperty("Høyre")
+    HØYRE,
 }
 
 enum class UtlevertType {
-    FremskuttLager,
-    Korttidslån,
-    Overført,
-    Annet,
+    @JsonProperty("FremskuttLager")
+    FREMSKUTT_LAGER,
+
+    @JsonProperty("Korttidslån")
+    KORTTIDSLÅN,
+
+    @JsonProperty("Overført")
+    OVERFØRT,
+
+    @JsonProperty("Annet")
+    ANNET,
 }
 
 enum class SitteputeValg {
-    TrengerSittepute,
-    HarFraFor,
+    @JsonProperty("TrengerSittepute")
+    TRENGER_SITTEPUTE,
+
+    @JsonProperty("HarFraFor")
+    HAR_FRA_FØR,
 }
 
 enum class MadrassValg {
-    TrengerMadrass,
-    HarFraFor,
+    @JsonProperty("TrengerMadrass")
+    TRENGER_MADRASS,
+
+    @JsonProperty("HarFraFor")
+    HAR_FRA_FØR,
 }
 
 enum class AutomatiskGenerertTilbehør {
-    Sittepute,
+    @JsonProperty("Sittepute")
+    SITTEPUTE,
 }

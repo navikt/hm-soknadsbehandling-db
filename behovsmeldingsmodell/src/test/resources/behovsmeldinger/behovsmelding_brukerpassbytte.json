@@ -1,0 +1,34 @@
+{
+  "fnrBruker": "03847797958",
+  "navnBruker": "Nonfigurativ Sau",
+  "fnrInnsender": "03847797958",
+  "soknadId": "867f984f-daed-4cc0-bda3-137eddf7a53b",
+  "soknad": {
+    "id": "867f984f-daed-4cc0-bda3-137eddf7a53b",
+    "brukerpassbytte": {
+      "id": "867f984f-daed-4cc0-bda3-137eddf7a53b",
+      "fnr": "03847797958",
+      "dato": "2024-03-01",
+      "brukersNavn": "Nonfigurativ Sau",
+      "bytteårsak": "ANNEN_ÅRSAK",
+      "hjelpemiddel": {
+        "navn": "Svarovsky AB Mobilitystokk T2 125",
+        "artnr": "174378",
+        "kategori": "Stokker for mobility og markering",
+        "kategorinummer": "123903"
+      },
+      "byttebegrunnelse": "annen årsak",
+      "utleveringsmåte": "FOLKEREGISTRERT_ADRESSE",
+      "folkeregistrertAdresse": {
+        "postnr": "9801",
+        "adresse": "Mosvingen 18",
+        "poststed": "Vadsø"
+      }
+    },
+    "behovsmeldingType": "BRUKERPASSBYTTE"
+  },
+  "status": "BRUKERPASSBYTTE_INNSENDT",
+  "kommunenavn": null,
+  "er_digital": true,
+  "soknadGjelder": "Bytte av: stokk"
+}

@@ -1,0 +1,169 @@
+{
+  "fnrBruker": "26928698180",
+  "navnBruker": "From Andrik",
+  "fnrInnsender": "13820599335",
+  "soknadId": "57e11e54-a375-401a-bba0-7278c713adfc",
+  "soknad": {
+    "id": "57e11e54-a375-401a-bba0-7278c713adfc",
+    "soknad": {
+      "id": "57e11e54-a375-401a-bba0-7278c713adfc",
+      "date": "2024-05-08",
+      "bruker": {
+        "kilde": "PDL",
+        "adresse": "Fjellvegen 102 B",
+        "fnummer": "26928698180",
+        "fornavn": "From",
+        "poststed": "Nordfjordeid",
+        "signatur": "FULLMAKT",
+        "etternavn": "Andrik",
+        "kroppsmaal": {},
+        "postnummer": "6770",
+        "kommunenummer": "4649",
+        "telefonNummer": "11223344"
+      },
+      "levering": {
+        "hmfEpost": "kf@stad.kommune.no",
+        "hmfPostnr": "6770",
+        "hmfFornavn": "Kvadratisk",
+        "hmfTelefon": "13820599",
+        "opfFornavn": "",
+        "opfTelefon": "",
+        "hmfPoststed": "NORDFJORDEID",
+        "hmfStilling": "Fysioterapetut",
+        "opfStilling": "",
+        "hmfEtternavn": "Faktura",
+        "opfAnsvarFor": "",
+        "opfEtternavn": "",
+        "tilleggsinfo": [],
+        "hmfArbeidssted": "Stad Fysioterapi",
+        "hmfPostadresse": "Fjellvegen 69",
+        "opfArbeidssted": "",
+        "opfRadioButton": "Hjelpemiddelformidler",
+        "utleveringPostnr": "",
+        "hmfTreffesEnklest": "man-ons kl 08-15",
+        "utleveringFornavn": "annen",
+        "utleveringTelefon": "88776655",
+        "utleveringPoststed": "",
+        "utleveringEtternavn": "kontaktperson",
+        "merknadTilUtlevering": "",
+        "utleveringPostadresse": "",
+        "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
+        "utleveringskontaktpersonRadioButton": "AnnenKontaktperson"
+      },
+      "innsender": {
+        "somRolle": "FORMIDLER",
+        "organisasjoner": [
+          {
+            "navn": "EVIG SLAKK HEST BORETTSLAG",
+            "orgnr": "310627658",
+            "orgform": "BRL",
+            "kommunenummer": "0301",
+            "næringskoder": []
+          },
+          {
+            "navn": "INTERESSERT HUMORISTISK TIGER AS",
+            "orgnr": "311706926",
+            "orgform": "AS",
+            "kommunenummer": "3203",
+            "næringskoder": []
+          },
+          {
+            "navn": "PUSSIG SOSIAL KATT JENTE",
+            "orgnr": "311700863",
+            "orgform": "ENK",
+            "kommunenummer": "4649",
+            "næringskoder": []
+          }
+        ],
+        "godkjenningskurs": []
+      },
+      "hjelpemidler": {
+        "hjelpemiddelListe": [
+          {
+            "navn": "Topro terskeleliminator",
+            "hmsNr": "014116",
+            "antall": 1,
+            "bytter": [],
+            "produkt": {
+              "artid": "HMDB-65058",
+              "newsid": "e86fd988-0381-4d0a-a027-7654e2d8dbab",
+              "prodid": "HMDB-30418",
+              "apostid": "HMDB-1196",
+              "apostnr": "1",
+              "artname": "Topro terskeleliminator",
+              "isocode": "18301505",
+              "stockid": "014116",
+              "isotitle": "Terskeleliminatorer",
+              "kategori": "Terskeleliminatorer og ramper",
+              "postrank": "1",
+              "prodname": "Topro Terskeleliminator",
+              "techdata": [],
+              "aposttitle": "1: Terskeleliminator - påkjøring fra en side, for innendørs og begrenset utendørs bruk",
+              "pshortdesc": "Terskeliminator med påkjøring fra en side. Produsert i aluminium med sklisikker overflate. Leveres i bredder fra 70 - 90 cm. og høyder fra 1,5 - 16 cm. Festes med skruer eller dobbeltsidig tape.",
+              "techdataAsText": "Påkjøring forfra JA, Påkjøring begge sider NEI, Bredde 70cm, Lengde min 42cm, Lengde maks 42cm, Terskelhøyde min 9.5cm, Terskelhøyde maks 11cm, Vekt 4.5kg, Belastning maks 350kg, Fastmontert JA, Festemåte fastmontert, Materiale aluminium, Sklisikker overflate JA"
+            },
+            "uniqueKey": "0141161715174308400",
+            "bruksarena": [
+              "EGET_HJEM"
+            ],
+            "beskrivelse": "Topro terskeleliminator",
+            "begrunnelsen": "",
+            "utlevertInfo": {},
+            "tilbehorListe": [],
+            "vilkaroverskrift": "",
+            "kanIkkeTilsvarande": "false",
+            "tilleggsinformasjon": "",
+            "hjelpemiddelkategori": "Terskeleliminatorer og ramper",
+            "utlevertFraHjelpemiddelsentralen": false
+          }
+        ],
+        "hjelpemiddelTotaltAntall": 1
+      },
+      "brukersituasjon": {
+        "bekreftedeVilkår": [
+          "PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1",
+          "VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1",
+          "KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1",
+          "I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1"
+        ],
+        "nedsattFunksjonTypes": {
+          "horsel": false,
+          "bevegelse": true,
+          "kognisjon": false
+        }
+      }
+    },
+    "behovsmeldingType": "SØKNAD",
+    "bestillingsordningsjekk": {
+      "version": "0e41b22fd013180643af7a2b300e931cd8964298",
+      "metaInfo": {
+        "tilbehør": [],
+        "hovedProdukter": [
+          "014116"
+        ],
+        "tilbehørIkkePåBestillingsordning": [],
+        "hovedProdukterIkkePåBestillingsordning": []
+      },
+      "kriterier": {
+        "kildeErPdl": true,
+        "harIngenBytter": true,
+        "brukersAdresseErSatt": true,
+        "brukerBorIkkeIUtlandet": true,
+        "inneholderIkkeFritekst": false,
+        "brukerErIkkeSkjermetPerson": true,
+        "harIkkeForMangeOrdrelinjer": true,
+        "brukerHarHotsakVedtakFraFør": true,
+        "ingenProdukterErAlleredeUtlevert": true,
+        "leveringTilFolkeregistrertAdresse": true,
+        "alleTilbehørPåBestillingsOrdning": true,
+        "signaturtypeErIkkeBrukerbekreftelse": true,
+        "alleHovedProdukterPåBestillingsOrdning": true
+      },
+      "kanVæreBestilling": false
+    }
+  },
+  "status": "ENDELIG_JOURNALFØRT",
+  "kommunenavn": null,
+  "er_digital": true,
+  "soknadGjelder": "Søknad om: terskeleliminator"
+}

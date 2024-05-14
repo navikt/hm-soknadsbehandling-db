@@ -1,4 +1,3 @@
-import gradle.kotlin.dsl.accessors._0eff37d95dcaaf81e6e5b447e8f4d697.implementation
 import org.gradle.accessors.dm.LibrariesForLibs
 
 plugins {

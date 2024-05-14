@@ -3,6 +3,9 @@ package no.nav.hjelpemidler.soknad.db.domain
 import java.sql.Timestamp
 import java.util.UUID
 
+/**
+ * @see [no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus]
+ */
 enum class Status {
     VENTER_GODKJENNING,
     GODKJENT_MED_FULLMAKT,

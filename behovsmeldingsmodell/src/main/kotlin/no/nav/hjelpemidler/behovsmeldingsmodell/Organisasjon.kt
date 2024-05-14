@@ -7,9 +7,9 @@ data class Organisasjon(
     val overordnetOrgnr: String? = null,
     val næringskoder: List<Næringskode> = emptyList(),
     val kommunenummer: String? = null,
-)
-
-data class Næringskode(
-    val kode: String,
-    val beskrivelse: String = "",
-)
+) {
+    data class Næringskode(
+        val kode: String,
+        val beskrivelse: String = "",
+    )
+}

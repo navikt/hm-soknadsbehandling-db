@@ -3,6 +3,9 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.UUID
 
+/**
+ * @see [no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingResponse]
+ */
 data class SoknadData(
     val fnrBruker: String,
     val navnBruker: String,

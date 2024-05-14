@@ -2,31 +2,33 @@ package no.nav.hjelpemidler.behovsmeldingsmodell
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.time.LocalDate
 import java.util.UUID
 
 data class Behovsmelding(
-    val id: UUID,
-    val behovsmeldingType: BehovsmeldingType,
+    val behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
     val bestillingsordningsjekk: Bestillingsordningsjekk? = null,
     @JsonProperty("soknad")
     val søknad: Søknad? = null,
     val brukerpassbytte: Brukerpassbytte? = null,
+    val id: UUID? = søknad?.id,
 )
 
 data class Søknad(
     val id: UUID,
     val bruker: Bruker,
     val brukersituasjon: Brukersituasjon,
-    val date: String?,
+    @JsonProperty("date")
+    val dato: LocalDate?,
     val hjelpemidler: Hjelpemidler,
     val levering: Levering,
-    val innsender: Innsender,
-    val erHast: Boolean = false, // = false for bakoverkompabilitet. kan fjernes etter lansering
+    val innsender: Innsender?,
+    val erHast: Boolean = false, // = false for bakoverkompatibilitet, kan fjernes etter lansering
 )
 
 data class Innsender(
-    val godkjenningskurs: List<Godkjenningskurs>?,
-    val organisasjoner: List<Organisasjon>?,
+    val godkjenningskurs: List<Godkjenningskurs> = emptyList(),
+    val organisasjoner: List<Organisasjon> = emptyList(),
     val somRolle: InnsenderRolle,
 )
 
@@ -42,7 +44,7 @@ data class Bruker(
     val fornavn: String,
     val etternavn: String,
     @JsonProperty("signatur")
-    val signaturtype: Signaturtype,
+    val signaturtype: Signaturtype?,
     @JsonProperty("telefonNummer")
     val telefonnummer: String,
     val adresse: String?,
@@ -55,7 +57,7 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
 ) {
-    val navn: Navn @JsonIgnore get() = Navn(fornavn, etternavn)
+    val navn: Personnavn @JsonIgnore get() = Personnavn(fornavn, etternavn)
 }
 
 data class Kroppsmål(
@@ -69,7 +71,7 @@ data class Kroppsmål(
 )
 
 data class Brukersituasjon(
-    val bekreftedeVilkår: List<BrukersituasjonVilkår>,
+    val bekreftedeVilkår: List<BrukersituasjonVilkår> = emptyList(),
     @JsonProperty("nedsattFunksjonTypes")
     val funksjonsnedsettelser: Funksjonsnedsettelser,
 )
@@ -162,7 +164,7 @@ data class HjelpemiddelItem(
     val oppreisningsstolInfo: OppreisningsstolInfo? = null,
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
-    val bruksarena: List<Bruksarena>,
+    val bruksarena: List<Bruksarena> = emptyList(),
     val hasteårsaker: List<Hasteårsak> = emptyList(),
 )
 
