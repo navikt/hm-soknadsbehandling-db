@@ -69,12 +69,15 @@ enum class LeveringTilleggsinfo {
     ALLE_HJELPEMIDLER_ER_UTLEVERT,
 }
 
-enum class Oppfølger {
+/**
+ * Oppfølgings- og opplæringsansvarlig
+ */
+enum class Oppfølgingsansvarlig {
     @JsonProperty("Hjelpemiddelformidler")
     HJELPEMIDDELFORMIDLER,
 
     @JsonProperty("NoenAndre")
-    NOEN_ANDRE,
+    ANNEN_OPPFØLGINGSANSVARLIG,
 }
 
 enum class Kontaktperson {
@@ -98,7 +101,7 @@ enum class Utleveringsmåte {
     @JsonProperty("Hjelpemiddelsentralen")
     HJELPEMIDDELSENTRALEN,
 
-    @Deprecated("Bruke ikke lenger")
+    @Deprecated("Brukes ikke i digital behovsmelding lenger")
     @JsonProperty("AlleredeUtlevertAvNav")
     ALLEREDE_UTLEVERT_AV_NAV,
 }

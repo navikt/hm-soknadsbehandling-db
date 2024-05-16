@@ -57,7 +57,8 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
 ) {
-    val navn: Personnavn @JsonIgnore get() = Personnavn(fornavn, etternavn)
+    val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn)
+    val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)
 }
 
 data class Kroppsmål(
@@ -85,45 +86,174 @@ data class Funksjonsnedsettelser(
 
 data class Hjelpemidler(
     @JsonProperty("hjelpemiddelListe")
-    val hjelpemidler: List<HjelpemiddelItem>,
+    val hjelpemidler: List<Hjelpemiddel>,
     @JsonProperty("hjelpemiddelTotaltAntall")
     val totaltAntall: Int,
 )
 
 data class Levering(
-    val hmfArbeidssted: String,
-    val hmfEpost: String,
-    val hmfFornavn: String,
-    val hmfEtternavn: String,
-    val hmfPostadresse: String,
-    val hmfPostnr: String,
-    val hmfPoststed: String,
-    val hmfStilling: String,
-    val hmfTelefon: String,
-    val hmfTreffesEnklest: String,
-    val merknadTilUtlevering: String,
-    val opfAnsvarFor: String?,
-    val opfArbeidssted: String?,
-    val opfFornavn: String?,
-    val opfEtternavn: String?,
+    // Hjelpemiddelformidler
+
+    @JsonProperty("hmfFornavn")
+    private val hjelpemiddelformidlerFornavn: String,
+    @JsonProperty("hmfEtternavn")
+    val hjelpemiddelformidlerEtternavn: String,
+    @JsonProperty("hmfArbeidssted")
+    val hjelpemiddelformidlerArbeidssted: String,
+    @JsonProperty("hmfStilling")
+    val hjelpemiddelformidlerStilling: String,
+    @JsonProperty("hmfTelefon")
+    val hjelpemiddelformidlerTelefon: String,
+    @JsonProperty("hmfEpost")
+    val hjelpemiddelformidlerEpost: String,
+    @JsonProperty("hmfPostadresse")
+    val hjelpemiddelformidlerPostadresse: String,
+    @JsonProperty("hmfPostnr")
+    val hjelpemiddelformidlerPostnummer: String,
+    @JsonProperty("hmfPoststed")
+    val hjelpemiddelformidlerPoststed: String,
+    @JsonProperty("hmfTreffesEnklest")
+    val hjelpemiddelformidlerTreffesEnklest: String,
+
+    // Oppfølgingsansvarlig
+
     @JsonProperty("opfRadioButton")
-    val opf: Oppfølger,
-    val opfStilling: String?,
-    val opfTelefon: String?,
-    val utleveringFornavn: String?,
-    val utleveringEtternavn: String?,
-    val utleveringPostadresse: String?,
-    val utleveringPostnr: String?,
-    val utleveringPoststed: String?,
-    val utleveringTelefon: String?,
-    @JsonProperty("utleveringskontaktpersonRadioButton")
-    val utleveringKontaktperson: Kontaktperson?,
+    val oppfølgingsansvarlig: Oppfølgingsansvarlig,
+
+    // Oppfølgingsansvarlig -> Annen person er ansvarlig
+
+    @JsonProperty("opfFornavn")
+    val oppfølgingsansvarligFornavn: String?,
+    @JsonProperty("opfEtternavn")
+    val oppfølgingsansvarligEtternavn: String?,
+    @JsonProperty("opfArbeidssted")
+    val oppfølgingsansvarligArbeidssted: String?,
+    @JsonProperty("opfStilling")
+    val oppfølgingsansvarligStilling: String?,
+    @JsonProperty("opfTelefon")
+    val oppfølgingsansvarligTelefon: String?,
+    @JsonProperty("opfAnsvarFor")
+    val oppfølgingsansvarligAnsvarFor: String?,
+
+    // Utleveringsmåte
+
     @JsonProperty("utleveringsmaateRadioButton")
     val utleveringsmåte: Utleveringsmåte?,
-    val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
-)
 
-data class HjelpemiddelItem(
+    // Utleveringsmåte -> Kontaktperson
+
+    @JsonProperty("utleveringskontaktpersonRadioButton")
+    val utleveringKontaktperson: Kontaktperson?,
+
+    // Utleveringsmåte -> Annen kontaktperson
+
+    val utleveringFornavn: String?,
+    val utleveringEtternavn: String?,
+    val utleveringTelefon: String?,
+
+    // Utleveringsmåte -> Annen utleveringsadresse
+
+    val utleveringPostadresse: String?,
+    @JsonProperty("utleveringPostnr")
+    val utleveringPostnummer: String?,
+    val utleveringPoststed: String?,
+
+    // Kommentarer til utlevering
+
+    @JsonProperty("merknadTilUtlevering")
+    val utleveringMerknad: String,
+
+    // Tilleggsinformasjon
+
+    val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
+) {
+    val hjelpemiddelformidler: Hjelpemiddelformidler
+        @JsonIgnore
+        get() = Hjelpemiddelformidler(
+            navn = lagPersonnavn(
+                fornavn = hjelpemiddelformidlerFornavn,
+                etternavn = hjelpemiddelformidlerEtternavn,
+            ),
+            arbeidssted = hjelpemiddelformidlerArbeidssted,
+            stilling = hjelpemiddelformidlerStilling,
+            telefon = hjelpemiddelformidlerTelefon,
+            adresse = lagVeiadresse(
+                adresse = hjelpemiddelformidlerPostadresse,
+                postnummer = hjelpemiddelformidlerPostnummer,
+                poststed = hjelpemiddelformidlerPoststed,
+            ),
+            epost = hjelpemiddelformidlerEpost,
+            treffesEnklest = hjelpemiddelformidlerTreffesEnklest,
+        )
+
+    val annenOppfølgingsansvarlig: AnnenOppfølgingsansvarlig?
+        @JsonIgnore
+        get() = if (oppfølgingsansvarlig != Oppfølgingsansvarlig.ANNEN_OPPFØLGINGSANSVARLIG) {
+            null
+        } else {
+            AnnenOppfølgingsansvarlig(
+                navn = lagPersonnavn(
+                    fornavn = checkNotNull(oppfølgingsansvarligFornavn),
+                    etternavn = checkNotNull(oppfølgingsansvarligEtternavn),
+                ),
+                arbeidssted = checkNotNull(oppfølgingsansvarligArbeidssted),
+                stilling = checkNotNull(oppfølgingsansvarligStilling),
+                telefon = checkNotNull(oppfølgingsansvarligTelefon),
+                ansvarFor = checkNotNull(oppfølgingsansvarligAnsvarFor),
+            )
+        }
+
+    val annenKontaktperson: AnnenKontaktperson?
+        @JsonIgnore
+        get() = if (utleveringKontaktperson != Kontaktperson.ANNEN_KONTAKTPERSON) {
+            null
+        } else {
+            AnnenKontaktperson(
+                navn = lagPersonnavn(
+                    fornavn = checkNotNull(utleveringFornavn),
+                    etternavn = checkNotNull(utleveringEtternavn),
+                ),
+                telefon = checkNotNull(utleveringTelefon),
+            )
+        }
+
+    val annenUtleveringsadresse: Veiadresse?
+        @JsonIgnore
+        get() = if (utleveringsmåte != Utleveringsmåte.ANNEN_BRUKSADRESSE) {
+            null
+        } else {
+            lagVeiadresse(
+                adresse = checkNotNull(utleveringPostadresse),
+                postnummer = checkNotNull(utleveringPostnummer),
+                poststed = checkNotNull(utleveringPoststed),
+            )
+        }
+
+    data class Hjelpemiddelformidler(
+        override val navn: Personnavn,
+        val arbeidssted: String,
+        val stilling: String,
+        val telefon: String,
+        val adresse: Veiadresse,
+        val epost: String,
+        val treffesEnklest: String,
+    ) : HarPersonnavn
+
+    data class AnnenOppfølgingsansvarlig(
+        override val navn: Personnavn,
+        val arbeidssted: String,
+        val stilling: String,
+        val telefon: String,
+        val ansvarFor: String,
+    ) : HarPersonnavn
+
+    data class AnnenKontaktperson(
+        override val navn: Personnavn,
+        val telefon: String,
+    ) : HarPersonnavn
+}
+
+data class Hjelpemiddel(
     val antall: Int,
     @JsonProperty("arsakForAntall")
     val årsakForAntall: String? = null,
@@ -133,7 +263,8 @@ data class HjelpemiddelItem(
     val hjelpemiddelkategori: String,
     @JsonProperty("hmsNr")
     val hmsnr: String,
-    val tilleggsinformasjon: String,
+    @JsonProperty("tilleggsinformasjon")
+    val tilleggsinfo: String,
     val uniqueKey: String,
     val utlevertFraHjelpemiddelsentralen: Boolean,
     @JsonProperty("vilkaroverskrift")
@@ -155,7 +286,8 @@ data class HjelpemiddelItem(
     val elektriskRullestolInfo: ElektriskRullestolInfo? = null,
     val appInfo: AppInfo? = null,
     val varmehjelpemiddelInfo: VarmehjelpemiddelInfo? = null,
-    val sengeInfo: SengeInfo? = null,
+    @JsonProperty("sengeInfo")
+    val sengInfo: SengInfo? = null,
     val elektriskVendesystemInfo: ElektriskVendesystemInfo? = null,
     val ganghjelpemiddelInfo: GanghjelpemiddelInfo? = null,
     val posisjoneringssystemInfo: PosisjoneringssystemInfo? = null,
@@ -230,7 +362,7 @@ data class SengForVendesystemMontering(
     val madrassbredde: Int?,
 )
 
-data class SengeInfo(
+data class SengInfo(
     val påkrevdBehov: String?,
     val brukerOppfyllerPåkrevdBehov: Boolean?,
     val behovForSeng: String?,
