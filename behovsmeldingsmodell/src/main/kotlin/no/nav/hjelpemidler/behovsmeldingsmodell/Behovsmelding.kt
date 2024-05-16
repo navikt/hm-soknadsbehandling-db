@@ -23,7 +23,7 @@ data class Søknad(
     val hjelpemidler: Hjelpemidler,
     val levering: Levering,
     val innsender: Innsender?,
-    val erHast: Boolean = false, // = false for bakoverkompatibilitet, kan fjernes etter lansering
+    val hast: Hast? = null,
 )
 
 data class Innsender(
@@ -253,6 +253,11 @@ data class Levering(
     ) : HarPersonnavn
 }
 
+data class Hast(
+    val hasteårsaker: List<Hasteårsak>,
+    val hastBegrunnelse: String?,
+)
+
 data class Hjelpemiddel(
     val antall: Int,
     @JsonProperty("arsakForAntall")
@@ -297,7 +302,6 @@ data class Hjelpemiddel(
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: List<Bruksarena> = emptyList(),
-    val hasteårsaker: List<Hasteårsak> = emptyList(),
 )
 
 data class Bytte(

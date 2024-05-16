@@ -22,7 +22,11 @@
         "kommunenummer": "5616",
         "telefonNummer": "26848497"
       },
-      "erHast": true,
+      "hast": {
+        "hasteårsaker": [
+          "UTVIKLING_AV_TRYKKSÅR"
+        ]
+      },
       "levering": {
         "hmfEpost": "urokkelig@mail.no",
         "hmfPostnr": "0484",
@@ -138,9 +142,6 @@
             ],
             "begrunnelsen": "",
             "utlevertInfo": {},
-            "hasteårsaker": [
-              "HINDRE_VIDERE_UTVIKLING_AV_TRYKKSÅR"
-            ],
             "tilbehorListe": [],
             "vilkaroverskrift": "Hvorfor trenger bruker trykksårforebyggende sittepute?",
             "kanIkkeTilsvarande": "false",
