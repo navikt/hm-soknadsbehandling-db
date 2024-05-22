@@ -46,7 +46,7 @@ data class Bruker(
     @JsonProperty("signatur")
     val signaturtype: Signaturtype?,
     @JsonProperty("telefonNummer")
-    val telefonnummer: String,
+    val telefon: String,
     val adresse: String?,
     val postnummer: String?,
     val poststed: String?,
@@ -72,7 +72,7 @@ data class Kroppsmål(
 )
 
 data class Brukersituasjon(
-    val bekreftedeVilkår: List<BrukersituasjonVilkår> = emptyList(),
+    val bekreftedeVilkår: Set<BrukersituasjonVilkår> = emptySet(),
     @JsonProperty("nedsattFunksjonTypes")
     val funksjonsnedsettelser: Funksjonsnedsettelser,
 )
@@ -89,7 +89,13 @@ data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
     @JsonProperty("hjelpemiddelTotaltAntall")
     val totaltAntall: Int,
-)
+) {
+    val påkrevdeGodkjenningskurs: List<HjelpemiddelProdukt.PåkrevdGodkjenningskurs>
+        @JsonIgnore get() = hjelpemidler
+            .mapNotNull { it.produkt?.påkrevdGodkjenningskurs }
+            .distinctBy { it.kursId }
+            .sortedBy { it.tittel }
+}
 
 data class Levering(
     // Hjelpemiddelformidler
@@ -165,7 +171,7 @@ data class Levering(
 
     // Tilleggsinformasjon
 
-    val tilleggsinfo: List<LeveringTilleggsinfo> = emptyList(),
+    val tilleggsinfo: Set<LeveringTilleggsinfo> = emptySet(),
 ) {
     val hjelpemiddelformidler: Hjelpemiddelformidler
         @JsonIgnore
@@ -254,7 +260,7 @@ data class Levering(
 }
 
 data class Hast(
-    val hasteårsaker: List<Hasteårsak>,
+    val hasteårsaker: Set<Hasteårsak>,
     val hastBegrunnelse: String?,
 )
 
@@ -301,7 +307,7 @@ data class Hjelpemiddel(
     val oppreisningsstolInfo: OppreisningsstolInfo? = null,
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
-    val bruksarena: List<Bruksarena> = emptyList(),
+    val bruksarena: Set<Bruksarena> = emptySet(),
 )
 
 data class Bytte(
@@ -315,7 +321,7 @@ data class Bytte(
 
 data class OppreisningsstolInfo(
     val kanBrukerReiseSegSelvFraVanligStol: Boolean,
-    val behov: List<OppreisningsstolBehov>?,
+    val behov: Set<OppreisningsstolBehov>?,
     val behovForStolBegrunnelse: String?,
     @JsonProperty("sideBetjeningsPanel")
     val sidebetjeningspanel: SidebetjeningspanelPosisjon?,
@@ -341,7 +347,7 @@ data class PosisjoneringssystemInfo(
     val skalIkkeBrukesSomBehandlingshjelpemiddel: Boolean?,
     val skalIkkeBrukesTilRenSmertelindring: Boolean?,
     val behov: PosisjoneringsputeBehov?,
-    val oppgaverIDagliglivet: List<PosisjoneringsputeOppgaverIDagligliv>?,
+    val oppgaverIDagliglivet: Set<PosisjoneringsputeOppgaverIDagligliv>?,
     val oppgaverIDagliglivetAnnet: String?,
 )
 
