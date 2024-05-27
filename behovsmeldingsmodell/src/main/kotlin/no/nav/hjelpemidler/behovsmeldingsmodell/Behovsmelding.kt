@@ -30,7 +30,7 @@ data class Innsender(
     val godkjenningskurs: List<Godkjenningskurs> = emptyList(),
     val organisasjoner: List<Organisasjon> = emptyList(),
     val somRolle: InnsenderRolle,
-    val tjenestligeBehovForUtlånsoversikt: List<String> = emptyList(),
+    val tjenestligeBehovForUtlånsoversikt: Set<String> = emptySet(),
 )
 
 data class Godkjenningskurs(
