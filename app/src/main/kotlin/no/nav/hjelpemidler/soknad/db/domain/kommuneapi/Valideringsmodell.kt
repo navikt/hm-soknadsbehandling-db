@@ -87,6 +87,7 @@ data class Innsender(
     val godkjenningskurs: List<GodkjenningsKurs>?,
     val organisasjoner: List<Organisasjon>?,
     val somRolle: InnsenderRolle,
+    val tjenestligeBehovForUtlånsoversikt: List<String> = emptyList(),
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
