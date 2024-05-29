@@ -229,12 +229,12 @@ private fun levering(søknad: JsonNode): Levering {
 private val hasteårsakerReader =
     objectMapper.readerFor(object : TypeReference<Set<Hasteårsak>?>() {})
 
-private fun hast(søknad:JsonNode): Hast? {
+private fun hast(søknad: JsonNode): Hast? {
     val hastNode = søknad["soknad"]["hast"] ?: return null
 
     return Hast(
         hasteårsaker = hastNode["hasteårsaker"].let { hasteårsakerReader.readValue(it) },
-        hastBegrunnelse = hastNode["hastBegrunnelse"]?.textValue()
+        hastBegrunnelse = hastNode["hastBegrunnelse"]?.textValue(),
     )
 }
 
