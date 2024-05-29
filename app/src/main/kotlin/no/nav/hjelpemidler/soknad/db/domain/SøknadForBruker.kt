@@ -3,6 +3,8 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import no.nav.hjelpemidler.behovsmeldingsmodell.Hast
+import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
@@ -221,6 +223,18 @@ private fun levering(søknad: JsonNode): Levering {
         kontaktPerson = kontaktPerson(søknad),
         merknad = leveringNode["merknadTilUtlevering"]?.textValue(),
         tilleggsinfo = leveringNode["tilleggsinfo"]?.let { leveringTilleggsinfoReader.readValue(it) } ?: emptyList(),
+    )
+}
+
+private val hasteårsakerReader =
+    objectMapper.readerFor(object : TypeReference<Set<Hasteårsak>?>() {})
+
+private fun hast(søknad:JsonNode): Hast? {
+    val hastNode = søknad["soknad"]["hast"] ?: return null
+
+    return Hast(
+        hasteårsaker = hastNode["hasteårsaker"].let { hasteårsakerReader.readValue(it) },
+        hastBegrunnelse = hastNode["hastBegrunnelse"]?.textValue()
     )
 }
 
@@ -574,6 +588,7 @@ class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {
     val hjelpemiddelTotalAntall = søknad["soknad"]["hjelpemidler"]["hjelpemiddelTotaltAntall"].intValue()
     val oppfolgingsansvarlig = oppfolgingsansvarlig(søknad)
     val levering = levering(søknad)
+    val hast = hast(søknad)
 }
 
 class Bruker(
