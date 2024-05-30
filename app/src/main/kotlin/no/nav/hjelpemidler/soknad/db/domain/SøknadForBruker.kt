@@ -606,7 +606,6 @@ class Bruker(
     val kroppsmaal: Kroppsmaal?,
     val brukernummer: String?,
     val bekreftedeVilkår: List<BrukersituasjonVilkår>,
-    val borIPilotkommuneForHast: Boolean? = false,
 )
 
 enum class BrukersituasjonVilkår {
