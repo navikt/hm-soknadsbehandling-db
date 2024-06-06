@@ -80,6 +80,7 @@ data class Soknad(
     val id: UUID,
     val levering: Levering,
     var innsender: Innsender?,
+    val hast: Hast? = null,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -591,4 +592,17 @@ enum class OppreisningsStolBehov {
 enum class SideBetjeningsPanelPosisjon {
     HØYRE,
     VENSTRE,
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Hast(
+    val hasteårsaker: Set<Hasteårsak>,
+    val hastBegrunnelse: String?,
+)
+
+enum class Hasteårsak {
+    UTVIKLING_AV_TRYKKSÅR,
+    TERMINALPLEIE,
+    UTSKRIVING_FRA_SYKEHUS_SOM_IKKE_KAN_PLANLEGGES,
+    ANNET,
 }
