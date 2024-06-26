@@ -3,8 +3,8 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
-import no.nav.hjelpemidler.behovsmeldingsmodell.Hast
-import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hasteårsak
 import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product

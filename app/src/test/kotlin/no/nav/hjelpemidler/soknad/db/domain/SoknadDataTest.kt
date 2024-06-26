@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.BeanDescription
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import io.kotest.matchers.collections.shouldExist
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingResponse
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.BehovsmeldingResponse
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import kotlin.test.Test
 

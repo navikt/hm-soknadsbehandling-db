@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell
+package no.nav.hjelpemidler.behovsmeldingsmodell.v1
 
 data class Personnavn(
     val fornavn: String,
