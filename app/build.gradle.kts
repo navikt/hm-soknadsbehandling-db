@@ -89,3 +89,8 @@ val graphqlIntrospectSchema by tasks.getting(GraphQLIntrospectSchemaTask::class)
     endpoint.set("https://hm-grunndata-search.intern.dev.nav.no/graphql")
     outputFile.set(file("src/main/resources/hmdb/schema.graphqls"))
 }
+
+tasks.named("compileKotlin") {
+    dependsOn("spotlessApply")
+    dependsOn("spotlessCheck")
+}

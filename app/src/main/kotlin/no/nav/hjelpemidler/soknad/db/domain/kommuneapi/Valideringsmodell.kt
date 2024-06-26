@@ -603,7 +603,7 @@ data class Hast(
 enum class Hasteårsak {
     UTVIKLING_AV_TRYKKSÅR,
     TERMINALPLEIE,
-    
+
     @Deprecated("Erstattet av _V2")
     UTSKRIVING_FRA_SYKEHUS_SOM_IKKE_KAN_PLANLEGGES,
     UTSKRIVING_FRA_SYKEHUS_SOM_IKKE_KAN_PLANLEGGES_V2,

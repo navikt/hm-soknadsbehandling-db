@@ -30,3 +30,8 @@ publishing {
         }
     }
 }
+
+tasks.named("compileKotlin") {
+    dependsOn("spotlessApply")
+    dependsOn("spotlessCheck")
+}
