@@ -14,6 +14,7 @@ import org.flywaydb.core.api.output.MigrateResult
 import org.intellij.lang.annotations.Language
 import java.net.Socket
 import java.time.LocalDateTime
+import javax.sql.DataSource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -72,5 +73,5 @@ internal fun dataSourceFrom(config: Configuration): HikariDataSource = when (Env
     else -> HikariDataSource(hikariConfigFrom(config))
 }
 
-internal fun migrate(dataSource: HikariDataSource, initSql: String = ""): MigrateResult =
+internal fun migrate(dataSource: DataSource, initSql: String = ""): MigrateResult =
     Flyway.configure().dataSource(dataSource).initSql(initSql).load().migrate()

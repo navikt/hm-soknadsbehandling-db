@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.db
 
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -15,6 +14,8 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.database.jsonOrNull
+import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
@@ -33,7 +34,6 @@ import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
 import org.intellij.lang.annotations.Language
-import org.postgresql.util.PGobject
 import java.math.BigInteger
 import java.time.DayOfWeek
 import java.time.Instant
@@ -172,9 +172,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                                 ordrelinjer = emptyList(),
                                 fagsakId = null,
                                 søknadType = null,
-                                valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]",
-                                ),
+                                valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
                             )
                         } else {
                             SøknadForBruker.new(
@@ -309,12 +307,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             statusMedÅrsak.søknadId,
                             statusMedÅrsak.status.name,
                             statusMedÅrsak.begrunnelse,
-                            statusMedÅrsak.valgteÅrsaker?.let {
-                                PGobject().apply {
-                                    type = "jsonb"
-                                    value = valgteÅrsakerToJsonString(it)
-                                }
-                            },
+                            statusMedÅrsak.valgteÅrsaker?.let { pgJsonbOf(it) },
                         ).asUpdate,
                     )
                     // Oppdatere UPDATED felt når man legger til ny status for søknad
@@ -547,10 +540,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                             soknadData.fnrBruker,
                             soknadData.navnBruker,
                             soknadData.fnrInnsender,
-                            PGobject().apply {
-                                type = "jsonb"
-                                value = soknadToJsonString(soknadData.soknad)
-                            },
+                            pgJsonbOf(soknadData.soknad),
                             soknadData.kommunenavn,
                             true,
                             soknadData.soknadGjelder ?: "Søknad om hjelpemidler",
@@ -804,10 +794,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                         statement,
                         mapOf(
                             "kommunenummer" to kommunenummer,
-                            "kommunenummerJson" to PGobject().apply {
-                                type = "jsonb"
-                                value = """[{"kommunenummer": "$kommunenummer"}]"""
-                            },
+                            "kommunenummerJson" to pgJsonbOf(mapOf("kommunenummer" to kommunenummer)),
                             "nyereEnn" to nyereEnn,
                             "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                                 LocalDateTime.ofInstant(
@@ -889,9 +876,4 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
-
-    private fun soknadToJsonString(soknad: JsonNode): String = objectMapper.writeValueAsString(soknad)
-
-    private fun valgteÅrsakerToJsonString(valgteÅrsaker: Set<String>): String =
-        objectMapper.writeValueAsString(valgteÅrsaker)
 }

@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.UUID
 
-internal data class OrdrelinjeData(
+data class OrdrelinjeData(
     val søknadId: UUID,
     val oebsId: Int,
     val fnrBruker: String,

@@ -16,27 +16,21 @@ dependencies {
     implementation(libs.hm.http) {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
     }
-
-    // Jackson
-    implementation(libs.jackson.databind)
-    implementation(libs.jackson.module.kotlin)
-    implementation(libs.jackson.datatype.jsr310)
-
-    // Ktor
-    implementation(libs.ktor.serialization.jackson)
-    implementation(libs.ktor.server.auth.jwt)
-    implementation(libs.ktor.server.call.logging)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
     implementation(libs.ktor.client.apache)
 
+    // Ktor Server
+    implementation(libs.bundles.ktor.server)
+
+    // Jackson
+    implementation(libs.bundles.jackson)
+
     // Database
-    implementation(libs.flyway.core)
-    runtimeOnly(libs.flyway.database.postgresql)
-    implementation(libs.postgresql)
-    implementation(libs.hikaricp)
-    implementation(libs.kotliquery)
+    implementation(libs.hm.database)
+    implementation(libs.hm.database) {
+        capabilities {
+            requireCapability("no.nav.hjelpemidler:hm-database-postgresql")
+        }
+    }
 
     // AAD og TokenX
     implementation(libs.azure.validation)
@@ -48,15 +42,13 @@ dependencies {
 
     // Logging
     implementation(libs.kotlin.logging)
-    runtimeOnly(libs.logback.classic)
-    runtimeOnly(libs.logstash.logback.encoder)
+    runtimeOnly(libs.bundles.logging.runtime)
 
     // fixme -> fjern
     implementation("com.natpryce:konfig:1.6.10.0")
 
     // Metrics
-    implementation(libs.influxdb.client.kotlin)
-    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.bundles.metrics)
 
     // GraphQL Client
     implementation(libs.graphql.ktor.client) {
@@ -67,12 +59,13 @@ dependencies {
     implementation(libs.graphql.client.jackson)
 
     // Test
-    testImplementation(libs.kotlin.test.junit5)
-    testImplementation(libs.kotest.assertions.core)
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.mockk)
-    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.bundles.ktor.server.test)
     testImplementation(libs.wiremock)
+    testImplementation(libs.hm.database) {
+        capabilities {
+            requireCapability("no.nav.hjelpemidler:hm-database-testcontainers")
+        }
+    }
 }
 
 tasks.shadowJar { mergeServiceFiles() }

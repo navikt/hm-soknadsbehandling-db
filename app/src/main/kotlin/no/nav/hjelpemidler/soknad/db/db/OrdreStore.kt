@@ -1,32 +1,26 @@
 package no.nav.hjelpemidler.soknad.db.db
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
-import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
 
-internal interface OrdreStore {
+interface OrdreStore {
     fun save(ordrelinje: OrdrelinjeData): Int
     fun ordreSisteDøgn(soknadsId: UUID): HarOrdre
     fun harOrdre(soknadsId: UUID): HarOrdre
     suspend fun ordreForSoknad(soknadsId: UUID): List<SøknadForBrukerOrdrelinje>
 }
 
-internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
-
+class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
     override fun save(ordrelinje: OrdrelinjeData): Int {
         return time("insert_ordrelinje") {
             using(sessionOf(ds)) { session ->
@@ -46,10 +40,7 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
                         ordrelinje.produktgruppe,
                         ordrelinje.produktgruppeNr,
                         ordrelinje.hjelpemiddeltype,
-                        PGobject().apply {
-                            type = "jsonb"
-                            value = ordrelinjeToJsonString(ordrelinje.data)
-                        },
+                        pgJsonbOf(ordrelinje.data),
                     ).asUpdate,
                 )
             }
@@ -147,13 +138,4 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             it.berik(produkter[it.artikkelNr])
         }
     }
-
-    companion object {
-        private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    }
-
-    private fun ordrelinjeToJsonString(ordrelinje: JsonNode): String = objectMapper.writeValueAsString(ordrelinje)
 }

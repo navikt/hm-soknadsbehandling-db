@@ -1,33 +1,18 @@
 package no.nav.hjelpemidler.soknad.db.db
 
-import com.zaxxer.hikari.HikariDataSource
 import io.kotest.matchers.shouldBe
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.hjelpemidler.database.Testcontainers
+import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.soknad.db.Configuration
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Test
-import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.containers.wait.strategy.Wait
-
-internal object PostgresContainer {
-    val instance by lazy {
-        PostgreSQLContainer<Nothing>("postgres:15-alpine").apply {
-            waitingFor(Wait.forListeningPort())
-            start()
-        }
-    }
-}
 
 internal object DataSource {
-    val instance: HikariDataSource by lazy {
-        HikariDataSource().apply {
-            driverClassName = PostgresContainer.instance.driverClassName
-            username = PostgresContainer.instance.username
-            password = PostgresContainer.instance.password
-            jdbcUrl = PostgresContainer.instance.jdbcUrl
-            connectionTimeout = 1000L
-        }.also { sessionOf(it).run(queryOf("DROP ROLE IF EXISTS cloudsqliamuser").asExecute) }
+    val instance: javax.sql.DataSource by lazy {
+        createDataSource(Testcontainers) { tag = "15-alpine" }
+            .also { sessionOf(it).run(queryOf("DROP ROLE IF EXISTS cloudsqliamuser").asExecute) }
             .also { sessionOf(it).run(queryOf("CREATE ROLE cloudsqliamuser").asExecute) }
     }
 }
@@ -40,7 +25,6 @@ internal fun withMigratedDb(test: () -> Unit) =
         .also { migrate(it) }.run { test() }
 
 internal class PostgresTest {
-
     @Test
     fun `JDBC url is set correctly from  config values `() {
         with(hikariConfigFrom(Configuration)) {
@@ -49,5 +33,5 @@ internal class PostgresTest {
     }
 }
 
-private fun clean(dataSource: HikariDataSource) =
+private fun clean(dataSource: javax.sql.DataSource) =
     Flyway.configure().cleanDisabled(false).dataSource(dataSource).load().clean()
