@@ -3,8 +3,8 @@ package no.nav.hjelpemidler.soknad.db.db
 import com.fasterxml.jackson.databind.JsonNode
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.Row
-import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.configuration.LocalEnvironment
 import no.nav.hjelpemidler.soknad.db.Configuration

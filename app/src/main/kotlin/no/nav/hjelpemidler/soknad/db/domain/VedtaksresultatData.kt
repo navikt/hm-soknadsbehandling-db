@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 import java.time.LocalDate
 import java.util.UUID
 
-internal data class VedtaksresultatData(
+data class VedtaksresultatData(
     val søknadId: UUID,
     val fnrBruker: String,
     val trygdekontorNr: String?,

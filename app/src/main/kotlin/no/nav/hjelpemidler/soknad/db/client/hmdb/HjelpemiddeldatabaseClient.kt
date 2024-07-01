@@ -2,9 +2,9 @@ package no.nav.hjelpemidler.soknad.db.client.hmdb
 
 import com.expediagroup.graphql.client.jackson.GraphQLClientJacksonSerializer
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
 import java.net.URI
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product as HentproduktermedhmsnrsProdukt

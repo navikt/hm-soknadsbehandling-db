@@ -1,12 +1,6 @@
-.idea/
-# Ignore Gradle project-specific cache directory
+*.iml
+.DS_Store
 .gradle
-
-# Ignore Gradle build output directory
+.idea
+.kotlin
 build
-out
-
-# IntelliJ HTTP Client private environment settings
-*.private.env.json
-
-.DS_store

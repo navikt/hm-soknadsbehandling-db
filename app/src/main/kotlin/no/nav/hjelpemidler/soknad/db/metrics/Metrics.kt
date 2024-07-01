@@ -1,9 +1,9 @@
 package no.nav.hjelpemidler.soknad.db.metrics
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.db.SøknadStore
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import java.time.LocalDate

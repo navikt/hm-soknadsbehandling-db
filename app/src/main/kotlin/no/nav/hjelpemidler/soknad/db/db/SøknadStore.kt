@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -13,7 +14,6 @@ import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
@@ -32,7 +32,6 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
-import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.math.BigInteger
@@ -82,9 +81,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT SOKNADS_ID
-                FROM V1_SOKNAD
-                WHERE SOKNADS_ID = ?
+                SELECT soknads_id
+                FROM v1_soknad
+                WHERE soknads_id = ?
             """
 
         val uuid = time("soknad_eksisterer") {
@@ -106,9 +105,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT SOKNADS_ID
-                FROM V1_SOKNAD
-                WHERE FNR_BRUKER = ? AND JOURNALPOSTID = ?
+                SELECT soknads_id
+                FROM v1_soknad
+                WHERE fnr_bruker = ? AND journalpostid = ?
             """
 
         val uuid = time("soknad_eksisterer") {
@@ -131,16 +130,16 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.DATA, soknad.CREATED, soknad.KOMMUNENAVN, soknad.FNR_BRUKER, soknad.UPDATED, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER, 
+                SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.data, soknad.created, soknad.kommunenavn, soknad.fnr_bruker, soknad.updated, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker, 
                 (CASE WHEN EXISTS (
-                    SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
+                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN TRUE ELSE FALSE END) AS fullmakt
-                FROM V1_SOKNAD AS soknad 
-                LEFT JOIN V1_STATUS AS status
-                ON status.ID = (
-                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
+                FROM v1_soknad AS soknad 
+                LEFT JOIN v1_status AS status
+                ON status.id = (
+                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.SOKNADS_ID = ? AND status.STATUS NOT IN (?, ?)
+                WHERE soknad.soknads_id = ? AND status.status NOT IN (?, ?)
             """
 
         return time("hent_soknad") {
@@ -214,9 +213,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT CREATED
-                FROM V1_SOKNAD
-                WHERE SOKNADS_ID = ?
+                SELECT created
+                FROM v1_soknad
+                WHERE soknads_id = ?
             """
 
         return using(sessionOf(ds)) { session ->
@@ -235,13 +234,13 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, soknad.FNR_INNSENDER, soknad.DATA, soknad.KOMMUNENAVN, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS
-                FROM V1_SOKNAD AS soknad
-                LEFT JOIN V1_STATUS AS status
-                ON status.ID = (
-                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
+                SELECT soknad.soknads_id, soknad.fnr_bruker, soknad.navn_bruker, soknad.fnr_innsender, soknad.data, soknad.kommunenavn, soknad.er_digital, soknad.soknad_gjelder, status.status
+                FROM v1_soknad AS soknad
+                LEFT JOIN v1_status AS status
+                ON status.id = (
+                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.SOKNADS_ID = ?
+                WHERE soknad.soknads_id = ?
             """
 
         return time("hent_soknaddata") {
@@ -272,9 +271,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT FNR_BRUKER
-                FROM V1_SOKNAD
-                WHERE SOKNADS_ID = ?
+                SELECT fnr_bruker
+                FROM v1_soknad
+                WHERE soknads_id = ?
             """
 
         val fnrBruker =
@@ -423,17 +422,17 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.JOURNALPOSTID, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.ER_DIGITAL, soknad.SOKNAD_GJELDER, status.STATUS, status.ARSAKER,
+                SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.created, soknad.updated, soknad.data, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker,
                 (CASE WHEN EXISTS (
-                    SELECT 1 FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID AND STATUS IN  ('GODKJENT_MED_FULLMAKT')
+                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN  ('GODKJENT_MED_FULLMAKT')
                 ) THEN TRUE ELSE FALSE END) AS fullmakt
-                FROM V1_SOKNAD AS soknad
-                LEFT JOIN V1_STATUS AS status
-                ON status.ID = (
-                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
+                FROM v1_soknad AS soknad
+                LEFT JOIN v1_status AS status
+                ON status.id = (
+                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.FNR_BRUKER = ? AND status.STATUS NOT IN (?, ?)
-                ORDER BY soknad.CREATED DESC
+                WHERE soknad.fnr_bruker = ? AND status.status NOT IN (?, ?)
+                ORDER BY soknad.created DESC
             """
 
         return time("hent_soknader_for_bruker") {
@@ -605,7 +604,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT DATA, CREATED FROM V1_SOKNAD WHERE ER_DIGITAL AND DATA IS NOT NULL
+                SELECT data, created FROM v1_soknad WHERE er_digital AND data IS NOT NULL
             """
 
         val soknader = time("initieltDatasettForForslagsmotorTilbehoer") {
@@ -684,9 +683,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                SELECT soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType
-                FROM V1_SOKNAD AS soknad
-                WHERE soknad.SOKNADS_ID = ?
+                SELECT soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype
+                FROM v1_soknad AS soknad
+                WHERE soknad.soknads_id = ?
             """
 
         return time("behovsmeldingTypeFor") {
@@ -707,17 +706,17 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
         @Language("PostgreSQL")
         val statement =
             """
-                WITH siste_status AS (SELECT SOKNADS_ID, STATUS
-                      FROM (SELECT SOKNADS_ID,
-                                   STATUS,
-                                   RANK() OVER (PARTITION BY SOKNADS_ID ORDER BY CREATED DESC) AS rangering
+                WITH siste_status AS (SELECT soknads_id, status
+                      FROM (SELECT soknads_id,
+                                   status,
+                                   RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
                             FROM v1_status) t
                       WHERE rangering = 1)
 
-                SELECT STATUS,
-                       COUNT(SOKNADS_ID) AS COUNT
+                SELECT status,
+                       COUNT(soknads_id) AS count
                 FROM siste_status
-                GROUP BY STATUS
+                GROUP BY status
             """.trimIndent()
 
         return using(sessionOf(ds)) { session ->
@@ -737,9 +736,9 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
     override fun hentStatuser(soknadsId: UUID): List<StatusRow> {
         @Language("PostgreSQL")
         val statement = """
-            SELECT STATUS, V1_STATUS.CREATED AS CREATED, ER_DIGITAL 
-            FROM V1_STATUS JOIN V1_SOKNAD ON V1_STATUS.SOKNADS_ID = V1_SOKNAD.SOKNADS_ID 
-            WHERE V1_STATUS.SOKNADS_ID = ? ORDER BY CREATED DESC
+            SELECT status, v1_status.created AS created, er_digital 
+            FROM v1_status JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id 
+            WHERE v1_status.soknads_id = ? ORDER BY created DESC
         """.trimIndent() // ORDER is just a preventative measure
 
         return using(sessionOf(ds)) { session ->
@@ -883,13 +882,6 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             }
         }
     }
-
-    private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-        Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-            function().also {
-                timer.observeDuration()
-            }
-        }
 
     companion object {
         private val objectMapper = jacksonObjectMapper()

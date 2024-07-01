@@ -3,15 +3,13 @@ package no.nav.hjelpemidler.soknad.db.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
-import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-internal interface HotsakStore {
+interface HotsakStore {
     fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int
     fun lagreVedtaksresultat(
         søknadId: UUID,
@@ -25,9 +23,7 @@ internal interface HotsakStore {
     fun hentFagsakIdForSøknad(søknadId: UUID): String?
 }
 
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
-
-internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
+class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
 
     override fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int =
         time("insert_knytning_mellom_søknad_og_hotsak") {
@@ -121,11 +117,4 @@ internal class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
             )
         }
     }
-
-    private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-        Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-            function().also {
-                timer.observeDuration()
-            }
-        }
 }

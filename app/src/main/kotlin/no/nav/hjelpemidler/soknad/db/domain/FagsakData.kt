@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import java.util.UUID
 
-internal data class FagsakData(
+data class FagsakData(
     val søknadId: UUID,
     val fagsakId: String?,
 ) {

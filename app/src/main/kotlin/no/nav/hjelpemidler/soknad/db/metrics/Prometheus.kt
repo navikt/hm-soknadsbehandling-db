@@ -1,12 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.metrics
 
-import io.prometheus.client.CollectorRegistry
-import io.prometheus.client.Histogram
+import io.micrometer.core.instrument.Timer
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 
 internal object Prometheus {
-    val collectorRegistry = CollectorRegistry.defaultRegistry
-
-    val dbTimer = Histogram.build("hm_soknad_mottak_db_query_latency_histogram", "Distribution of db execution times")
-        .labelNames("query")
-        .register(collectorRegistry)
+    val registry: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val dbTimer: Timer = registry.timer("hm_soknad_mottak_db_query_latency_histogram")
 }

@@ -1,10 +1,9 @@
 package no.nav.hjelpemidler.soknad.db
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import mu.KLogger
-import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
@@ -17,7 +16,7 @@ import java.util.Timer
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.timerTask
 
-private val logger: KLogger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 private val MINIMUM_DAGER = 2
 

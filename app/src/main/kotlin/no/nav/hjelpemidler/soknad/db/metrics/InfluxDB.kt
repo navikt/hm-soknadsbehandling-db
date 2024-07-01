@@ -3,8 +3,8 @@ package no.nav.hjelpemidler.soknad.db.metrics
 import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.domain.WritePrecision
 import com.influxdb.client.write.Point
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.NaisEnvironmentVariable
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient

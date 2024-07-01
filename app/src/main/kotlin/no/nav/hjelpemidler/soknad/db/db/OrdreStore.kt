@@ -14,7 +14,6 @@ import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabaseClient
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
-import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import org.postgresql.util.PGobject
 import java.util.UUID
 import javax.sql.DataSource
@@ -148,13 +147,6 @@ internal class OrdreStorePostgres(private val ds: DataSource) : OrdreStore {
             it.berik(produkter[it.artikkelNr])
         }
     }
-
-    private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-        Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-            function().also {
-                timer.observeDuration()
-            }
-        }
 
     companion object {
         private val objectMapper = jacksonObjectMapper()

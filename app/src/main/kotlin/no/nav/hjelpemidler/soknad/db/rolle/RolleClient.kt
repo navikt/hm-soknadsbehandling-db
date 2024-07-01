@@ -1,12 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.rolle
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mu.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.httpClient
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService

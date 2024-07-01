@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.metrics.kafka
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.soknad.db.Configuration
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer

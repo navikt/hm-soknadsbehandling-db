@@ -1,12 +1,12 @@
 package no.nav.hjelpemidler.soknad.mottak.db
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
+import no.nav.hjelpemidler.soknad.db.db.time
 import no.nav.hjelpemidler.soknad.db.domain.FagsakData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
-import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -21,7 +21,11 @@ internal interface InfotrygdStore {
     ): Int
 
     fun hentSøknadIdFraVedtaksresultat(fnrBruker: String, saksblokkOgSaksnr: String, vedtaksdato: LocalDate): UUID?
-    fun hentSøknadIdFraVedtaksresultatV2(fnrBruker: String, saksblokkOgSaksnr: String): List<InfotrygdStorePostgres.SøknadIdFraVedtaksresultat>
+    fun hentSøknadIdFraVedtaksresultatV2(
+        fnrBruker: String,
+        saksblokkOgSaksnr: String,
+    ): List<InfotrygdStorePostgres.SøknadIdFraVedtaksresultat>
+
     fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData?
     fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData?
     fun hentTypeForSøknad(søknadId: UUID): String?
@@ -29,7 +33,7 @@ internal interface InfotrygdStore {
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
+class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
 
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
     override fun lagKnytningMellomFagsakOgSøknad(vedtaksresultatData: VedtaksresultatData): Int =
@@ -200,11 +204,4 @@ internal class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdSto
             }
         }
     }
-
-    private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-        Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-            function().also {
-                timer.observeDuration()
-            }
-        }
 }

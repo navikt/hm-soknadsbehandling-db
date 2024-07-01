@@ -11,7 +11,6 @@ import kotliquery.using
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
-import no.nav.hjelpemidler.soknad.db.metrics.Prometheus
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
@@ -198,14 +197,7 @@ internal class SøknadStoreInnsenderPostgres(private val dataSource: DataSource)
     }
 }
 
-private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-    Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-        function().also {
-            timer.observeDuration()
-        }
-    }
-
-class SoknadForInnsender constructor(
+class SoknadForInnsender(
     val søknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
     val datoOpprettet: Date,
