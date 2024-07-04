@@ -8,6 +8,8 @@ metadata:
   namespace: teamdigihot
 spec:
   image: {{ image }}
+  ingresses:
+    - https://hm-soknadsbehandling-db.intern.dev.nav.no
   envFrom:
     - secret: hm-influxdb-secret
     - secret: hm-slack-hook
