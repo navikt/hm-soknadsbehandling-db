@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hast
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
-import no.nav.hjelpemidler.soknad.db.JacksonMapper.Companion.objectMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import no.nav.hjelpemidler.soknad.db.jsonMapper
 import java.util.Date
 import java.util.UUID
 
@@ -58,12 +58,16 @@ class SøknadForBruker private constructor(
                 fullmakt = fullmakt,
                 fnrBruker = fnrBruker,
                 søknadsdata = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> Søknadsdata(søknad, kommunenavn)
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> Søknadsdata(
+                        søknad,
+                        kommunenavn,
+                    )
+
                     BehovsmeldingType.BRUKERPASSBYTTE -> null
                 },
                 brukerpassbyttedata = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> objectMapper.treeToValue<Brukerpassbyttedata>(søknad["brukerpassbytte"])
+                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbyttedata>(søknad["brukerpassbytte"])
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
@@ -112,7 +116,7 @@ class SøknadForBruker private constructor(
 }
 
 private val bekreftedeVilkårReader =
-    objectMapper.readerFor(object : TypeReference<List<BrukersituasjonVilkår>?>() {})
+    jsonMapper.readerFor(object : TypeReference<List<BrukersituasjonVilkår>?>() {})
 
 private fun bruker(søknad: JsonNode): Bruker {
     val brukerNode = søknad["soknad"]["bruker"]
@@ -212,7 +216,7 @@ private fun oppfolgingsansvarlig(søknad: JsonNode): Oppfolgingsansvarlig? {
 }
 
 private val leveringTilleggsinfoReader =
-    objectMapper.readerFor(object : TypeReference<List<LeveringTilleggsinfo>?>() {})
+    jsonMapper.readerFor(object : TypeReference<List<LeveringTilleggsinfo>?>() {})
 
 private fun levering(søknad: JsonNode): Levering {
     val leveringNode = søknad["soknad"]["levering"]
@@ -227,7 +231,7 @@ private fun levering(søknad: JsonNode): Levering {
 }
 
 private val hasteårsakerReader =
-    objectMapper.readerFor(object : TypeReference<Set<Hasteårsak>?>() {})
+    jsonMapper.readerFor(object : TypeReference<Set<Hasteårsak>?>() {})
 
 private fun hast(søknad: JsonNode): Hast? {
     val hastNode = søknad["soknad"]["hast"] ?: return null
@@ -267,7 +271,7 @@ private fun kontaktPersonType(søknad: JsonNode): KontaktpersonType {
 }
 
 private fun signaturType(søknad: JsonNode): SignaturType =
-    objectMapper.treeToValue(søknad["soknad"]["bruker"]["signatur"])
+    jsonMapper.treeToValue(søknad["soknad"]["bruker"]["signatur"])
 
 private fun leveringsMaate(søknad: JsonNode): Leveringsmaate? {
     val leveringNode = søknad["soknad"]["levering"]
@@ -334,7 +338,7 @@ private fun hjelpemidler(søknad: JsonNode): List<Hjelpemiddel> {
 
 private fun oppreisningsStolInfo(hjelpemiddel: JsonNode): OppreisningsStolInfo? {
     val oppreisningsStolInfo = hjelpemiddel["oppreisningsStolInfo"] ?: return null
-    return objectMapper.treeToValue<OppreisningsStolInfo>(oppreisningsStolInfo)
+    return jsonMapper.treeToValue<OppreisningsStolInfo>(oppreisningsStolInfo)
 }
 
 private fun arsakForAntall(hjelpemiddel: JsonNode): String? {
@@ -483,7 +487,7 @@ private fun sengeInfo(hjelpemiddel: JsonNode): SengeInfo? {
             null -> null
             else -> throw RuntimeException("Ugyldig sitteputeValg")
         },
-        høyGrindValg = høyGrindValg?.let { objectMapper.treeToValue<HøyGrindValg>(it) },
+        høyGrindValg = høyGrindValg?.let { jsonMapper.treeToValue<HøyGrindValg>(it) },
     )
 }
 
@@ -539,7 +543,7 @@ private fun sengForMontering(hjelpemiddel: JsonNode): SengForVendesystemMonterin
 }
 
 private val posisjoneringsputeOppgaverIDagliglivReader =
-    objectMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
+    jsonMapper.readerFor(object : TypeReference<List<PosisjoneringsputeOppgaverIDagligliv>?>() {})
 
 private fun posisjoneringssystemInfo(hjelpemiddel: JsonNode): PosisjoneringssystemInfo? {
     val posisjoneringssystemInfoJson = hjelpemiddel["posisjoneringssystemInfo"] ?: return null
@@ -568,17 +572,17 @@ private fun posisjoneringsputeForBarnInfo(hjelpemiddel: JsonNode): Posisjonering
 
 private fun bruksarena(hjelpemiddel: JsonNode): List<Bruksarena> {
     val bruksarenaJson = hjelpemiddel["bruksarena"] ?: return emptyList()
-    return objectMapper.treeToValue(bruksarenaJson)
+    return jsonMapper.treeToValue(bruksarenaJson)
 }
 
 private fun diverseInfo(hjelpemiddel: JsonNode): Map<String, String> {
     val diverseInfoJson = hjelpemiddel["diverseInfo"] ?: return emptyMap()
-    return objectMapper.treeToValue(diverseInfoJson)
+    return jsonMapper.treeToValue(diverseInfoJson)
 }
 
 private fun bytter(hjelpemiddel: JsonNode): List<Bytte> {
     val diverseInfoJson = hjelpemiddel["bytter"] ?: return emptyList()
-    return objectMapper.treeToValue(diverseInfoJson)
+    return jsonMapper.treeToValue(diverseInfoJson)
 }
 
 class Søknadsdata(søknad: JsonNode, kommunenavn: String?) {

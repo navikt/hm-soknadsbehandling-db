@@ -6,8 +6,9 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
@@ -30,7 +31,7 @@ import java.util.UUID
  * soknad->innsender (godkjenningskurs, organisasjoner, osv.).
  *
  * Fremgangsmåte for å fikse en feilende validering:
-*       Utvid datamodellen med de nye feltene. Vurder om de kan kvitteres tilbake til kommmunen. Hvis ikke gjør
+ *       Utvid datamodellen med de nye feltene. Vurder om de kan kvitteres tilbake til kommmunen. Hvis ikke gjør
  *      du feltet nullable og endrer `fun filtrerForKommuneApiet()` under slik at feltet filtreres ut før data sendes til
  *      kommunen.
  */
@@ -48,15 +49,16 @@ data class Behovsmelding(
     )
 
     companion object {
-        private val specializedObjectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
+        private val specializedObjectMapper: JsonMapper = jacksonMapperBuilder()
+            .addModule(JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             // Skal feile hvis man har ukjente verdier i JsonNode, da må denne vedlikeholdes og hva som deles med
             // kommunen revurderes!
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build()
 
         fun fraJsonNode(node: JsonNode): Behovsmelding {
-            return kotlin.runCatching {
+            return runCatching {
                 specializedObjectMapper.readValue<Behovsmelding>(node.toString())
             }.getOrElse { cause ->
                 throw RuntimeException("Kunne ikke opprette Behovsmelding-typen fra JsonNode: ${cause.message}", cause)
@@ -583,6 +585,7 @@ enum class OppreisningsStolBruksområde {
     EGEN_BOENHET,
     FELLESAREAL,
 }
+
 enum class OppreisningsStolBehov {
     OPPGAVER_I_DAGLIGLIVET,
     PLEID_I_HJEMMET,

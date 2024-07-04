@@ -11,7 +11,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.concurrent.TimeUnit
 
-private val logger = KotlinLogging.logger { }
+private val logg = KotlinLogging.logger { }
 
 class AivenKafkaClient : KafkaClient {
     private val topic = Configuration.kafka.topic
@@ -38,8 +38,8 @@ class AivenKafkaClient : KafkaClient {
         try {
             kafkaProducer.send(ProducerRecord(topic, key, event)).get(10, TimeUnit.SECONDS)
         } catch (e: Exception) {
-            // Svelger exceptions fordi sending av statistikk ikke er kritisk. Men log error slik at noen forhåpentligvis oppdager og fikser problemet.
-            logger.error(e) { "Sending til $topic feilet for event <$event>" }
+            // Svelger exceptions fordi sending av statistikk ikke er kritisk. Log error slik at noen forhåpentligvis oppdager og fikser problemet.
+            logg.error(e) { "Sending til $topic feilet for event <$event>" }
         }
     }
 

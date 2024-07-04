@@ -1,10 +1,11 @@
 package no.nav.hjelpemidler.soknad.db.metrics
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import no.nav.hjelpemidler.soknad.db.db.SøknadStore
+import no.nav.hjelpemidler.soknad.db.db.Transaction
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,7 +19,7 @@ import kotlin.concurrent.timerTask
 private val logg = KotlinLogging.logger {}
 
 internal class Metrics(
-    private val søknadStore: SøknadStore,
+    private val transaction: Transaction,
     private val influxDB: InfluxDB = InfluxDB(),
 ) {
 
@@ -85,7 +86,7 @@ internal class Metrics(
         }
     }
 
-    private fun recordForStatus(
+    private suspend fun recordForStatus(
         soknadsId: UUID,
         status: Status,
         metricFieldName: String,
@@ -94,7 +95,7 @@ internal class Metrics(
     ) {
         try {
             if (status in validEndStatuses) {
-                val result = søknadStore.hentStatuser(soknadsId)
+                val result = transaction { søknadStore.hentStatuser(soknadsId) }
 
                 // TODO if multiple statuses converged to a single common status this would not be necessary
                 val foundEndStatuses = result.filter { statusRow -> statusRow.STATUS in validEndStatuses }
@@ -118,10 +119,10 @@ internal class Metrics(
     }
 
     fun countApplicationsByStatus() {
-        runBlocking {
+        runBlocking(Dispatchers.IO) {
             launch(Job()) {
                 try {
-                    val result = søknadStore.tellStatuser()
+                    val result = transaction { søknadStore.tellStatuser() }
 
                     val metricsToSend =
                         result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }

@@ -11,7 +11,7 @@ import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.httpClient
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 
-private val logger = KotlinLogging.logger { }
+private val logg = KotlinLogging.logger { }
 
 class RolleClient(
     private val tokendingsService: TokendingsService,
@@ -27,7 +27,7 @@ class RolleClient(
                 client.get("$url/api/roller") { bearerAuth(exchangedToken) }.body<RolleResultat>()
             }
         } catch (e: Exception) {
-            logger.error(e) { "Henting av roller feilet" }
+            logg.error(e) { "Henting av roller feilet" }
             throw e
         }
     }

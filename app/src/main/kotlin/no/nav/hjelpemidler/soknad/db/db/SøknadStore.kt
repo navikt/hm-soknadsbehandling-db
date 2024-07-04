@@ -1,19 +1,17 @@
 package no.nav.hjelpemidler.soknad.db.db
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotliquery.Session
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
+import no.nav.hjelpemidler.collections.enumSetOf
+import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.enum
+import no.nav.hjelpemidler.database.enumOrNull
+import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.http.slack.slack
@@ -31,8 +29,10 @@ import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.jsonMapper
 import org.intellij.lang.annotations.Language
 import java.math.BigInteger
 import java.time.DayOfWeek
@@ -41,32 +41,31 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
-import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
 interface SøknadStore {
     fun save(soknadData: SoknadData): Int
     fun savePapir(soknadData: PapirSøknadData): Int
-    fun hentSoknad(soknadsId: UUID): SøknadForBruker?
+    fun hentSoknad(søknadId: UUID): SøknadForBruker?
     fun hentSoknaderForBruker(fnrBruker: String): List<SoknadMedStatus>
-    fun hentSoknadData(soknadsId: UUID): SoknadData?
-    fun oppdaterStatus(soknadsId: UUID, status: Status): Int
+    fun hentSoknadData(søknadId: UUID): SoknadData?
+    fun oppdaterStatus(søknadId: UUID, status: Status): Int
     fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int
-    fun slettSøknad(soknadsId: UUID): Int
-    fun slettUtløptSøknad(soknadsId: UUID): Int
-    fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int
-    fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String): Int
-    fun hentFnrForSoknad(soknadsId: UUID): String
+    fun slettSøknad(søknadId: UUID): Int
+    fun slettUtløptSøknad(søknadId: UUID): Int
+    fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String): Int
+    fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: String): Int
+    fun hentFnrForSoknad(søknadId: UUID): String
     fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
-    fun soknadFinnes(soknadsId: UUID): Boolean
-    fun hentSoknadOpprettetDato(soknadsId: UUID): Date?
+    fun søknadFinnes(søknadId: UUID): Boolean
+    fun hentSoknadOpprettetDato(søknadId: UUID): Date?
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
     fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler>
     fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String>
-    fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType?
+    fun behovsmeldingTypeFor(søknadId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
-    fun hentStatuser(soknadsId: UUID): List<StatusRow>
+    fun hentStatuser(søknadId: UUID): List<StatusRow>
     fun hentSoknaderForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
@@ -74,161 +73,126 @@ interface SøknadStore {
     ): List<SøknadForKommuneApi>
 }
 
-class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
+class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
     private val slack = slack(engine = Apache.create())
 
-    override fun soknadFinnes(soknadsId: UUID): Boolean {
-        @Language("PostgreSQL")
-        val statement =
-            """
-                SELECT soknads_id
-                FROM v1_soknad
-                WHERE soknads_id = ?
-            """
-
+    override fun søknadFinnes(søknadId: UUID): Boolean {
         val uuid = time("soknad_eksisterer") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        soknadsId,
-                    ).map {
-                        UUID.fromString(it.string("SOKNADS_ID"))
-                    }.asSingle,
-                )
-            }
+            tx.singleOrNull(
+                """
+                    SELECT soknads_id
+                    FROM v1_soknad
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) { it.uuid("soknads_id") }
         }
+
         return uuid != null
     }
 
     override fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
-        @Language("PostgreSQL")
-        val statement =
-            """
+        val uuid = time("soknad_eksisterer") { // fixme -> feil navn
+            tx.singleOrNull(
+                """
                 SELECT soknads_id
                 FROM v1_soknad
-                WHERE fnr_bruker = ? AND journalpostid = ?
-            """
-
-        val uuid = time("soknad_eksisterer") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        fnrBruker,
-                        journalpostId,
-                    ).map {
-                        it.uuid("SOKNADS_ID")
-                    }.asSingle,
-                )
-            }
+                WHERE fnr_bruker = :fnrBruker
+                  AND journalpostid = :journalpostId
+                """.trimIndent(),
+                mapOf(
+                    "fnrBruker" to fnrBruker,
+                    "journalpostId" to journalpostId,
+                ),
+            ) { it.uuid("soknads_id") }
         }
         return uuid != null
     }
 
-    override fun hentSoknad(soknadsId: UUID): SøknadForBruker? {
+    override fun hentSoknad(søknadId: UUID): SøknadForBruker? {
         @Language("PostgreSQL")
         val statement =
             """
                 SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.data, soknad.created, soknad.kommunenavn, soknad.fnr_bruker, soknad.updated, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker, 
                 (CASE WHEN EXISTS (
-                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN  ('GODKJENT_MED_FULLMAKT')
+                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')
                 ) THEN TRUE ELSE FALSE END) AS fullmakt
                 FROM v1_soknad AS soknad 
                 LEFT JOIN v1_status AS status
                 ON status.id = (
                     SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.soknads_id = ? AND status.status NOT IN (?, ?)
+                WHERE soknad.soknads_id = :soknadId
+                  AND NOT (status.status = ANY (:status))
             """
 
         return time("hent_soknad") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        soknadsId,
-                        Status.GODKJENT_MED_FULLMAKT.name,
-                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
-                    ).map {
-                        val status = Status.valueOf(it.string("STATUS"))
-                        if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
-                            SøknadForBruker.newEmptySøknad(
-                                søknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
-                                ),
-                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
-                                status = Status.valueOf(it.string("STATUS")),
-                                fullmakt = it.boolean("fullmakt"),
-                                datoOpprettet = it.sqlTimestamp("created"),
-                                datoOppdatert = when {
-                                    it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
-                                    else -> it.sqlTimestamp("created")
-                                },
-                                fnrBruker = it.string("FNR_BRUKER"),
-                                er_digital = it.boolean("ER_DIGITAL"),
-                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                                ordrelinjer = emptyList(),
-                                fagsakId = null,
-                                søknadType = null,
-                                valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
-                            )
-                        } else {
-                            SøknadForBruker.new(
-                                søknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
-                                ),
-                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
-                                status = Status.valueOf(it.string("STATUS")),
-                                fullmakt = it.boolean("fullmakt"),
-                                datoOpprettet = it.sqlTimestamp("created"),
-                                datoOppdatert = when {
-                                    it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
-                                    else -> it.sqlTimestamp("created")
-                                },
-                                søknad = it.jsonNodeOrDefault("DATA", "{}"),
-                                kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                                fnrBruker = it.string("FNR_BRUKER"),
-                                er_digital = it.boolean("ER_DIGITAL"),
-                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                                ordrelinjer = emptyList(),
-                                fagsakId = null,
-                                søknadType = null,
-                                valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]",
-                                ),
-                            )
-                        }
-                    }.asSingle,
-                )
+            tx.singleOrNull(
+                statement,
+                mapOf(
+                    "soknadId" to søknadId,
+                    "status" to enumSetOf(
+                        Status.GODKJENT_MED_FULLMAKT,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    ).toStringArray(),
+                ),
+            ) {
+                val status = it.enum<Status>("status")
+                val datoOpprettet = it.sqlTimestamp("created")
+                val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
+                if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
+                    SøknadForBruker.newEmptySøknad(
+                        søknadId = it.uuid("SOKNADS_ID"),
+                        behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                        journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                        status = status,
+                        fullmakt = it.boolean("fullmakt"),
+                        datoOpprettet = datoOpprettet,
+                        datoOppdatert = datoOppdatert,
+                        fnrBruker = it.string("FNR_BRUKER"),
+                        er_digital = it.boolean("ER_DIGITAL"),
+                        soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                        ordrelinjer = emptyList(),
+                        fagsakId = null,
+                        søknadType = null,
+                        valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
+                    )
+                } else {
+                    SøknadForBruker.new(
+                        søknadId = it.uuid("SOKNADS_ID"),
+                        behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                        journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                        status = status,
+                        fullmakt = it.boolean("fullmakt"),
+                        datoOpprettet = datoOpprettet,
+                        datoOppdatert = datoOppdatert,
+                        søknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
+                        kommunenavn = it.stringOrNull("KOMMUNENAVN"),
+                        fnrBruker = it.string("FNR_BRUKER"),
+                        er_digital = it.boolean("ER_DIGITAL"),
+                        soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                        ordrelinjer = emptyList(),
+                        fagsakId = null,
+                        søknadType = null,
+                        valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
+                    )
+                }
             }
         }
     }
 
-    override fun hentSoknadOpprettetDato(soknadsId: UUID): Date? {
-        @Language("PostgreSQL")
-        val statement =
+    override fun hentSoknadOpprettetDato(søknadId: UUID): Date? {
+        return tx.singleOrNull(
             """
                 SELECT created
                 FROM v1_soknad
-                WHERE soknads_id = ?
-            """
-
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    statement,
-                    soknadsId,
-                ).map {
-                    it.sqlTimestamp("created")
-                }.asSingle,
-            )
-        }
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { it.sqlTimestamp("created") }
     }
 
-    override fun hentSoknadData(soknadsId: UUID): SoknadData? {
+    override fun hentSoknadData(søknadId: UUID): SoknadData? {
         @Language("PostgreSQL")
         val statement =
             """
@@ -238,58 +202,43 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.id = (
                     SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.soknads_id = ?
-            """
+                WHERE soknad.soknads_id = :soknadId
+            """.trimIndent()
 
         return time("hent_soknaddata") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        soknadsId,
-                    ).map {
-                        SoknadData(
-                            fnrBruker = it.string("FNR_BRUKER"),
-                            navnBruker = it.string("NAVN_BRUKER"),
-                            fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
-                            soknadId = it.uuid("SOKNADS_ID"),
-                            status = Status.valueOf(it.string("STATUS")),
-                            soknad = it.jsonNodeOrDefault("DATA", "{}"),
-                            kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                            er_digital = it.boolean("ER_DIGITAL"),
-                            soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                        )
-                    }.asSingle,
+            tx.singleOrNull(
+                statement,
+                mapOf("soknadId" to søknadId),
+            ) {
+                SoknadData(
+                    fnrBruker = it.string("FNR_BRUKER"),
+                    navnBruker = it.string("NAVN_BRUKER"),
+                    fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
+                    soknadId = it.uuid("SOKNADS_ID"),
+                    status = Status.valueOf(it.string("STATUS")),
+                    soknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
+                    kommunenavn = it.stringOrNull("KOMMUNENAVN"),
+                    er_digital = it.boolean("ER_DIGITAL"),
+                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
                 )
             }
         }
     }
 
-    override fun hentFnrForSoknad(soknadsId: UUID): String {
-        @Language("PostgreSQL")
-        val statement =
-            """
-                SELECT fnr_bruker
-                FROM v1_soknad
-                WHERE soknads_id = ?
-            """
-
-        val fnrBruker =
-            time("hent_soknad") {
-                using(sessionOf(ds)) { session ->
-                    session.run(
-                        queryOf(
-                            statement,
-                            soknadsId,
-                        ).map {
-                            it.string("FNR_BRUKER")
-                        }.asSingle,
-                    )
-                }
-            }
+    override fun hentFnrForSoknad(søknadId: UUID): String {
+        val fnrBruker = time("hent_soknad") {
+            tx.singleOrNull(
+                """
+                    SELECT fnr_bruker
+                    FROM v1_soknad
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) { it.string("FNR_BRUKER") }
+        }
 
         if (fnrBruker == null) {
-            throw RuntimeException("No søknad with FNR found for soknadsId $soknadsId")
+            error("No søknad with fnr found for søknadId: $søknadId")
         } else {
             return fnrBruker
         }
@@ -297,117 +246,93 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
     override fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int =
         time("oppdater_status med årsak") {
-            using(sessionOf(ds)) { session ->
-                if (checkIfLastStatusMatches(session, statusMedÅrsak.søknadId, statusMedÅrsak.status)) return@using 0
-                val result = session.transaction { transaction ->
-                    // Add the new status to the status table
-                    transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS, BEGRUNNELSE, ARSAKER) VALUES (?, ?, ?, ?)",
-                            statusMedÅrsak.søknadId,
-                            statusMedÅrsak.status.name,
-                            statusMedÅrsak.begrunnelse,
-                            statusMedÅrsak.valgteÅrsaker?.let { pgJsonbOf(it) },
-                        ).asUpdate,
-                    )
-                    // Oppdatere UPDATED felt når man legger til ny status for søknad
-                    transaction.run(
-                        queryOf(
-                            "UPDATE V1_SOKNAD SET UPDATED = now() WHERE SOKNADS_ID = ?",
-                            statusMedÅrsak.søknadId,
-                        ).asUpdate,
-                    )
-                }
-
-                return@using result
-            }
+            if (checkIfLastStatusMatches(statusMedÅrsak.søknadId, statusMedÅrsak.status)) return@time 0
+            tx.update(
+                """
+                    INSERT INTO v1_status (soknads_id, status, begrunnelse, arsaker)
+                    VALUES (:soknadId, :status, :begrunnelse, :arsaker)
+                """.trimIndent(),
+                mapOf(
+                    "soknadId" to statusMedÅrsak.søknadId,
+                    "status" to statusMedÅrsak.status,
+                    "begrunnelse" to statusMedÅrsak.begrunnelse,
+                    "arsaker" to statusMedÅrsak.valgteÅrsaker?.let { pgJsonbOf(it) },
+                ),
+            )
+            tx.update(
+                "UPDATE v1_soknad SET updated = NOW() WHERE soknads_id = :soknadId",
+                mapOf("soknadId" to statusMedÅrsak.søknadId),
+            ).actualRowCount
         }
 
-    override fun oppdaterStatus(soknadsId: UUID, status: Status): Int =
+    override fun oppdaterStatus(søknadId: UUID, status: Status): Int =
         time("oppdater_status") {
-            using(sessionOf(ds)) { session ->
-                if (checkIfLastStatusMatches(session, soknadsId, status)) return@using 0
-                val result = session.transaction { transaction ->
-                    // Add the new status to the status table
-                    transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                            soknadsId,
-                            status.name,
-                        ).asUpdate,
-                    )
-                    // Oppdatere UPDATED felt når man legger til ny status for søknad
-                    transaction.run(
-                        queryOf(
-                            "UPDATE V1_SOKNAD SET UPDATED = now() WHERE SOKNADS_ID = ?",
-                            soknadsId,
-                        ).asUpdate,
-                    )
-                }
-
-                return@using result
-            }
+            if (checkIfLastStatusMatches(søknadId, status)) return@time 0
+            tx.update(
+                "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                mapOf(
+                    "soknadId" to søknadId,
+                    "status" to status,
+                ),
+            )
+            tx.update(
+                "UPDATE v1_soknad SET updated = NOW() WHERE soknads_id = :soknadId",
+                mapOf("soknadId" to søknadId),
+            ).actualRowCount
         }
 
-    override fun slettSøknad(soknadsId: UUID) = slettSøknad(soknadsId, Status.SLETTET)
+    override fun slettSøknad(søknadId: UUID) = slettSøknad(søknadId, Status.SLETTET)
 
-    override fun slettUtløptSøknad(soknadsId: UUID) = slettSøknad(soknadsId, Status.UTLØPT)
+    override fun slettUtløptSøknad(søknadId: UUID) = slettSøknad(søknadId, Status.UTLØPT)
 
-    private fun slettSøknad(soknadsId: UUID, status: Status): Int =
+    private fun slettSøknad(søknadId: UUID, status: Status): Int =
         time("slett_soknad") {
-            using(sessionOf(ds)) { session ->
-                if (checkIfLastStatusMatches(session, soknadsId, status)) return@using 0
-                session.transaction { transaction ->
-                    transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                            soknadsId,
-                            status.name,
-                        ).asUpdate,
-                    )
-                    transaction.run(
-                        queryOf(
-                            "UPDATE V1_SOKNAD SET UPDATED = now(), DATA = NULL WHERE SOKNADS_ID = ?",
-                            soknadsId,
-                        ).asUpdate,
-                    )
-                }
-            }
+            if (checkIfLastStatusMatches(søknadId, status)) return@time 0
+            tx.update(
+                "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                mapOf(
+                    "soknadId" to søknadId,
+                    "status" to status,
+                ),
+            )
+            tx.update(
+                "UPDATE v1_soknad SET updated = NOW(), data = NULL WHERE soknads_id = :soknadId",
+                mapOf("soknadId" to søknadId),
+            ).actualRowCount
         }
 
-    override fun oppdaterJournalpostId(soknadsId: UUID, journalpostId: String): Int {
-        val bigIntJournalPostId = BigInteger(journalpostId)
+    override fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String): Int {
         return time("oppdater_journalpostId") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        """
-                            UPDATE V1_SOKNAD 
-                            SET JOURNALPOSTID = :journalpostId, UPDATED = now() 
-                            WHERE SOKNADS_ID = :soknadsId
-                        """.trimIndent(),
-                        mapOf("journalpostId" to bigIntJournalPostId, "soknadsId" to soknadsId),
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    UPDATE v1_soknad 
+                    SET journalpostid = :journalpostId,
+                        updated = NOW() 
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf(
+                    "journalpostId" to BigInteger(journalpostId),
+                    "soknadId" to søknadId,
+                ),
+            ).actualRowCount
         }
     }
 
-    override fun oppdaterOppgaveId(soknadsId: UUID, oppgaveId: String): Int {
-        val bigIntOppgaveId = BigInteger(oppgaveId)
+    override fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: String): Int {
         return time("oppdater_oppgaveId") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        """
-                        UPDATE V1_SOKNAD 
-                        SET OPPGAVEID = :oppgaveId, UPDATED = now() 
-                        WHERE SOKNADS_ID = :soknadsId AND OPPGAVEID IS NULL   
-                        """.trimIndent(),
-                        mapOf("oppgaveId" to bigIntOppgaveId, "soknadsId" to soknadsId),
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    UPDATE v1_soknad
+                    SET oppgaveid = :oppgaveId,
+                        updated = NOW()
+                    WHERE soknads_id = :soknadId
+                      AND oppgaveid IS NULL
+                """.trimIndent(),
+                mapOf(
+                    "oppgaveId" to BigInteger(oppgaveId),
+                    "soknadId" to søknadId,
+                ),
+            ).actualRowCount
         }
     }
 
@@ -417,71 +342,60 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             """
                 SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.created, soknad.updated, soknad.data, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker,
                 (CASE WHEN EXISTS (
-                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN  ('GODKJENT_MED_FULLMAKT')
+                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')
                 ) THEN TRUE ELSE FALSE END) AS fullmakt
                 FROM v1_soknad AS soknad
                 LEFT JOIN v1_status AS status
                 ON status.id = (
                     SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
                 )
-                WHERE soknad.fnr_bruker = ? AND status.status NOT IN (?, ?)
+                WHERE soknad.fnr_bruker = :fnrBruker
+                  AND NOT(status.status = ANY (:status))
                 ORDER BY soknad.created DESC
             """
 
         return time("hent_soknader_for_bruker") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        fnrBruker,
-                        Status.GODKJENT_MED_FULLMAKT.name,
-                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
-                    ).map {
-                        val status = Status.valueOf(it.string("STATUS"))
-                        if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
-                            SoknadMedStatus.newSøknadUtenFormidlernavn(
-                                soknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType") ?: "SØKNAD",
-                                ),
-                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
-                                status = Status.valueOf(it.string("STATUS")),
-                                fullmakt = it.boolean("fullmakt"),
-                                datoOpprettet = it.sqlTimestamp("created"),
-                                datoOppdatert = when {
-                                    it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
-                                    else -> it.sqlTimestamp("created")
-                                },
-                                er_digital = it.boolean("ER_DIGITAL"),
-                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                                valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]",
-                                ),
-                            )
-                        } else {
-                            SoknadMedStatus.newSøknadMedFormidlernavn(
-                                soknadId = it.uuid("SOKNADS_ID"),
-                                behovsmeldingType = BehovsmeldingType.valueOf(
-                                    it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" },
-                                ),
-                                journalpostId = it.stringOrNull("JOURNALPOSTID"),
-                                status = Status.valueOf(it.string("STATUS")),
-                                fullmakt = it.boolean("fullmakt"),
-                                datoOpprettet = it.sqlTimestamp("created"),
-                                datoOppdatert = when {
-                                    it.sqlTimestampOrNull("updated") != null -> it.sqlTimestamp("updated")
-                                    else -> it.sqlTimestamp("created")
-                                },
-                                søknad = it.jsonNodeOrDefault("DATA", "{}"),
-                                er_digital = it.boolean("ER_DIGITAL"),
-                                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                                valgteÅrsaker = objectMapper.readValue(
-                                    it.stringOrNull("ARSAKER") ?: "[]",
-                                ),
-                            )
-                        }
-                    }.asList,
-                )
+            tx.list(
+                statement,
+                mapOf(
+                    "fnrBruker" to fnrBruker,
+                    "status" to enumSetOf(
+                        Status.GODKJENT_MED_FULLMAKT,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    ).toStringArray(),
+                ),
+            ) {
+                val status = it.enum<Status>("STATUS")
+                val datoOpprettet = it.sqlTimestamp("created")
+                val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
+                if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
+                    SoknadMedStatus.newSøknadUtenFormidlernavn(
+                        soknadId = it.uuid("SOKNADS_ID"),
+                        behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                        journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                        status = status,
+                        fullmakt = it.boolean("fullmakt"),
+                        datoOpprettet = datoOpprettet,
+                        datoOppdatert = datoOppdatert,
+                        er_digital = it.boolean("ER_DIGITAL"),
+                        soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                        valgteÅrsaker = it.jsonOrNull("ARSAKER") ?: emptyList(),
+                    )
+                } else {
+                    SoknadMedStatus.newSøknadMedFormidlernavn(
+                        soknadId = it.uuid("SOKNADS_ID"),
+                        behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                        journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                        status = status,
+                        fullmakt = it.boolean("fullmakt"),
+                        datoOpprettet = datoOpprettet,
+                        datoOppdatert = datoOppdatert,
+                        søknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
+                        er_digital = it.boolean("ER_DIGITAL"),
+                        soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                        valgteÅrsaker = it.jsonOrNull("ARSAKER") ?: emptyList(),
+                    )
+                }
             }
         }
     }
@@ -496,23 +410,20 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                 ON status.ID = (
                     SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
                 )
-                WHERE status.STATUS = ? AND (soknad.CREATED + interval '$dager day') < now()
+                WHERE status.STATUS = :status
+                  AND (soknad.CREATED + interval '$dager day') < now()
                 ORDER BY soknad.CREATED DESC
-            """
+            """.trimIndent()
 
         return time("utgåtte_søknader") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        Status.VENTER_GODKJENNING.name,
-                    ).map {
-                        UtgåttSøknad(
-                            søknadId = it.uuid("SOKNADS_ID"),
-                            status = Status.valueOf(it.string("STATUS")),
-                            fnrBruker = it.string("FNR_BRUKER"),
-                        )
-                    }.asList,
+            tx.list(
+                statement,
+                mapOf("status" to Status.VENTER_GODKJENNING),
+            ) {
+                UtgåttSøknad(
+                    søknadId = it.uuid("SOKNADS_ID"),
+                    status = it.enum("STATUS"),
+                    fnrBruker = it.string("FNR_BRUKER"),
                 )
             }
         }
@@ -520,74 +431,72 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
 
     override fun save(soknadData: SoknadData): Int =
         time("insert_soknad") {
-            using(sessionOf(ds)) { session ->
-                session.transaction { transaction ->
-                    // Add the new status to the status table
-                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) {
-                        transaction.run(
-                            queryOf(
-                                "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                                soknadData.soknadId,
-                                soknadData.status.name,
-                            ).asUpdate,
-                        )
-                    }
-                    // Add the new Søknad into the Søknad table
-                    transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_SOKNAD (SOKNADS_ID, FNR_BRUKER, NAVN_BRUKER, FNR_INNSENDER, DATA, KOMMUNENAVN, ER_DIGITAL, SOKNAD_GJELDER) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
-                            soknadData.soknadId,
-                            soknadData.fnrBruker,
-                            soknadData.navnBruker,
-                            soknadData.fnrInnsender,
-                            pgJsonbOf(soknadData.soknad),
-                            soknadData.kommunenavn,
-                            true,
-                            soknadData.soknadGjelder ?: "Søknad om hjelpemidler",
-                        ).asUpdate,
-                    )
-                }
+            if (!checkIfLastStatusMatches(soknadData.soknadId, soknadData.status)) {
+                tx.update(
+                    "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                    mapOf(
+                        "soknadId" to soknadData.soknadId,
+                        "status" to soknadData.status,
+                    ),
+                )
             }
+            tx.update(
+                """
+                    INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital, soknad_gjelder)
+                    VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, :kommunenavn, TRUE, :soknadGjelder)
+                    ON CONFLICT DO NOTHING
+                """.trimIndent(),
+                mapOf(
+                    "soknadId" to soknadData.soknadId,
+                    "fnrBruker" to soknadData.fnrBruker,
+                    "navnBruker" to soknadData.navnBruker,
+                    "fnrInnsender" to soknadData.fnrInnsender,
+                    "data" to pgJsonbOf(soknadData.soknad),
+                    "kommunenavn" to soknadData.kommunenavn,
+                    "soknadGjelder" to (soknadData.soknadGjelder ?: "Søknad om hjelpemidler"),
+                ),
+            ).actualRowCount
         }
 
-    private fun checkIfLastStatusMatches(session: Session, soknadsId: UUID, status: Status): Boolean {
-        val result = session.run(
-            queryOf(
-                "SELECT STATUS FROM V1_STATUS WHERE ID = (SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = ? ORDER BY created DESC LIMIT 1)",
-                soknadsId,
-            ).map {
-                it.stringOrNull("STATUS")
-            }.asSingle,
-        ) ?: return false /* special case where there is no status in the database (søknad is being added now) */
-        if (result != status.name) return false
-        return true
+    private fun checkIfLastStatusMatches(søknadId: UUID, status: Status): Boolean {
+        return tx.singleOrNull(
+            """
+                SELECT status FROM v1_status
+                WHERE id = (
+                    SELECT id FROM v1_status
+                    WHERE soknads_id = :soknadId
+                    ORDER BY created DESC
+                    LIMIT 1
+                )
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { it.enumOrNull<Status>("status") } == status
     }
 
     override fun savePapir(soknadData: PapirSøknadData): Int =
         time("insert_papirsoknad") {
-            using(sessionOf(ds)) { session ->
-                session.transaction { transaction ->
-                    if (!checkIfLastStatusMatches(transaction, soknadData.soknadId, soknadData.status)) {
-                        transaction.run(
-                            queryOf(
-                                "INSERT INTO V1_STATUS (SOKNADS_ID, STATUS) VALUES (?, ?)",
-                                soknadData.soknadId,
-                                soknadData.status.name,
-                            ).asUpdate,
-                        )
-                    }
-                    transaction.run(
-                        queryOf(
-                            "INSERT INTO V1_SOKNAD (SOKNADS_ID,FNR_BRUKER, ER_DIGITAL, JOURNALPOSTID, NAVN_BRUKER ) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING",
-                            soknadData.soknadId,
-                            soknadData.fnrBruker,
-                            false,
-                            soknadData.journalpostid,
-                            soknadData.navnBruker,
-                        ).asUpdate,
-                    )
-                }
+            if (!checkIfLastStatusMatches(soknadData.soknadId, soknadData.status)) {
+                tx.update(
+                    "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                    mapOf(
+                        "soknadId" to soknadData.soknadId,
+                        "status" to soknadData.status,
+                    ),
+                )
             }
+            tx.update(
+                """
+                    INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpostid, navn_bruker)
+                    VALUES (:soknadId, :fnrBruker, FALSE, :journalpostId, :navnBruker)
+                    ON CONFLICT DO NOTHING
+                """.trimIndent(),
+                mapOf(
+                    "soknadId" to soknadData.soknadId,
+                    "fnrBruker" to soknadData.fnrBruker,
+                    "journalpostId" to soknadData.journalpostid,
+                    "navnBruker" to soknadData.navnBruker,
+                ),
+            ).actualRowCount
         }
 
     override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler> {
@@ -598,17 +507,10 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             """
 
         val soknader = time("initieltDatasettForForslagsmotorTilbehoer") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                    ).map {
-                        val hjelpemiddel =
-                            objectMapper.readValue<ForslagsmotorTilbehørHjelpemidler>(it.string("DATA"))
-                        hjelpemiddel.created = it.localDateTime("CREATED")
-                        hjelpemiddel
-                    }.asList,
-                )
+            tx.list(statement) {
+                val hjelpemiddel = it.json<ForslagsmotorTilbehørHjelpemidler>("data")
+                hjelpemiddel.created = it.localDateTime("created")
+                hjelpemiddel
             }
         }
 
@@ -640,7 +542,7 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                       FROM V1_STATUS
                       WHERE created > NOW() - INTERVAL '90 DAYS') AS t
                 WHERE rangering = 1
-                  AND STATUS IN (?, ?, ?, ?)
+                  AND STATUS = ANY (:status)
                 )
 
                 SELECT soknad.soknads_id
@@ -653,48 +555,37 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             """
 
         return time("godkjente_soknader_uten_oppgave") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        Status.GODKJENT_MED_FULLMAKT.name,
-                        Status.GODKJENT.name,
-                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD.name,
-                        Status.BRUKERPASSBYTTE_INNSENDT.name,
-                    ).map {
-                        it.string("SOKNADS_ID")
-                    }.asList,
-                )
-            }
+            tx.list(
+                statement,
+                mapOf(
+                    "status" to enumSetOf(
+                        Status.GODKJENT_MED_FULLMAKT,
+                        Status.GODKJENT,
+                        Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                        Status.BRUKERPASSBYTTE_INNSENDT,
+                    ).toStringArray(),
+                ),
+            ) { it.string("soknads_id") }
         }
     }
 
-    override fun behovsmeldingTypeFor(soknadsId: UUID): BehovsmeldingType? {
-        @Language("PostgreSQL")
-        val statement =
-            """
-                SELECT soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype
-                FROM v1_soknad AS soknad
-                WHERE soknad.soknads_id = ?
-            """
-
+    override fun behovsmeldingTypeFor(søknadId: UUID): BehovsmeldingType? {
         return time("behovsmeldingTypeFor") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        soknadsId,
-                    ).map {
-                        BehovsmeldingType.valueOf(it.stringOrNull("behovsmeldingType").let { it ?: "SØKNAD" })
-                    }.asSingle,
-                )
+            tx.singleOrNull(
+                """
+                    SELECT soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype
+                    FROM v1_soknad AS soknad
+                    WHERE soknad.soknads_id = :soknadId
+                """,
+                mapOf("soknadId" to søknadId),
+            ) {
+                it.behovsmeldingType("behovsmeldingType")
             }
         }
     }
 
     override fun tellStatuser(): List<StatusCountRow> {
-        @Language("PostgreSQL")
-        val statement =
+        return tx.list(
             """
                 WITH siste_status AS (SELECT soknads_id, status
                       FROM (SELECT soknads_id,
@@ -707,42 +598,30 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
                        COUNT(soknads_id) AS count
                 FROM siste_status
                 GROUP BY status
-            """.trimIndent()
-
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    statement,
-                ).map {
-                    StatusCountRow(
-                        Status.valueOf(it.string("STATUS")),
-                        it.int("COUNT"),
-                    )
-                }.asList,
+            """.trimIndent(),
+        ) {
+            StatusCountRow(
+                it.enum("STATUS"),
+                it.int("COUNT"),
             )
         }
     }
 
-    override fun hentStatuser(soknadsId: UUID): List<StatusRow> {
-        @Language("PostgreSQL")
-        val statement = """
-            SELECT status, v1_status.created AS created, er_digital 
-            FROM v1_status JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id 
-            WHERE v1_status.soknads_id = ? ORDER BY created DESC
-        """.trimIndent() // ORDER is just a preventative measure
-
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    statement,
-                    soknadsId,
-                ).map {
-                    StatusRow(
-                        Status.valueOf(it.string("STATUS")),
-                        it.sqlTimestamp("CREATED"),
-                        it.boolean("ER_DIGITAL"),
-                    )
-                }.asList,
+    override fun hentStatuser(søknadId: UUID): List<StatusRow> {
+        return tx.list(
+            """
+                SELECT status, v1_status.created AS created, er_digital 
+                FROM v1_status
+                    JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id 
+                WHERE v1_status.soknads_id = :soknadId
+                ORDER BY created DESC
+            """.trimIndent(), // ORDER is just a preventative measure
+            mapOf("soknadId" to søknadId),
+        ) {
+            StatusRow(
+                it.enum("STATUS"),
+                it.sqlTimestamp("CREATED"),
+                it.boolean("ER_DIGITAL"),
             )
         }
     }
@@ -788,92 +667,81 @@ class SøknadStorePostgres(private val ds: DataSource) : SøknadStore {
             """
 
         return time("hentSoknaderForKommuneApiet") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        statement,
-                        mapOf(
-                            "kommunenummer" to kommunenummer,
-                            "kommunenummerJson" to pgJsonbOf(mapOf("kommunenummer" to kommunenummer)),
-                            "nyereEnn" to nyereEnn,
-                            "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
-                                LocalDateTime.ofInstant(
-                                    Instant.ofEpochSecond(nyereEnnTidsstempel),
-                                    ZoneId.systemDefault(),
-                                )
-                            },
-                        ),
-                    ).map {
-                        val data = it.jsonNodeOrDefault("DATA", "{}")
-
-                        // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
-                        val validatedData = kotlin.runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
-                            val logID = UUID.randomUUID()
-                            logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logID)" }
-                            synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
-                                if (
-                                    hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
-                                        LocalDateTime.now().minusHours(1),
-                                    ) &&
-                                    hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
-                                    hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
-                                    hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
-                                    !Environment.current.tier.isLocal
-                                ) {
-                                    hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
-                                    runBlocking(Dispatchers.IO) {
-                                        slack.sendMessage(
-                                            "hm-soknadsbehandling-db",
-                                            slackIconEmoji(":this-is-fine-fire:"),
-                                            if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
-                                            "Søknad datamodellen har endret seg og kvittering av innsendte " +
-                                                "søknader tilbake til kommunen er satt på pause inntil noen har " +
-                                                "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
-                                                "no.nav.hjelpemidler.soknad.db.domain.kommune_api.* og sørg for at " +
-                                                "vi filtrerer ut verdier som ikke skal kvitteres tilbake. " +
-                                                "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
-                                                "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
-                                                "/kommune_api/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                                "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logID",
-                                        )
-                                    }
-                                }
-                            }
-                            return@map null
-                        }
-
-                        // Ekstra sikkerhetssjekker
-                        if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
-                            // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
-                            throw IllegalStateException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
-                        }
-
-                        if (validatedData.soknad.bruker.kommunenummer != kommunenummer) {
-                            throw IllegalStateException("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
-                        }
-
-                        // Filtrer ut ikke-relevante felter
-                        val filteredData = validatedData.filtrerForKommuneApiet()
-
-                        SøknadForKommuneApi(
-                            fnrBruker = it.string("FNR_BRUKER"),
-                            navnBruker = it.string("NAVN_BRUKER"),
-                            fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
-                            soknadId = it.uuid("SOKNADS_ID"),
-                            soknad = filteredData,
-                            soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                            opprettet = it.localDateTime("CREATED"),
+            tx.list(
+                statement,
+                mapOf(
+                    "kommunenummer" to kommunenummer,
+                    "kommunenummerJson" to pgJsonbOf(mapOf("kommunenummer" to kommunenummer)),
+                    "nyereEnn" to nyereEnn,
+                    "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
+                        LocalDateTime.ofInstant(
+                            Instant.ofEpochSecond(nyereEnnTidsstempel),
+                            ZoneId.systemDefault(),
                         )
-                    }.asList,
+                    },
+                ),
+            ) {
+                val data = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode()
+
+                // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
+                val validatedData = runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
+                    val logId = UUID.randomUUID()
+                    logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logId)" }
+                    synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
+                        if (
+                            hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
+                                LocalDateTime.now().minusHours(1),
+                            ) &&
+                            hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
+                            hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
+                            hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
+                            !Environment.current.tier.isLocal
+                        ) {
+                            hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
+                            runBlocking(Dispatchers.IO) {
+                                slack.sendMessage(
+                                    "hm-soknadsbehandling-db",
+                                    slackIconEmoji(":this-is-fine-fire:"),
+                                    if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
+                                    "Søknad datamodellen har endret seg og kvittering av innsendte " +
+                                        "søknader tilbake til kommunen er satt på pause inntil noen har " +
+                                        "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
+                                        "no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at " +
+                                        "vi filtrerer ut verdier som ikke skal kvitteres tilbake. " +
+                                        "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
+                                        "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
+                                        "/kommuneapi/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
+                                        "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logId",
+                                )
+                            }
+                        }
+                    }
+                    return@list null
+                }
+
+                // Ekstra sikkerhetssjekker
+                if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
+                    // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
+                    error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
+                }
+
+                if (validatedData.soknad.bruker.kommunenummer != kommunenummer) {
+                    error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
+                }
+
+                // Filtrer ut ikke-relevante felter
+                val filteredData = validatedData.filtrerForKommuneApiet()
+
+                SøknadForKommuneApi(
+                    fnrBruker = it.string("FNR_BRUKER"),
+                    navnBruker = it.string("NAVN_BRUKER"),
+                    fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
+                    soknadId = it.uuid("SOKNADS_ID"),
+                    soknad = filteredData,
+                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                    opprettet = it.localDateTime("CREATED"),
                 )
             }
         }
-    }
-
-    companion object {
-        private val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     }
 }

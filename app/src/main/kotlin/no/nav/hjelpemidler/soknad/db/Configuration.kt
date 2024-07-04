@@ -61,7 +61,7 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
     }
 }
 
-internal object Configuration {
+object Configuration {
     val config = config()
     val database: Database = Database()
     val application: Application = Application()

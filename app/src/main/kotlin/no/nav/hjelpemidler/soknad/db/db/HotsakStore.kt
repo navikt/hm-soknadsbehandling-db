@@ -1,13 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.db
 
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
+import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 interface HotsakStore {
     fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int
@@ -23,21 +20,20 @@ interface HotsakStore {
     fun hentFagsakIdForSøknad(søknadId: UUID): String?
 }
 
-class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
-
+class HotsakStorePostgres(private val tx: JdbcOperations) : HotsakStore {
     override fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int =
         time("insert_knytning_mellom_søknad_og_hotsak") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "INSERT INTO V1_HOTSAK_DATA (SOKNADS_ID, SAKSNUMMER, VEDTAKSRESULTAT, VEDTAKSDATO ) VALUES (?,?,?,?) ON CONFLICT DO NOTHING",
-                        hotsakTilknytningData.søknadId,
-                        hotsakTilknytningData.saksnr,
-                        null,
-                        null,
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    INSERT INTO v1_hotsak_data (soknads_id, saksnummer)
+                    VALUES (:soknadId, :saksnummer)
+                    ON CONFLICT DO NOTHING
+                """.trimIndent(),
+                mapOf(
+                    "soknadId" to hotsakTilknytningData.søknadId,
+                    "saksnummer" to hotsakTilknytningData.saksnr,
+                ),
+            ).actualRowCount
         }
 
     override fun lagreVedtaksresultat(
@@ -46,75 +42,56 @@ class HotsakStorePostgres(private val ds: DataSource) : HotsakStore {
         vedtaksdato: LocalDate,
     ): Int =
         time("oppdater_vedtaksresultat_fra_hotsak") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "UPDATE V1_HOTSAK_DATA SET VEDTAKSRESULTAT = ?, VEDTAKSDATO = ? WHERE SOKNADS_ID = ?",
-                        vedtaksresultat,
-                        vedtaksdato,
-                        søknadId,
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    UPDATE v1_hotsak_data
+                    SET vedtaksresultat = :vedtaksresultat,
+                        vedtaksdato = :vedtaksdato
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf(
+                    "vedtaksresultat" to vedtaksresultat,
+                    "vedtaksdato" to vedtaksdato,
+                    "soknadId" to søknadId,
+                ),
+            ).actualRowCount
         }
 
     override fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatHotsakData? {
         return time("hent_søknadid_fra_resultat") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "SELECT SOKNADS_ID, SAKSNUMMER, VEDTAKSRESULTAT, VEDTAKSDATO FROM V1_HOTSAK_DATA WHERE SOKNADS_ID = ?",
-                        søknadId,
-                    ).map {
-                        VedtaksresultatHotsakData(
-                            søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                            saksnr = it.string("SAKSNUMMER"),
-                            vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
-                            vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
-                        )
-                    }.asSingle,
+            tx.singleOrNull(
+                """
+                    SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato
+                    FROM v1_hotsak_data
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) {
+                VedtaksresultatHotsakData(
+                    søknadId = it.uuid("soknads_id"),
+                    saksnr = it.string("saksnummer"),
+                    vedtaksresultat = it.stringOrNull("vedtaksresultat"),
+                    vedtaksdato = it.localDateOrNull("vedtaksdato"),
                 )
             }
         }
     }
 
-    override fun hentSøknadsIdForHotsakNummer(saksnummer: String): UUID? {
-        val søknadsId: UUID? = using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    "SELECT SOKNADS_ID FROM V1_HOTSAK_DATA WHERE SAKSNUMMER = ? ",
-                    saksnummer,
-                ).map {
-                    UUID.fromString(it.string("SOKNADS_ID"))
-                }.asSingle,
-            )
-        }
-        return søknadsId
-    }
+    override fun hentSøknadsIdForHotsakNummer(saksnummer: String): UUID? =
+        tx.singleOrNull(
+            "SELECT soknads_id FROM v1_hotsak_data WHERE saksnummer = :saksnummer",
+            mapOf("saksnummer" to saksnummer),
+        ) { it.uuid("soknads_id") }
 
-    override fun harVedtakForSøknadId(søknadId: UUID): Boolean {
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    "SELECT 1 FROM V1_HOTSAK_DATA WHERE SOKNADS_ID = ? AND VEDTAKSRESULTAT IS NOT NULL",
-                    søknadId,
-                ).map {
-                    true
-                }.asSingle,
-            )
-        } ?: false
-    }
+    override fun harVedtakForSøknadId(søknadId: UUID): Boolean =
+        tx.singleOrNull(
+            "SELECT 1 FROM v1_hotsak_data WHERE soknads_id = :soknadId AND vedtaksresultat IS NOT NULL",
+            mapOf("soknadId" to søknadId),
+        ) { true } ?: false
 
-    override fun hentFagsakIdForSøknad(søknadId: UUID): String? {
-        return using(sessionOf(ds)) { session ->
-            session.run(
-                queryOf(
-                    "SELECT SAKSNUMMER FROM V1_HOTSAK_DATA WHERE SOKNADS_ID = ?",
-                    søknadId,
-                ).map {
-                    it.string("SAKSNUMMER")
-                }.asSingle,
-            )
-        }
-    }
+    override fun hentFagsakIdForSøknad(søknadId: UUID): String? =
+        tx.singleOrNull(
+            "SELECT saksnummer FROM v1_hotsak_data WHERE soknads_id = :soknadId",
+            mapOf("soknadId" to søknadId),
+        ) { it.string("saksnummer") }
 }

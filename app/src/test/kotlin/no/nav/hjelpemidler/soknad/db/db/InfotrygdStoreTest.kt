@@ -2,17 +2,15 @@ package no.nav.hjelpemidler.soknad.db.db
 
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
-import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-internal class InfotrygdStoreTest {
-
+class InfotrygdStoreTest {
     @Test
-    fun `Lag knytning mellom endeleg journalført digital søknad og Infotrygd basert på fagsakId`() {
+    fun `Lag knytning mellom endeleg journalført digital søknad og Infotrygd basert på fagsakId`() = databaseTest {
         val søknadId = UUID.randomUUID() // Digital søknad får denne i kanalreferanseId frå Joark
         val fnrBruker = "15084300133"
         val fagsakId = "4703C13"
@@ -27,22 +25,20 @@ internal class InfotrygdStoreTest {
             null,
         )
 
-        withMigratedDb {
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
-                val søknad: VedtaksresultatData? = this.hentVedtaksresultatForSøknad(søknadId)
-                assertEquals("15084300133", søknad?.fnrBruker)
-                assertEquals("4703", søknad?.trygdekontorNr)
-                assertEquals("C", søknad?.saksblokk)
-                assertEquals("13", søknad?.saksnr)
-                assertNull(søknad?.vedtaksresultat)
-                assertNull(søknad?.vedtaksdato)
-            }
+        testTransaction {
+            infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            val søknad = infotrygdStore.hentVedtaksresultatForSøknad(søknadId)
+            assertEquals("15084300133", søknad?.fnrBruker)
+            assertEquals("4703", søknad?.trygdekontorNr)
+            assertEquals("C", søknad?.saksblokk)
+            assertEquals("13", søknad?.saksnr)
+            assertNull(søknad?.vedtaksresultat)
+            assertNull(søknad?.vedtaksdato)
         }
     }
 
     @Test
-    fun `Lagr vedtaksresultat frå Infotrygd`() {
+    fun `Lagr vedtaksresultat frå Infotrygd`() = databaseTest {
         val søknadId = UUID.randomUUID()
         val fnrBruker = "15084300133"
         val fagsakId = "4703C13"
@@ -62,30 +58,24 @@ internal class InfotrygdStoreTest {
         val resultat = "IM"
         val vedtaksdato = LocalDate.of(2021, 5, 31)
 
-        withMigratedDb {
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
-            }
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
-                    .also {
-                        it shouldBe (1)
-                    }
-            }
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                val søknad = this.hentVedtaksresultatForSøknad(søknadId)
-                assertEquals("15084300133", søknad?.fnrBruker)
-                assertEquals("4703", søknad?.trygdekontorNr)
-                assertEquals("C", søknad?.saksblokk)
-                assertEquals("13", søknad?.saksnr)
-                assertEquals("IM", søknad?.vedtaksresultat)
-                assertEquals(LocalDate.of(2021, 5, 31).toString(), søknad?.vedtaksdato.toString())
-            }
+        testTransaction {
+            infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            infotrygdStore
+                .lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
+                .also { it shouldBe (1) }
+
+            val søknad = infotrygdStore.hentVedtaksresultatForSøknad(søknadId)
+            assertEquals("15084300133", søknad?.fnrBruker)
+            assertEquals("4703", søknad?.trygdekontorNr)
+            assertEquals("C", søknad?.saksblokk)
+            assertEquals("13", søknad?.saksnr)
+            assertEquals("IM", søknad?.vedtaksresultat)
+            assertEquals(LocalDate.of(2021, 5, 31).toString(), søknad?.vedtaksdato.toString())
         }
     }
 
     @Test
-    fun `Hent søknadId frå resultat`() {
+    fun `Hent søknadId frå resultat`() = databaseTest {
         val søknadId = UUID.fromString("62f68547-11ae-418c-8ab7-4d2af985bcd9")
         val fnrBruker = "15084300133"
         val fagsakId = "4703C13"
@@ -103,26 +93,21 @@ internal class InfotrygdStoreTest {
         val resultat = "IM"
         val vedtaksdato = LocalDate.of(2021, 5, 31)
 
-        withMigratedDb {
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
-            }
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
-                    .also {
-                        it shouldBe (1)
-                    }
-            }
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                val søknadIdResultat = this.hentSøknadIdFraVedtaksresultat(fnrBruker, "C13", LocalDate.of(2021, 5, 31))
-                assertEquals("62f68547-11ae-418c-8ab7-4d2af985bcd9", søknadIdResultat.toString())
-            }
+        testTransaction {
+            infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            infotrygdStore
+                .lagreVedtaksresultat(søknadId, resultat, vedtaksdato, "")
+                .also { it shouldBe (1) }
+
+            val søknadIdResultat =
+                infotrygdStore.hentSøknadIdFraVedtaksresultat(fnrBruker, "C13", LocalDate.of(2021, 5, 31))
+            assertEquals("62f68547-11ae-418c-8ab7-4d2af985bcd9", søknadIdResultat.toString())
         }
     }
 
     // Fleire enn eitt treff gjer det umogleg å matche Oebs-data mot éin søknad
     @Test
-    fun `Hent søknadId frå resultat skal returnere null viss det ikkje er nøyaktig eitt treff`() {
+    fun `Hent søknadId frå resultat skal returnere null viss det ikkje er nøyaktig eitt treff`() = databaseTest {
         val fnrBruker = "15084300133"
         val søknadId1 = UUID.fromString("62f68547-11ae-418c-8ab7-4d2af985bcd9")
         val fagsakId1 = "4703C13"
@@ -153,26 +138,20 @@ internal class InfotrygdStoreTest {
         val resultat = "IM"
         val vedtaksdato = LocalDate.of(2021, 5, 31)
 
-        withMigratedDb {
-            InfotrygdStorePostgres(DataSource.instance).apply {
-                this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData1)
-                this.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData2)
+        testTransaction {
+            infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData1)
+            infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData2)
 
-                InfotrygdStorePostgres(DataSource.instance).apply {
-                    this.lagreVedtaksresultat(søknadId1, resultat, vedtaksdato, "")
-                        .also {
-                            it shouldBe (1)
-                        }
-                    this.lagreVedtaksresultat(søknadId2, resultat, vedtaksdato, "")
-                        .also {
-                            it shouldBe (1)
-                        }
-                }
-                InfotrygdStorePostgres(DataSource.instance).apply {
-                    val alteredLines = this.hentSøknadIdFraVedtaksresultat(fnrBruker, "C13", LocalDate.of(2021, 5, 31))
-                    assertEquals(null, alteredLines)
-                }
-            }
+            infotrygdStore
+                .lagreVedtaksresultat(søknadId1, resultat, vedtaksdato, "")
+                .also { it shouldBe (1) }
+            infotrygdStore
+                .lagreVedtaksresultat(søknadId2, resultat, vedtaksdato, "")
+                .also { it shouldBe (1) }
+
+            val alteredLines =
+                infotrygdStore.hentSøknadIdFraVedtaksresultat(fnrBruker, "C13", LocalDate.of(2021, 5, 31))
+            assertEquals(null, alteredLines)
         }
     }
 }

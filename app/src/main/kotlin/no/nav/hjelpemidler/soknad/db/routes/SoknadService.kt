@@ -12,14 +12,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.util.pipeline.PipelineContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import no.nav.hjelpemidler.soknad.db.db.HotsakStore
-import no.nav.hjelpemidler.soknad.db.db.OrdreStore
-import no.nav.hjelpemidler.soknad.db.db.SøknadStore
-import no.nav.hjelpemidler.soknad.db.db.SøknadStoreInnsender
+import no.nav.hjelpemidler.soknad.db.db.Transaction
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -28,22 +22,19 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStore
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDate
 import java.util.Date
 import java.util.UUID
 
-private val logger = KotlinLogging.logger {}
+private val logg = KotlinLogging.logger {}
 
-internal fun Route.tokenXRoutes(
-    søknadStore: SøknadStore,
-    ordreStore: OrdreStore,
-    infotrygdStore: InfotrygdStore,
-    hotsakStore: HotsakStore,
-    formidlerStore: SøknadStoreInnsender,
+fun Route.tokenXRoutes(
+    transaction: Transaction,
+    ordreService: OrdreService,
     rolleService: RolleService,
     tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
@@ -51,7 +42,7 @@ internal fun Route.tokenXRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = søknadStore.hentSoknad(soknadsId)
+            val soknad = transaction { søknadStore.hentSoknad(soknadsId) }
 
             when {
                 soknad == null -> {
@@ -64,25 +55,25 @@ internal fun Route.tokenXRoutes(
 
                 else -> {
                     // Fetch ordrelinjer belonging to søknad
-                    soknad.ordrelinjer = ordreStore.ordreForSoknad(soknad.søknadId)
+                    soknad.ordrelinjer = ordreService.finnOrdreForSøknad(soknad.søknadId)
 
                     // Fetch fagsakid if it exists
-                    val fagsakData = infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId)
+                    val fagsakData = transaction { infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId) }
                     if (fagsakData != null) {
                         soknad.fagsakId = fagsakData.fagsakId
                     } else {
-                        val fagsakData2 = hotsakStore.hentFagsakIdForSøknad(soknad.søknadId)
+                        val fagsakData2 = transaction { hotsakStore.hentFagsakIdForSøknad(soknad.søknadId) }
                         if (fagsakData2 != null) soknad.fagsakId = fagsakData2
                     }
 
                     // Fetch soknadType for søknad
-                    soknad.søknadType = infotrygdStore.hentTypeForSøknad(soknad.søknadId)
+                    soknad.søknadType = transaction { infotrygdStore.hentTypeForSøknad(soknad.søknadId) }
 
                     call.respond(soknad)
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad" }
+            logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
@@ -91,10 +82,10 @@ internal fun Route.tokenXRoutes(
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
 
         try {
-            val brukersSaker = søknadStore.hentSoknaderForBruker(fnr)
+            val brukersSaker = transaction { søknadStore.hentSoknaderForBruker(fnr) }
             call.respond(brukersSaker)
         } catch (e: Exception) {
-            logger.error(e) { "Error on fetching søknader til godkjenning" }
+            logg.error(e) { "Error on fetching søknader til godkjenning" }
             call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av saker")
         }
     }
@@ -105,7 +96,9 @@ internal fun Route.tokenXRoutes(
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
         try {
-            val formidlersSøknader = formidlerStore.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
+            val formidlersSøknader = transaction {
+                søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
+            }
 
             // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
             val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
@@ -121,12 +114,12 @@ internal fun Route.tokenXRoutes(
                 val digest = md.digest(bytes)
                 val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
                 val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
-                logger.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
+                logg.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
             }
 
             call.respond(formidlersSøknader)
         } catch (e: Exception) {
-            logger.error(e) { "Error on fetching formidlers søknader" }
+            logg.error(e) { "Error on fetching formidlers søknader" }
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
@@ -138,16 +131,18 @@ internal fun Route.tokenXRoutes(
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
         try {
-            val formidlersSoknad = formidlerStore.hentSøknadForInnsender(fnrInnsender, soknadsId, innsenderRolle)
+            val formidlersSoknad = transaction {
+                søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, soknadsId, innsenderRolle)
+            }
             if (formidlersSoknad == null) {
-                logger.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
+                logg.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
                 call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
             } else {
-                logger.info { "Formidler hentet ut søknad $soknadsId" }
+                logg.info { "Formidler hentet ut søknad $soknadsId" }
                 call.respond(formidlersSoknad)
             }
         } catch (e: Exception) {
-            logger.error(e) { "Error on fetching formidlers søknader" }
+            logg.error(e) { "Error on fetching formidlers søknader" }
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
@@ -156,7 +151,7 @@ internal fun Route.tokenXRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = søknadStore.hentSoknad(soknadsId)
+            val soknad = transaction { søknadStore.hentSoknad(soknadsId) }
 
             when {
                 soknad == null -> {
@@ -172,26 +167,23 @@ internal fun Route.tokenXRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad" }
+            logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 }
 
 internal fun Route.azureAdRoutes(
-    søknadStore: SøknadStore,
-    ordreStore: OrdreStore,
-    infotrygdStore: InfotrygdStore,
-    hotsakStore: HotsakStore,
+    transaction: Transaction,
     metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val fnrForSoknad = søknadStore.hentFnrForSoknad(soknadsId)
+            val fnrForSoknad = transaction { søknadStore.hentFnrForSoknad(soknadsId) }
             call.respond(fnrForSoknad)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad" }
+            logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
@@ -199,10 +191,10 @@ internal fun Route.azureAdRoutes(
     post("/soknad/bruker") {
         try {
             val soknadToBeSaved = call.receive<SoknadData>()
-            søknadStore.save(soknadToBeSaved)
+            transaction { søknadStore.save(soknadToBeSaved) }
             call.respond("OK")
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av søknad" }
+            logg.error(e) { "Feilet ved lagring av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av søknad")
         }
     }
@@ -210,10 +202,10 @@ internal fun Route.azureAdRoutes(
     post("/ordre") {
         try {
             val ordreToBeSaved = call.receive<OrdrelinjeData>()
-            val rowsUpdated = ordreStore.save(ordreToBeSaved)
+            val rowsUpdated = transaction { ordreStore.save(ordreToBeSaved) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av ordrelinje" }
+            logg.error(e) { "Feilet ved lagring av ordrelinje" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
         }
     }
@@ -221,10 +213,10 @@ internal fun Route.azureAdRoutes(
     post("/soknad/papir") {
         try {
             val papirsoknadToBeSaved = call.receive<PapirSøknadData>()
-            val rowsUpdated = søknadStore.savePapir(papirsoknadToBeSaved)
+            val rowsUpdated = transaction { søknadStore.savePapir(papirsoknadToBeSaved) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av papirsøknad" }
+            logg.error(e) { "Feilet ved lagring av papirsøknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av papirsøknad")
         }
     }
@@ -232,10 +224,10 @@ internal fun Route.azureAdRoutes(
     post("/infotrygd/fagsak") {
         try {
             val vedtaksresultatData = call.receive<VedtaksresultatData>()
-            val numRows = infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData)
+            val numRows = transaction { infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData) }
             call.respond(numRows)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av ordrelinje" }
+            logg.error(e) { "Feilet ved lagring av ordrelinje" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
         }
     }
@@ -243,10 +235,10 @@ internal fun Route.azureAdRoutes(
     post("/hotsak/sak") {
         try {
             val hotsakTilknytningData = call.receive<HotsakTilknytningData>()
-            val numRows = hotsakStore.lagKnytningMellomSakOgSøknad(hotsakTilknytningData)
+            val numRows = transaction { hotsakStore.lagKnytningMellomSakOgSøknad(hotsakTilknytningData) }
             call.respond(numRows)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av hotsak-tilknytning" }
+            logg.error(e) { "Feilet ved lagring av hotsak-tilknytning" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av hotsak-tilknytning")
         }
     }
@@ -254,22 +246,24 @@ internal fun Route.azureAdRoutes(
     post("/infotrygd/vedtaksresultat") {
         try {
             val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = infotrygdStore.lagreVedtaksresultat(
-                vedtaksresultatToBeSaved.søknadId,
-                vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato,
-                vedtaksresultatToBeSaved.soknadsType,
-            )
+            val rowUpdated = transaction {
+                infotrygdStore.lagreVedtaksresultat(
+                    vedtaksresultatToBeSaved.søknadId,
+                    vedtaksresultatToBeSaved.vedtaksresultat,
+                    vedtaksresultatToBeSaved.vedtaksdato,
+                    vedtaksresultatToBeSaved.soknadsType,
+                )
+            }
             call.respond(rowUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av vedtaksresultat" }
+            logg.error(e) { "Feilet ved lagring av vedtaksresultat" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat")
         }
     }
 
     get("/infotrygd/søknadsType/{soknadsId}") {
         val soknadsId = UUID.fromString(soknadsId())
-        val søknadsType = infotrygdStore.hentTypeForSøknad(soknadsId)
+        val søknadsType = transaction { infotrygdStore.hentTypeForSøknad(soknadsId) }
 
         data class Response(val søknadsType: String?)
         call.respond(Response(søknadsType))
@@ -278,14 +272,14 @@ internal fun Route.azureAdRoutes(
     post("/soknad/hotsak/fra-saknummer") {
         try {
             val soknadFraHotsakNummerDto = call.receive<SoknadFraHotsakNummerDto>()
-            val soknadId = hotsakStore.hentSøknadsIdForHotsakNummer(
-                soknadFraHotsakNummerDto.saksnummer,
-            )
-            logger.info("Fant søknadsid $soknadId fra HOTSAK nummer ${soknadFraHotsakNummerDto.saksnummer}")
+            val soknadId = transaction {
+                hotsakStore.hentSøknadsIdForHotsakNummer(soknadFraHotsakNummerDto.saksnummer)
+            }
+            logg.info("Fant søknadsid $soknadId fra HOTSAK nummer ${soknadFraHotsakNummerDto.saksnummer}")
 
             soknadId.let { call.respond(mapOf("soknadId" to soknadId)) }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad fra HOTSAK data" }
+            logg.error(e) { "Feilet ved henting av søknad fra HOTSAK data" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra HOTSAK data")
         }
     }
@@ -293,14 +287,12 @@ internal fun Route.azureAdRoutes(
     post("/soknad/hotsak/har-vedtak/fra-søknadid") {
         try {
             val soknadId = call.receive<HarVedtakFraHotsakSøknadIdDto>().søknadId
-            val harVedtak = hotsakStore.harVedtakForSøknadId(
-                soknadId,
-            )
-            logger.info("Fant harVedtak $harVedtak fra HOTSAK med søknadId $soknadId")
+            val harVedtak = transaction { hotsakStore.harVedtakForSøknadId(soknadId) }
+            logg.info("Fant harVedtak $harVedtak fra HOTSAK med søknadId $soknadId")
 
             soknadId.let { call.respond(mapOf("harVedtak" to harVedtak)) }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av harVedtak fra HOTSAK data" }
+            logg.error(e) { "Feilet ved henting av harVedtak fra HOTSAK data" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av harVedtak fra HOTSAK data")
         }
     }
@@ -308,14 +300,16 @@ internal fun Route.azureAdRoutes(
     post("/hotsak/vedtaksresultat") {
         try {
             val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = hotsakStore.lagreVedtaksresultat(
-                vedtaksresultatToBeSaved.søknadId,
-                vedtaksresultatToBeSaved.vedtaksresultat,
-                vedtaksresultatToBeSaved.vedtaksdato,
-            )
+            val rowUpdated = transaction {
+                hotsakStore.lagreVedtaksresultat(
+                    vedtaksresultatToBeSaved.søknadId,
+                    vedtaksresultatToBeSaved.vedtaksresultat,
+                    vedtaksresultatToBeSaved.vedtaksdato,
+                )
+            }
             call.respond(rowUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved lagring av vedtaksresultat fra hotsak" }
+            logg.error(e) { "Feilet ved lagring av vedtaksresultat fra hotsak" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat fra hotsak")
         }
     }
@@ -323,10 +317,10 @@ internal fun Route.azureAdRoutes(
     delete("/soknad/bruker") {
         try {
             val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = søknadStore.slettSøknad(soknadToBeDeleted)
+            val rowsDeleted = transaction { søknadStore.slettSøknad(soknadToBeDeleted) }
             call.respond(rowsDeleted)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved sletting av søknad" }
+            logg.error(e) { "Feilet ved sletting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
         }
     }
@@ -334,10 +328,10 @@ internal fun Route.azureAdRoutes(
     delete("/soknad/utlopt/bruker") {
         try {
             val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = søknadStore.slettUtløptSøknad(soknadToBeDeleted)
+            val rowsDeleted = transaction { søknadStore.slettUtløptSøknad(soknadToBeDeleted) }
             call.respond(rowsDeleted)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved sletting av søknad" }
+            logg.error(e) { "Feilet ved sletting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
         }
     }
@@ -346,12 +340,12 @@ internal fun Route.azureAdRoutes(
         try {
             val soknadsId = UUID.fromString(soknadsId())
             val newStatus = call.receive<Status>()
-            val rowsUpdated = søknadStore.oppdaterStatus(soknadsId, newStatus)
+            val rowsUpdated = transaction { søknadStore.oppdaterStatus(soknadsId, newStatus) }
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(soknadsId, newStatus)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved oppdatering av søknad" }
+            logg.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
         }
     }
@@ -359,12 +353,12 @@ internal fun Route.azureAdRoutes(
     put("/soknad/statusV2") {
         try {
             val statusMedÅrsak = call.receive<StatusMedÅrsak>()
-            val rowsUpdated = søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak)
+            val rowsUpdated = transaction { søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak) }
             call.respond(rowsUpdated)
 
             metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved oppdatering av søknad" }
+            logg.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
         }
     }
@@ -372,7 +366,7 @@ internal fun Route.azureAdRoutes(
     get("/soknad/bruker/finnes/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val soknadFinnes = søknadStore.soknadFinnes(soknadsId)
+            val soknadFinnes = transaction { søknadStore.søknadFinnes(soknadsId) }
 
             when {
                 soknadFinnes -> {
@@ -384,7 +378,7 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad" }
+            logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
@@ -392,10 +386,12 @@ internal fun Route.azureAdRoutes(
     post("/infotrygd/fnr-jounralpost") {
         try {
             val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
-            val fnrOgJournalpostIdFinnes = søknadStore.fnrOgJournalpostIdFinnes(
-                fnrOgJournalpostIdFinnesDto.fnrBruker,
-                fnrOgJournalpostIdFinnesDto.journalpostId,
-            )
+            val fnrOgJournalpostIdFinnes = transaction {
+                søknadStore.fnrOgJournalpostIdFinnes(
+                    fnrOgJournalpostIdFinnesDto.fnrBruker,
+                    fnrOgJournalpostIdFinnesDto.journalpostId,
+                )
+            }
 
             when {
                 fnrOgJournalpostIdFinnes -> {
@@ -407,7 +403,7 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av fnr og journalpost" }
+            logg.error(e) { "Feilet ved henting av fnr og journalpost" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av fnr og journalpost")
         }
     }
@@ -415,7 +411,7 @@ internal fun Route.azureAdRoutes(
     get("/soknadsdata/bruker/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val soknad = søknadStore.hentSoknadData(soknadsId)
+            val soknad = transaction { søknadStore.hentSoknadData(soknadsId) }
 
             when (soknad) {
                 null -> {
@@ -427,7 +423,7 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknadsdata" }
+            logg.error(e) { "Feilet ved henting av søknadsdata" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknadsdata")
         }
     }
@@ -435,15 +431,16 @@ internal fun Route.azureAdRoutes(
     post("/soknad/fra-vedtaksresultat") {
         try {
             val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
-            val soknadId = infotrygdStore.hentSøknadIdFraVedtaksresultat(
-                soknadFraVedtaksresultatDto.fnrBruker,
-                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                soknadFraVedtaksresultatDto.vedtaksdato,
-            )
-
+            val soknadId = transaction {
+                infotrygdStore.hentSøknadIdFraVedtaksresultat(
+                    soknadFraVedtaksresultatDto.fnrBruker,
+                    soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+                    soknadFraVedtaksresultatDto.vedtaksdato,
+                )
+            }
             call.respond(mapOf(Pair("soknadId", soknadId)))
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
+            logg.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
         }
     }
@@ -451,14 +448,15 @@ internal fun Route.azureAdRoutes(
     post("/soknad/fra-vedtaksresultat-v2") {
         try {
             val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatV2Dto>()
-            val resultater = infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
-                soknadFraVedtaksresultatDto.fnrBruker,
-                soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-            )
-
+            val resultater = transaction {
+                infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
+                    soknadFraVedtaksresultatDto.fnrBruker,
+                    soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+                )
+            }
             call.respond(resultater)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
+            logg.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
         }
     }
@@ -466,7 +464,7 @@ internal fun Route.azureAdRoutes(
     get("/soknad/opprettet-dato/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val opprettetDato = søknadStore.hentSoknadOpprettetDato(soknadsId)
+            val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(soknadsId) }
 
             when (opprettetDato) {
                 null -> {
@@ -478,7 +476,7 @@ internal fun Route.azureAdRoutes(
                 }
             }
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved henting av opprettet dato" }
+            logg.error(e) { "Feilet ved henting av opprettet dato" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av opprettet dato")
         }
     }
@@ -487,10 +485,10 @@ internal fun Route.azureAdRoutes(
         val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
 
         try {
-            val soknaderTilGodkjenningEldreEnn = søknadStore.hentSoknaderTilGodkjenningEldreEnn(dager)
+            val soknaderTilGodkjenningEldreEnn = transaction { søknadStore.hentSoknaderTilGodkjenningEldreEnn(dager) }
             call.respond(soknaderTilGodkjenningEldreEnn)
         } catch (e: Exception) {
-            logger.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
+            logg.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
             call.respond(HttpStatusCode.InternalServerError, e)
         }
     }
@@ -500,10 +498,10 @@ internal fun Route.azureAdRoutes(
             val soknadsId = UUID.fromString(soknadsId())
             val newJournalpostDto = call.receive<Map<String, String>>()
             val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            val rowsUpdated = søknadStore.oppdaterJournalpostId(soknadsId, journalpostId)
+            val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(soknadsId, journalpostId) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved oppdatering av journalpost-id" }
+            logg.error(e) { "Feilet ved oppdatering av journalpost-id" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av journalpost-id")
         }
     }
@@ -513,10 +511,10 @@ internal fun Route.azureAdRoutes(
             val soknadsId = UUID.fromString(soknadsId())
             val newOppgaveDto = call.receive<Map<String, String>>()
             val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            val rowsUpdated = søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId)
+            val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved oppdatering av oppgave-id" }
+            logg.error(e) { "Feilet ved oppdatering av oppgave-id" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av oppgave-id")
         }
     }
@@ -524,10 +522,10 @@ internal fun Route.azureAdRoutes(
     get("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val result = ordreStore.ordreSisteDøgn(soknadsId)
+            val result = transaction { ordreStore.ordreSisteDøgn(soknadsId) }
             call.respond(result)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet" }
+            logg.error(e) { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet" }
             call.respond(
                 HttpStatusCode.BadRequest,
                 "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet",
@@ -538,10 +536,10 @@ internal fun Route.azureAdRoutes(
     get("/soknad/ordre/har-ordre/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val result = ordreStore.harOrdre(soknadsId)
+            val result = transaction { ordreStore.harOrdre(soknadsId) }
             call.respond(result)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved sjekk om en søknad har ordre" }
+            logg.error(e) { "Feilet ved sjekk om en søknad har ordre" }
             call.respond(
                 HttpStatusCode.BadRequest,
                 "Feilet ved sjekk om en søknad har ordre",
@@ -552,16 +550,16 @@ internal fun Route.azureAdRoutes(
     get("/soknad/behovsmeldingType/{soknadsId}") {
         try {
             val soknadsId = UUID.fromString(soknadsId())
-            val result = søknadStore.behovsmeldingTypeFor(soknadsId)
+            val result = transaction { søknadStore.behovsmeldingTypeFor(soknadsId) }
             if (result == null) {
-                logger.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$soknadsId")
+                logg.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$soknadsId")
             } else {
-                logger.info("Found behovsmeldingType=$result for soknadsId=$soknadsId")
+                logg.info("Found behovsmeldingType=$result for soknadsId=$soknadsId")
             }
             data class Result(val behovsmeldingType: BehovsmeldingType?)
             call.respond(Result(result))
         } catch (e: Exception) {
-            logger.error(e) { "Kunne ikke hente ut behovsmeldingsType" }
+            logg.error(e) { "Kunne ikke hente ut behovsmeldingsType" }
             call.respond(
                 HttpStatusCode.BadRequest,
                 "Kunne ikke hente ut behovsmeldingsType",
@@ -585,17 +583,18 @@ internal fun Route.azureAdRoutes(
             if (!req.isValid()) throw IllegalArgumentException("Request not valid: $req")
             req
         }.getOrElse { e ->
-            logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
+            logg.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknader for kommune-apiet")
             return@post
         }
 
         runCatching {
-            val soknader =
+            val soknader = transaction {
                 søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
+            }
             call.respond(soknader)
         }.getOrElse { e ->
-            logger.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
+            logg.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
             call.respond(HttpStatusCode.InternalServerError, "Feilet ved henting av søknader for kommune-apiet")
             return@post
         }
@@ -603,19 +602,12 @@ internal fun Route.azureAdRoutes(
 
     get("/forslagsmotor/tilbehoer/datasett") {
         try {
-            var result: List<ForslagsmotorTilbehørHjelpemidler>?
-
-            // The following withContext moves execution off onto another thread so that ktor can continue answering
-            // other clients (eg. kubernetes liveness tests). Without this the app would be assumed dead and killed by
-            // Kubernetes.
-            withContext(Dispatchers.IO) {
-                result = søknadStore.initieltDatasettForForslagsmotorTilbehoer()
+            val result = transaction {
+                søknadStore.initieltDatasettForForslagsmotorTilbehoer()
             }
-
-            val finalResult = result ?: listOf()
-            call.respond(finalResult)
+            call.respond(result)
         } catch (e: Exception) {
-            logger.error(e) { "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør" }
+            logg.error(e) { "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør" }
             call.respond(
                 HttpStatusCode.InternalServerError,
                 "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør",

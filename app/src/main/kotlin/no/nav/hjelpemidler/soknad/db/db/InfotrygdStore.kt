@@ -1,15 +1,12 @@
 package no.nav.hjelpemidler.soknad.mottak.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import kotliquery.using
+import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.soknad.db.db.time
 import no.nav.hjelpemidler.soknad.db.domain.FagsakData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 internal interface InfotrygdStore {
     fun lagKnytningMellomFagsakOgSøknad(vedtaksresultatData: VedtaksresultatData): Int
@@ -33,25 +30,24 @@ internal interface InfotrygdStore {
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
-
+class InfotrygdStorePostgres(private val tx: JdbcOperations) : InfotrygdStore {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
     override fun lagKnytningMellomFagsakOgSøknad(vedtaksresultatData: VedtaksresultatData): Int =
         time("insert_knytning_mellom_søknad_og_fagsak") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "INSERT INTO V1_INFOTRYGD_DATA (SOKNADS_ID, FNR_BRUKER, TRYGDEKONTORNR, SAKSBLOKK, SAKSNR, VEDTAKSRESULTAT, VEDTAKSDATO ) VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
-                        vedtaksresultatData.søknadId,
-                        vedtaksresultatData.fnrBruker,
-                        vedtaksresultatData.trygdekontorNr,
-                        vedtaksresultatData.saksblokk,
-                        vedtaksresultatData.saksnr,
-                        null,
-                        null,
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    INSERT INTO v1_infotrygd_data (soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr)
+                    VALUES (:soknadId, :fnrBruker, :trygdekontorNr, :saksblokk, :saksnr)
+                    ON CONFLICT DO NOTHING
+                """.trimIndent(),
+                mapOf(
+                    "soknadId" to vedtaksresultatData.søknadId,
+                    "fnrBruker" to vedtaksresultatData.fnrBruker,
+                    "trygdekontorNr" to vedtaksresultatData.trygdekontorNr,
+                    "saksblokk" to vedtaksresultatData.saksblokk,
+                    "saksnr" to vedtaksresultatData.saksnr,
+                ),
+            ).actualRowCount
         }
 
     // Vedtaksresultat vil bli gitt av Infotrygd-poller som har oversikt over søknadId, fnr og fagsakId
@@ -59,42 +55,49 @@ class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
         søknadId: UUID,
         vedtaksresultat: String,
         vedtaksdato: LocalDate,
-        soknadsType: String,
+        søknadstype: String,
     ): Int =
         time("oppdater_vedtaksresultat") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "UPDATE V1_INFOTRYGD_DATA SET VEDTAKSRESULTAT = ?, VEDTAKSDATO = ?, SOKNADSTYPE = ? WHERE SOKNADS_ID = ?",
-                        vedtaksresultat,
-                        vedtaksdato,
-                        soknadsType,
-                        søknadId,
-                    ).asUpdate,
-                )
-            }
+            tx.update(
+                """
+                    UPDATE v1_infotrygd_data
+                    SET vedtaksresultat = :vedtaksresultat,
+                        vedtaksdato = :vedtaksdato,
+                        soknadstype = :soknadstype
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf(
+                    "vedtaksresultat" to vedtaksresultat,
+                    "vedtaksdato" to vedtaksdato,
+                    "soknadstype" to søknadstype,
+                    "soknadId" to søknadId,
+                ),
+            ).actualRowCount
         }
 
-    // Brukt for å matche Oebs-data mot eit Infotrygd-resultat
+    // Brukt for å matche OEBS-data mot et Infotrygd-resultat
     override fun hentSøknadIdFraVedtaksresultat(
         fnrBruker: String,
         saksblokkOgSaksnr: String,
         vedtaksdato: LocalDate,
     ): UUID? {
         val uuids: List<UUID> = time("hent_søknadid_fra_resultat") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "SELECT SOKNADS_ID FROM V1_INFOTRYGD_DATA WHERE FNR_BRUKER = ? AND SAKSBLOKK = ? AND SAKSNR = ? AND VEDTAKSDATO = ?",
-                        fnrBruker,
-                        saksblokkOgSaksnr.first(),
-                        saksblokkOgSaksnr.takeLast(2),
-                        vedtaksdato,
-                    ).map {
-                        UUID.fromString(it.string("SOKNADS_ID"))
-                    }.asList,
-                )
-            }
+            tx.list(
+                """
+                    SELECT soknads_id
+                    FROM v1_infotrygd_data
+                    WHERE fnr_bruker = :fnrBruker
+                      AND saksblokk = :saksblokk
+                      AND saksnr = :saksnr
+                      AND vedtaksdato = :vedtaksdato
+                """.trimIndent(),
+                mapOf(
+                    "fnrBruker" to fnrBruker,
+                    "saksblokk" to saksblokkOgSaksnr.first(),
+                    "saksnr" to saksblokkOgSaksnr.takeLast(2),
+                    "vedtaksdato" to vedtaksdato,
+                ),
+            ) { it.uuid("soknads_id") }
         }
         if (uuids.count() != 1) {
             if (uuids.count() > 1) {
@@ -113,19 +116,23 @@ class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
         saksblokkOgSaksnr: String,
     ): List<SøknadIdFraVedtaksresultat> {
         return time("hent_søknadid_fra_resultat") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "SELECT SOKNADS_ID, VEDTAKSDATO FROM V1_INFOTRYGD_DATA WHERE FNR_BRUKER = ? AND SAKSBLOKK = ? AND SAKSNR = ?",
-                        fnrBruker,
-                        saksblokkOgSaksnr.first(),
-                        saksblokkOgSaksnr.takeLast(2),
-                    ).map {
-                        SøknadIdFraVedtaksresultat(
-                            UUID.fromString(it.string("SOKNADS_ID")),
-                            it.localDateOrNull("VEDTAKSDATO"),
-                        )
-                    }.asList,
+            tx.list(
+                """
+                    SELECT soknads_id, vedtaksdato
+                    FROM v1_infotrygd_data
+                    WHERE fnr_bruker = :fnrBruker
+                      AND saksblokk = :saksblokk
+                      AND saksnr = :saksnr
+                """.trimIndent(),
+                mapOf(
+                    "fnrBruker" to fnrBruker,
+                    "saksblokk" to saksblokkOgSaksnr.first(),
+                    "saksnr" to saksblokkOgSaksnr.takeLast(2),
+                ),
+            ) {
+                SøknadIdFraVedtaksresultat(
+                    it.uuid("soknads_id"),
+                    it.localDateOrNull("vedtaksdato"),
                 )
             }
         }
@@ -138,22 +145,22 @@ class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
 
     override fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData? {
         return time("hent_søknadid_fra_resultat") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        "SELECT SOKNADS_ID, FNR_BRUKER, TRYGDEKONTORNR, SAKSBLOKK, SAKSNR, VEDTAKSRESULTAT, VEDTAKSDATO FROM V1_INFOTRYGD_DATA WHERE SOKNADS_ID = ?",
-                        søknadId,
-                    ).map {
-                        VedtaksresultatData(
-                            søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                            fnrBruker = it.string("FNR_BRUKER"),
-                            trygdekontorNr = it.string("TRYGDEKONTORNR"),
-                            saksblokk = it.string("SAKSBLOKK"),
-                            saksnr = it.string("SAKSNR"),
-                            vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
-                            vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
-                        )
-                    }.asSingle,
+            tx.singleOrNull(
+                """
+                    SELECT soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr, vedtaksresultat, vedtaksdato
+                    FROM v1_infotrygd_data
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) {
+                VedtaksresultatData(
+                    søknadId = it.uuid("SOKNADS_ID"),
+                    fnrBruker = it.string("FNR_BRUKER"),
+                    trygdekontorNr = it.string("TRYGDEKONTORNR"),
+                    saksblokk = it.string("SAKSBLOKK"),
+                    saksnr = it.string("SAKSNR"),
+                    vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
+                    vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
                 )
             }
         }
@@ -161,25 +168,20 @@ class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
 
     override fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData? {
         return time("hent_fagsakId_for_soknad") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        """
-                            SELECT SOKNADS_ID, TRYGDEKONTORNR, SAKSBLOKK, SAKSNR
-                            FROM V1_INFOTRYGD_DATA
-                            WHERE
-                                SOKNADS_ID = ?
-                                AND TRYGDEKONTORNR IS NOT NULL
-                                AND SAKSBLOKK IS NOT NULL
-                                AND SAKSNR IS NOT NULL
-                        """.trimIndent(),
-                        søknadId,
-                    ).map {
-                        FagsakData(
-                            søknadId = UUID.fromString(it.string("SOKNADS_ID")),
-                            fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
-                        )
-                    }.asSingle,
+            tx.singleOrNull(
+                """
+                    SELECT soknads_id, trygdekontornr, saksblokk, saksnr
+                    FROM v1_infotrygd_data
+                    WHERE soknads_id = :soknadId
+                      AND trygdekontornr IS NOT NULL
+                      AND saksblokk IS NOT NULL
+                      AND saksnr IS NOT NULL
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) {
+                FagsakData(
+                    søknadId = it.uuid("SOKNADS_ID"),
+                    fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
                 )
             }
         }
@@ -187,21 +189,14 @@ class InfotrygdStorePostgres(private val ds: DataSource) : InfotrygdStore {
 
     override fun hentTypeForSøknad(søknadId: UUID): String? {
         return time("hent_type_for_soknad") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        """
-                            SELECT SOKNADSTYPE
-                            FROM V1_INFOTRYGD_DATA
-                            WHERE
-                                SOKNADS_ID = ?
-                        """.trimIndent(),
-                        søknadId,
-                    ).map {
-                        it.stringOrNull("SOKNADSTYPE")
-                    }.asSingle,
-                )
-            }
+            tx.singleOrNull(
+                """
+                    SELECT soknadstype
+                    FROM v1_infotrygd_data
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            ) { it.stringOrNull("soknadstype") }
         }
     }
 }
