@@ -70,7 +70,7 @@ class OrdreStorePostgres(private val tx: JdbcOperations) : OrdreStore {
                 """
                     SELECT hjelpemiddeltype
                     FROM v1_oebs_data
-                    WHERE soknads_id = ?
+                    WHERE soknads_id = :soknadId
                     GROUP BY hjelpemiddeltype
                 """.trimIndent(),
                 mapOf("soknadId" to søknadId),
