@@ -28,12 +28,12 @@ jobs:
     if: github.ref == 'refs/heads/main'
     name: Publiser behovsmeldingsmodell
     runs-on: ubuntu-latest
-    env:
-      VERSION_TAG: ${{ needs.build.outputs.version-tag }}
     permissions:
       packages: write
       contents: write
       id-token: write
+    env:
+      VERSION_TAG: ${{ needs.build.outputs.version-tag }}
 
     steps:
       - name: Sjekk ut koden
