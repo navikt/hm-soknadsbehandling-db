@@ -23,9 +23,13 @@ jobs:
     secrets: inherit
 
   publish:
+    needs:
+      - build
     if: github.ref == 'refs/heads/main'
     name: Publiser behovsmeldingsmodell
     runs-on: ubuntu-latest
+    env:
+      VERSION_TAG: ${{ needs.build.outputs.version-tag }}
     permissions:
       packages: write
       contents: write
