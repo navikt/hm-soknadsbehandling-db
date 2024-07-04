@@ -10,25 +10,24 @@ import com.natpryce.konfig.stringType
 private val localProperties = ConfigurationMap(
     mapOf(
         "application.httpPort" to "8082",
-        "db.host" to "host.docker.internal",
-        "db.database" to "soknadsbehandling",
-        "db.password" to "postgres",
-        "db.port" to "5434",
-        "db.username" to "postgres",
-        "userclaim" to "sub",
+
         "NAIS_APP_NAME" to "hm-soknadsbehandling-db",
         "NAIS_CLUSTER_NAME" to "dev-gcp",
         "NAIS_NAMESPACE" to "teamdigihot",
+
         "INFLUX_HOST" to "http://localhost",
         "INFLUX_PORT" to "1234",
         "INFLUX_DATABASE_NAME" to "defaultdb",
         "INFLUX_USER" to "user",
         "INFLUX_PASSWORD" to "password",
 
+        "userclaim" to "sub",
+
         "GRUNNDATA_API_URL" to "https://hm-grunndata-search.intern.dev.nav.no",
         "HM_ROLLER_URL" to "https://localhost",
         "HM_ROLLER_AUDIENCE" to "audience",
         "BIGQUERY_DATASET_ID" to "hm_soknadsbehandling_v1_dataset_local",
+
         "GCP_TEAM_PROJECT_ID" to "teamdigihot",
     ),
 )
@@ -63,17 +62,8 @@ private fun config() = when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getPro
 
 object Configuration {
     val config = config()
-    val database: Database = Database()
     val application: Application = Application()
     val kafka: Kafka by lazy { Kafka() }
-
-    data class Database(
-        val host: String = config[Key("db.host", stringType)],
-        val port: String = config[Key("db.port", stringType)],
-        val name: String = config[Key("db.database", stringType)],
-        val user: String? = config.getOrNull(Key("db.username", stringType)),
-        val password: String? = config.getOrNull(Key("db.password", stringType)),
-    )
 
     data class Application(
         val id: String = config.getOrElse(Key("", stringType), "hm-soknadsbehandling-db-v1"),

@@ -19,7 +19,7 @@ import kotlin.concurrent.timerTask
 
 private val logg = KotlinLogging.logger {}
 
-private val MINIMUM_DAGER = 2
+private const val MINIMUM_DAGER = 2
 
 class Oppgaveinspektør(
     private val transaction: Transaction,
