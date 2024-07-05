@@ -44,9 +44,6 @@ dependencies {
     implementation(libs.kotlin.logging)
     runtimeOnly(libs.bundles.logging.runtime)
 
-    // fixme -> fjern
-    implementation("com.natpryce:konfig:1.6.10.0")
-
     // Metrics
     implementation(libs.bundles.metrics)
 

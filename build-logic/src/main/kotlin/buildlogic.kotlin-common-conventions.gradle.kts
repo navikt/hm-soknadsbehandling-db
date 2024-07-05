@@ -14,9 +14,16 @@ dependencies {
     implementation(libs.kotlin.stdlib)
 }
 
-tasks.test { useJUnitPlatform() }
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
 
-kotlin { jvmToolchain(21) }
+tasks.test {
+    environment("NAIS_CLUSTER_NAME", "test")
+    useJUnitPlatform()
+}
 
 spotless {
     kotlin {

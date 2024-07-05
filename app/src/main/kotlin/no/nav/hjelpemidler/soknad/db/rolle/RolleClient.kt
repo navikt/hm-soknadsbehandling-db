@@ -16,8 +16,8 @@ private val logg = KotlinLogging.logger { }
 
 class RolleClient(
     private val tokendingsService: TokendingsService,
-    private val url: String = Configuration.application.hmRollerUrl,
-    private val audience: String = Configuration.application.hmRollerAudience,
+    private val url: String = Configuration.HM_ROLLER_URL,
+    private val audience: String = Configuration.HM_ROLLER_AUDIENCE,
 ) {
     private val client: HttpClient = createHttpClient(Apache.create())
 

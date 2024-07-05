@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.configuration.LocalEnvironment
+import no.nav.hjelpemidler.configuration.TestEnvironment
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -30,8 +31,8 @@ interface KafkaClient {
         )
 }
 
-fun createKafkaClient() = when (Environment.current) {
-    LocalEnvironment -> LocalKafkaClient()
+fun createKafkaClient(): KafkaClient = when (Environment.current) {
+    LocalEnvironment, TestEnvironment -> LocalKafkaClient()
     else -> AivenKafkaClient()
 }
 

@@ -13,7 +13,7 @@ private val logg = KotlinLogging.logger {}
 
 class HjelpemiddeldatabasenClient {
     private val client = GraphQLKtorClient(
-        url = URI("${Configuration.application.grunndataApiURL}/graphql").toURL(),
+        url = URI(Configuration.GRUNNDATA_API_URL).toURL(),
         httpClient = HttpClient(engineFactory = Apache),
         serializer = GraphQLClientJacksonSerializer(),
     )

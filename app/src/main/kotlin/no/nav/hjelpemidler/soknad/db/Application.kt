@@ -15,6 +15,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.configuration.LocalEnvironment
+import no.nav.hjelpemidler.configuration.TestEnvironment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabasenClient
@@ -79,7 +80,7 @@ fun Application.module() {
             }
 
             when (Environment.current) {
-                LocalEnvironment -> azureAdRoutes(
+                LocalEnvironment, TestEnvironment -> azureAdRoutes(
                     database,
                     metrics,
                 )

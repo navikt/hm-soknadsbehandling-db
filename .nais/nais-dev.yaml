@@ -87,3 +87,13 @@ spec:
       value: "8080"
     - name: KTOR_ENV
       value: production
+    - name: KAFKA_TOPIC
+      value: teamdigihot.hm-soknadsbehandling-v1
+    - name: GRUNNDATA_API_URL
+      value: http://hm-grunndata-search/graphql
+    - name: HM_ROLLER_URL
+      value: http://hm-roller
+    - name: HM_ROLLER_AUDIENCE
+      value: dev-gcp:teamdigihot:hm-roller
+    - name: BIGQUERY_DATASET_ID
+      value: hm_soknadsbehandling_v1_dataset_dev

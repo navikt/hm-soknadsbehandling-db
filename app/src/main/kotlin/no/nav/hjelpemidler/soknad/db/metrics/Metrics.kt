@@ -2,9 +2,9 @@ package no.nav.hjelpemidler.soknad.db.metrics
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.soknad.db.db.Transaction
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import java.time.LocalDate
@@ -18,15 +18,14 @@ import kotlin.concurrent.timerTask
 
 private val logg = KotlinLogging.logger {}
 
-internal class Metrics(
+class Metrics(
     private val transaction: Transaction,
     private val influxDB: InfluxDB = InfluxDB(),
 ) {
-
     init {
         Timer("metrics", true).schedule(
             timerTask {
-                runBlocking {
+                runBlocking(Dispatchers.IO) {
                     launch {
                         countApplicationsByStatus()
                     }
@@ -37,57 +36,55 @@ internal class Metrics(
         )
     }
 
-    fun measureElapsedTimeBetweenStatusChanges(soknadsId: UUID, status: Status) {
-        runBlocking {
-            launch(Job()) {
-                recordForStatus(
-                    soknadsId,
-                    status,
-                    TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
-                    listOf(Status.VENTER_GODKJENNING),
-                    listOf(Status.GODKJENT),
-                )
-                recordForStatus(
-                    soknadsId,
-                    status,
-                    TID_FRA_GODKJENT_TIL_JOURNALFORT,
-                    listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
-                    listOf(Status.ENDELIG_JOURNALFØRT),
-                )
-                recordForStatus(
-                    soknadsId,
-                    status,
-                    TID_FRA_JOURNALFORT_TIL_VEDTAK,
-                    listOf(Status.ENDELIG_JOURNALFØRT),
-                    listOf(
-                        Status.VEDTAKSRESULTAT_ANNET,
-                        Status.VEDTAKSRESULTAT_AVSLÅTT,
-                        Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                        Status.VEDTAKSRESULTAT_INNVILGET,
-                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
-                        Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
-                    ),
-                )
-                recordForStatus(
-                    soknadsId,
-                    status,
-                    TID_FRA_VEDTAK_TIL_UTSENDING,
-                    listOf(
-                        Status.VEDTAKSRESULTAT_ANNET,
-                        Status.VEDTAKSRESULTAT_AVSLÅTT,
-                        Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                        Status.VEDTAKSRESULTAT_INNVILGET,
-                        Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
-                        Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
-                    ),
-                    listOf(Status.UTSENDING_STARTET),
-                )
-            }
+    suspend fun measureElapsedTimeBetweenStatusChanges(søknadId: UUID, status: Status) = withContext(Dispatchers.IO) {
+        launch {
+            recordForStatus(
+                søknadId,
+                status,
+                TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
+                listOf(Status.VENTER_GODKJENNING),
+                listOf(Status.GODKJENT),
+            )
+            recordForStatus(
+                søknadId,
+                status,
+                TID_FRA_GODKJENT_TIL_JOURNALFORT,
+                listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
+                listOf(Status.ENDELIG_JOURNALFØRT),
+            )
+            recordForStatus(
+                søknadId,
+                status,
+                TID_FRA_JOURNALFORT_TIL_VEDTAK,
+                listOf(Status.ENDELIG_JOURNALFØRT),
+                listOf(
+                    Status.VEDTAKSRESULTAT_ANNET,
+                    Status.VEDTAKSRESULTAT_AVSLÅTT,
+                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                    Status.VEDTAKSRESULTAT_INNVILGET,
+                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                    Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
+                ),
+            )
+            recordForStatus(
+                søknadId,
+                status,
+                TID_FRA_VEDTAK_TIL_UTSENDING,
+                listOf(
+                    Status.VEDTAKSRESULTAT_ANNET,
+                    Status.VEDTAKSRESULTAT_AVSLÅTT,
+                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                    Status.VEDTAKSRESULTAT_INNVILGET,
+                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                    Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
+                ),
+                listOf(Status.UTSENDING_STARTET),
+            )
         }
     }
 
     private suspend fun recordForStatus(
-        soknadsId: UUID,
+        søknadId: UUID,
         status: Status,
         metricFieldName: String,
         validStartStatuses: List<Status>,
@@ -95,9 +92,9 @@ internal class Metrics(
     ) {
         try {
             if (status in validEndStatuses) {
-                val result = transaction { søknadStore.hentStatuser(soknadsId) }
+                val result = transaction { søknadStore.hentStatuser(søknadId) }
 
-                // TODO if multiple statuses converged to a single common status this would not be necessary
+                // todo -> if multiple statuses converged to a single common status this would not be necessary
                 val foundEndStatuses = result.filter { statusRow -> statusRow.STATUS in validEndStatuses }
                 if (foundEndStatuses.isEmpty()) return
                 val foundStartStatuses = result.filter { statusRow -> statusRow.STATUS in validStartStatuses }
@@ -109,7 +106,11 @@ internal class Metrics(
                 val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
 
                 val finalMetricFieldName =
-                    if (foundEndStatuses[0].ER_DIGITAL) metricFieldName else metricFieldName.plus("-papir")
+                    if (foundEndStatuses[0].ER_DIGITAL) {
+                        metricFieldName
+                    } else {
+                        metricFieldName.plus("-papir")
+                    }
 
                 influxDB.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
@@ -118,22 +119,19 @@ internal class Metrics(
         }
     }
 
-    fun countApplicationsByStatus() {
-        runBlocking(Dispatchers.IO) {
-            launch(Job()) {
-                try {
-                    val result = transaction { søknadStore.tellStatuser() }
+    private suspend fun countApplicationsByStatus() {
+        try {
+            val result = transaction { søknadStore.tellStatuser() }
 
-                    val metricsToSend =
-                        result.associate { statusRow -> let { statusRow.STATUS.toString() to statusRow.COUNT.toInt() } }
-
-                    if (metricsToSend.isNotEmpty()) {
-                        influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
-                    }
-                } catch (e: Exception) {
-                    logg.error(e) { "Feil ved sending antall per status metrikker." }
-                }
+            val metricsToSend = result.associate { statusRow ->
+                statusRow.STATUS.toString() to statusRow.COUNT.toInt()
             }
+
+            if (metricsToSend.isNotEmpty()) {
+                influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+            }
+        } catch (e: Exception) {
+            logg.error(e) { "Feil ved sending antall per status metrikker." }
         }
     }
 
@@ -147,8 +145,5 @@ internal class Metrics(
     }
 }
 
-private fun midnatt() = LocalDate.now().plusDays(1).atStartOfDay().toDate()
-
-private fun LocalDateTime.toDate(): Date {
-    return Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
-}
+private fun midnatt(): Date = LocalDate.now().plusDays(1).atStartOfDay().toDate()
+private fun LocalDateTime.toDate(): Date = Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
