@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db
 import io.ktor.http.ContentType
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarting
+import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
@@ -45,7 +45,7 @@ fun Application.module() {
             envVarPrefix = "DB"
         },
     )
-    environment.monitor.subscribe(ApplicationStarting) { database.migrate() }
+    environment.monitor.subscribe(ApplicationStarted) { database.migrate() }
     environment.monitor.subscribe(ApplicationStopping) { database.close() }
 
     val hjelpemiddeldatabasenClient = HjelpemiddeldatabasenClient()
