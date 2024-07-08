@@ -233,3 +233,8 @@ enum class AutomatiskGenerertTilbehør {
     @JsonProperty("Sittepute")
     SITTEPUTE,
 }
+
+enum class FritakFraBegrunnelseÅrsak {
+    ER_PÅ_BESTILLINGSORDNING,
+    IKKE_I_PILOT,
+}

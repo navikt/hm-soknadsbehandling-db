@@ -450,6 +450,8 @@ data class Tilbehør(
     val navn: String,
     val automatiskGenerert: AutomatiskGenerertTilbehør?,
     val brukAvForslagsmotoren: BrukAvForslagsmotoren?,
+    val begrunnelse: String?,
+    val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
 )
 
 data class BrukAvForslagsmotoren(
