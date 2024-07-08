@@ -1,10 +1,9 @@
-package no.nav.hjelpemidler.soknad.db.db
+package no.nav.hjelpemidler.soknad.db.store
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.migrate
 import no.nav.hjelpemidler.database.transactionAsync
-import no.nav.hjelpemidler.soknad.mottak.db.InfotrygdStorePostgres
 import java.io.Closeable
 import javax.sql.DataSource
 

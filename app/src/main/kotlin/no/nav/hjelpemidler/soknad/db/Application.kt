@@ -18,14 +18,12 @@ import no.nav.hjelpemidler.configuration.LocalEnvironment
 import no.nav.hjelpemidler.configuration.TestEnvironment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
-import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabasenClient
-import no.nav.hjelpemidler.soknad.db.db.Database
+import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
-import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
+import no.nav.hjelpemidler.soknad.db.store.Database
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
@@ -48,9 +46,9 @@ fun Application.module() {
     environment.monitor.subscribe(ApplicationStarted) { database.migrate() }
     environment.monitor.subscribe(ApplicationStopping) { database.close() }
 
-    val hjelpemiddeldatabasenClient = HjelpemiddeldatabasenClient()
+    val grunndataClient = GrunndataClient()
 
-    val ordreService = OrdreService(database, hjelpemiddeldatabasenClient)
+    val ordreService = OrdreService(database, grunndataClient)
     val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     val rolleService = RolleService(RolleClient(tokendingsService))
 
@@ -80,13 +78,13 @@ fun Application.module() {
             }
 
             when (Environment.current) {
-                LocalEnvironment, TestEnvironment -> azureAdRoutes(
+                LocalEnvironment, TestEnvironment -> azureADRoutes(
                     database,
                     metrics,
                 )
 
                 else -> authenticate(AzureAuthenticator.name) {
-                    azureAdRoutes(
+                    azureADRoutes(
                         database,
                         metrics,
                     )

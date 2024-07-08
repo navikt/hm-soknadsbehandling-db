@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.db
+package no.nav.hjelpemidler.soknad.db.store
 
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData

@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.db
+package no.nav.hjelpemidler.soknad.db.store
 
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull

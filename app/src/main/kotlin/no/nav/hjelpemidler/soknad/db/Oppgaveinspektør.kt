@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
-import no.nav.hjelpemidler.soknad.db.db.Transaction
+import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId

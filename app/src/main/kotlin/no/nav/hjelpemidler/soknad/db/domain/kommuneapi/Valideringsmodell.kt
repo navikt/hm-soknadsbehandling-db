@@ -35,7 +35,6 @@ import java.util.UUID
  *      du feltet nullable og endrer `fun filtrerForKommuneApiet()` under slik at feltet filtreres ut før data sendes til
  *      kommunen.
  */
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Behovsmelding(
     val behovsmeldingType: BehovsmeldingType,

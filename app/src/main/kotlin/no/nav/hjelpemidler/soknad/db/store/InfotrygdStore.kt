@@ -1,8 +1,7 @@
-package no.nav.hjelpemidler.soknad.mottak.db
+package no.nav.hjelpemidler.soknad.db.store
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.database.JdbcOperations
-import no.nav.hjelpemidler.soknad.db.db.time
 import no.nav.hjelpemidler.soknad.db.domain.FagsakData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import java.time.LocalDate
@@ -101,9 +100,9 @@ class InfotrygdStorePostgres(private val tx: JdbcOperations) : InfotrygdStore {
         }
         if (uuids.count() != 1) {
             if (uuids.count() > 1) {
-                sikkerlogg.info("Fant flere søknader med matchende fnr,saksnr og vedtaksdato, saksblokkogsaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato, antall=${uuids.count()} ids: [$uuids]")
+                sikkerlogg.info { "Fant flere søknader med matchende fnr,saksnr og vedtaksdato, saksblokkogsaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato, antall=${uuids.count()} ids: [$uuids]" }
             } else {
-                sikkerlogg.info("Kan ikke knytte ordrelinje til søknad. saksblokkogsaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato")
+                sikkerlogg.info { "Kan ikke knytte ordrelinje til søknad. saksblokkogsaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato" }
             }
             return null
         }

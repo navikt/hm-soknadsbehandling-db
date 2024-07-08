@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.client.hmdb
+package no.nav.hjelpemidler.soknad.db.grunndata
 
 import com.expediagroup.graphql.client.jackson.GraphQLClientJacksonSerializer
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
@@ -6,12 +6,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.client.hmdb.HentProdukterMedHmsnrs
 import java.net.URI
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product as HentproduktermedhmsnrsProdukt
 
 private val logg = KotlinLogging.logger {}
 
-class HjelpemiddeldatabasenClient {
+class GrunndataClient {
     private val client = GraphQLKtorClient(
         url = URI(Configuration.GRUNNDATA_API_URL).toURL(),
         httpClient = HttpClient(engineFactory = Apache),

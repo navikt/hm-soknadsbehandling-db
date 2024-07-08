@@ -1,8 +1,7 @@
-package no.nav.hjelpemidler.soknad.db.routes
+package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -11,8 +10,6 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
-import io.ktor.util.pipeline.PipelineContext
-import no.nav.hjelpemidler.soknad.db.db.Transaction
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
@@ -21,166 +18,21 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
-import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
-import java.security.MessageDigest
-import java.time.LocalDate
-import java.util.Date
+import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-fun Route.tokenXRoutes(
-    transaction: Transaction,
-    ordreService: OrdreService,
-    rolleService: RolleService,
-    tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
-) {
-    get("/soknad/bruker/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = transaction { søknadStore.hentSoknad(soknadsId) }
-
-            when {
-                soknad == null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-
-                soknad.fnrBruker != fnr -> {
-                    call.respond(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
-                }
-
-                else -> {
-                    // Fetch ordrelinjer belonging to søknad
-                    soknad.ordrelinjer = ordreService.finnOrdreForSøknad(soknad.søknadId)
-
-                    // Fetch fagsakid if it exists
-                    val fagsakData = transaction { infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId) }
-                    if (fagsakData != null) {
-                        soknad.fagsakId = fagsakData.fagsakId
-                    } else {
-                        val fagsakData2 = transaction { hotsakStore.hentFagsakIdForSøknad(soknad.søknadId) }
-                        if (fagsakData2 != null) soknad.fagsakId = fagsakData2
-                    }
-
-                    // Fetch soknadType for søknad
-                    soknad.søknadType = transaction { infotrygdStore.hentTypeForSøknad(soknad.søknadId) }
-
-                    call.respond(soknad)
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
-        }
-    }
-
-    get("/soknad/bruker") {
-        val fnr = tokenXUserFactory.createTokenXUser(call).ident
-
-        try {
-            val brukersSaker = transaction { søknadStore.hentSoknaderForBruker(fnr) }
-            call.respond(brukersSaker)
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching søknader til godkjenning" }
-            call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av saker")
-        }
-    }
-
-    get("/soknad/innsender") {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnrInnsender = user.ident
-        val innsenderRolle = rolleService.hentRolle(user.tokenString)
-
-        try {
-            val formidlersSøknader = transaction {
-                søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
-            }
-
-            // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
-            val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
-            val datoer = mutableListOf<Date>()
-            formidlersSøknader.forEach {
-                if (it.datoOpprettet.before(olderThan6mo)) {
-                    datoer.add(it.datoOpprettet)
-                }
-            }
-            if (datoer.isNotEmpty()) {
-                val bytes = fnrInnsender.toByteArray()
-                val md = MessageDigest.getInstance("SHA-256")
-                val digest = md.digest(bytes)
-                val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
-                val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
-                logg.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
-            }
-
-            call.respond(formidlersSøknader)
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching formidlers søknader" }
-            call.respond(HttpStatusCode.InternalServerError, e)
-        }
-    }
-
-    get("/soknad/innsender/{soknadsId}") {
-        val soknadsId = UUID.fromString(soknadsId())
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnrInnsender = user.ident
-        val innsenderRolle = rolleService.hentRolle(user.tokenString)
-
-        try {
-            val formidlersSoknad = transaction {
-                søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, soknadsId, innsenderRolle)
-            }
-            if (formidlersSoknad == null) {
-                logg.warn { "En formidler forsøkte å hente søknad <$soknadsId>, men den er ikke tilgjengelig for formidler nå" }
-                call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
-            } else {
-                logg.info { "Formidler hentet ut søknad $soknadsId" }
-                call.respond(formidlersSoknad)
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching formidlers søknader" }
-            call.respond(HttpStatusCode.InternalServerError, e)
-        }
-    }
-
-    get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadsId}") {
-        try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = transaction { søknadStore.hentSoknad(soknadsId) }
-
-            when {
-                soknad == null -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
-                }
-
-                soknad.fnrBruker != fnr -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
-                }
-
-                else -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(soknad.status == Status.VENTER_GODKJENNING))
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
-        }
-    }
-}
-
-internal fun Route.azureAdRoutes(
+fun Route.azureADRoutes(
     transaction: Transaction,
     metrics: Metrics,
 ) {
-    get("/soknad/fnr/{soknadsId}") {
+    get("/soknad/fnr/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val fnrForSoknad = transaction { søknadStore.hentFnrForSoknad(soknadsId) }
+            val søknadId = call.søknadId
+            val fnrForSoknad = transaction { søknadStore.hentFnrForSoknad(søknadId) }
             call.respond(fnrForSoknad)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved henting av søknad" }
@@ -261,9 +113,9 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/infotrygd/søknadsType/{soknadsId}") {
-        val soknadsId = UUID.fromString(soknadsId())
-        val søknadsType = transaction { infotrygdStore.hentTypeForSøknad(soknadsId) }
+    get("/infotrygd/søknadsType/{soknadId}") {
+        val søknadId = call.søknadId
+        val søknadsType = transaction { infotrygdStore.hentTypeForSøknad(søknadId) }
 
         data class Response(val søknadsType: String?)
         call.respond(Response(søknadsType))
@@ -336,14 +188,14 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    put("/soknad/status/{soknadsId}") {
+    put("/soknad/status/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
+            val søknadId = call.søknadId
             val newStatus = call.receive<Status>()
-            val rowsUpdated = transaction { søknadStore.oppdaterStatus(soknadsId, newStatus) }
+            val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, newStatus) }
             call.respond(rowsUpdated)
 
-            metrics.measureElapsedTimeBetweenStatusChanges(soknadsId, newStatus)
+            metrics.measureElapsedTimeBetweenStatusChanges(søknadId, newStatus)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved oppdatering av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
@@ -363,13 +215,13 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/bruker/finnes/{soknadsId}") {
+    get("/soknad/bruker/finnes/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val soknadFinnes = transaction { søknadStore.søknadFinnes(soknadsId) }
+            val søknadId = call.søknadId
+            val søknadFinnes = transaction { søknadStore.søknadFinnes(søknadId) }
 
             when {
-                soknadFinnes -> {
+                søknadFinnes -> {
                     call.respond("soknadFinnes" to true)
                 }
 
@@ -408,18 +260,18 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknadsdata/bruker/{soknadsId}") {
+    get("/soknadsdata/bruker/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val soknad = transaction { søknadStore.hentSoknadData(soknadsId) }
+            val søknadId = call.søknadId
+            val søknad = transaction { søknadStore.hentSoknadData(søknadId) }
 
-            when (soknad) {
+            when (søknad) {
                 null -> {
                     call.respond(HttpStatusCode.NotFound)
                 }
 
                 else -> {
-                    call.respond(soknad)
+                    call.respond(søknad)
                 }
             }
         } catch (e: Exception) {
@@ -461,10 +313,10 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/opprettet-dato/{soknadsId}") {
+    get("/soknad/opprettet-dato/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(soknadsId) }
+            val søknadId = call.søknadId
+            val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(søknadId) }
 
             when (opprettetDato) {
                 null -> {
@@ -493,12 +345,12 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    put("/soknad/journalpost-id/{soknadsId}") {
+    put("/soknad/journalpost-id/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
+            val søknadId = call.søknadId
             val newJournalpostDto = call.receive<Map<String, String>>()
             val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(soknadsId, journalpostId) }
+            val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved oppdatering av journalpost-id" }
@@ -506,12 +358,12 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    put("/soknad/oppgave-id/{soknadsId}") {
+    put("/soknad/oppgave-id/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
+            val søknadId = call.søknadId
             val newOppgaveDto = call.receive<Map<String, String>>()
             val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(soknadsId, oppgaveId) }
+            val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
             call.respond(rowsUpdated)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved oppdatering av oppgave-id" }
@@ -519,9 +371,9 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/ordre/ordrelinje-siste-doegn/{soknadsId}") {
+    get("/soknad/ordre/ordrelinje-siste-doegn/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
+            val soknadsId = call.søknadId
             val result = transaction { ordreStore.ordreSisteDøgn(soknadsId) }
             call.respond(result)
         } catch (e: Exception) {
@@ -533,10 +385,10 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/ordre/har-ordre/{soknadsId}") {
+    get("/soknad/ordre/har-ordre/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val result = transaction { ordreStore.harOrdre(soknadsId) }
+            val søknadId = call.søknadId
+            val result = transaction { ordreStore.harOrdre(søknadId) }
             call.respond(result)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved sjekk om en søknad har ordre" }
@@ -547,14 +399,14 @@ internal fun Route.azureAdRoutes(
         }
     }
 
-    get("/soknad/behovsmeldingType/{soknadsId}") {
+    get("/soknad/behovsmeldingType/{soknadId}") {
         try {
-            val soknadsId = UUID.fromString(soknadsId())
-            val result = transaction { søknadStore.behovsmeldingTypeFor(soknadsId) }
+            val søknadId = call.søknadId
+            val result = transaction { søknadStore.behovsmeldingTypeFor(søknadId) }
             if (result == null) {
-                logg.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$soknadsId")
+                logg.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$søknadId")
             } else {
-                logg.info("Found behovsmeldingType=$result for soknadsId=$soknadsId")
+                logg.info("Found behovsmeldingType=$result for soknadsId=$søknadId")
             }
             data class Result(val behovsmeldingType: BehovsmeldingType?)
             call.respond(Result(result))
@@ -615,37 +467,3 @@ internal fun Route.azureAdRoutes(
         }
     }
 }
-
-private fun PipelineContext<Unit, ApplicationCall>.soknadsId() =
-    call.parameters["soknadsId"]
-
-data class ValiderSøknadsidOgStatusVenterGodkjenningRespons(
-    val resultat: Boolean,
-)
-
-data class VedtaksresultatDto(
-    val søknadId: UUID,
-    val vedtaksresultat: String,
-    val vedtaksdato: LocalDate,
-    val soknadsType: String,
-)
-
-data class FnrOgJournalpostIdFinnesDto(
-    val fnrBruker: String,
-    val journalpostId: Int,
-)
-
-data class SoknadFraVedtaksresultatDto(
-    val fnrBruker: String,
-    val saksblokkOgSaksnr: String,
-    val vedtaksdato: LocalDate,
-)
-
-data class SoknadFraVedtaksresultatV2Dto(
-    val fnrBruker: String,
-    val saksblokkOgSaksnr: String,
-)
-
-data class SoknadFraHotsakNummerDto(val saksnummer: String)
-
-data class HarVedtakFraHotsakSøknadIdDto(val søknadId: UUID)

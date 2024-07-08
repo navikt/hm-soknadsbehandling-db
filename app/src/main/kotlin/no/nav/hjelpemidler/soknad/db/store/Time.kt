@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.db
+package no.nav.hjelpemidler.soknad.db.store
 
 /**
  * fixme -> bruk prometheus her
