@@ -61,9 +61,7 @@ fun Application.module() {
         tokenX()
     }
 
-    install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter(jsonMapper))
-    }
+    jackson()
 
     install(CallLogging) {
         level = Level.TRACE
@@ -91,5 +89,11 @@ fun Application.module() {
                 }
             }
         }
+    }
+}
+
+fun Application.jackson() {
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, JacksonConverter(jsonMapper))
     }
 }

@@ -11,21 +11,23 @@ import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.mockSøknad
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class SøknadStoreInnsenderTest {
     @Test
     fun `Hent formidlers søknad`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId))
+            søknadStore.save(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
                     it.navnBruker shouldBe "Fornavn Etternavn"
                 }
@@ -34,18 +36,18 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Formidler kan kun hente søknad hen selv har sendt inn`() = databaseTest {
-        val søknadId = UUID.randomUUID()
-        val fnrFormidler = "12345678910"
-        val fnrAnnenFormidler = "10987654321"
+        val søknadId = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
+        val fnrAnnenFormidler = lagFødselsnummer()
 
         testTransaction {
             søknadStore.save(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
-            søknadStore.save(mockSøknad(UUID.randomUUID(), fnrInnsender = fnrAnnenFormidler))
+            søknadStore.save(mockSøknad(lagSøknadId(), fnrInnsender = fnrAnnenFormidler))
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER) shouldHaveSize 1
+                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER) shouldHaveSize 1
 
             søknadStoreInnsender
-                .hentSøknadForInnsender("12345678910", søknadId, InnsenderRolle.FORMIDLER)
+                .hentSøknadForInnsender(fnrFormidler, søknadId, InnsenderRolle.FORMIDLER)
                 .shouldNotBeNull {
                     this.søknadId shouldBe søknadId
                     this.søknadsdata.shouldNotBeNull()
@@ -55,14 +57,15 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Navn på bruker fjernes ikke ved sletting`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrFormidler)) shouldBe 1
             søknadStore.slettSøknad(søknadId) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
                     it.navnBruker shouldBe "Fornavn Etternavn"
                 }
@@ -71,16 +74,17 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Henter ikke søknad som er 4 uker gammel`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrInnsender = lagFødselsnummer()
 
         testTransaction { tx ->
             søknadStore.save(
                 SoknadData(
-                    "15084300133",
-                    "Fornavn Etternavn",
-                    "12345678910",
-                    søknadId,
-                    jsonMapper.createObjectNode(),
+                    fnrBruker = lagFødselsnummer(),
+                    navnBruker = "Fornavn Etternavn",
+                    fnrInnsender = fnrInnsender,
+                    soknadId = søknadId,
+                    soknad = jsonMapper.createObjectNode(),
                     status = Status.SLETTET,
                     kommunenavn = null,
                     er_digital = true,
@@ -91,7 +95,7 @@ class SøknadStoreInnsenderTest {
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '3 week') WHERE SOKNADS_ID = '$søknadId'")
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER, 4)
+                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.FORMIDLER, 4)
                 .shouldHaveSize(1)
 
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '5 week') WHERE SOKNADS_ID = '$søknadId'")
@@ -104,14 +108,15 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Fullmakt for søknad for formidler`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT)) shouldBe 1
+            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrInnsender = fnrFormidler)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
                     it.fullmakt.shouldBeTrue()
                 }
@@ -120,15 +125,16 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Fullmakt er false hvis bruker skal bekrefte søknaden`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrInnsender)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
                     it.fullmakt.shouldBeFalse()
                 }
@@ -137,21 +143,34 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Bestiller kan kun hente ut bestillinger`() = databaseTest {
-        val idSøknad = UUID.randomUUID()
-        val idBestilling = UUID.randomUUID()
+        val idSøknad = lagSøknadId()
+        val idBestilling = lagSøknadId()
+        val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(idSøknad, behovsmeldingType = BehovsmeldingType.SØKNAD))
-            søknadStore.save(mockSøknad(idBestilling, behovsmeldingType = BehovsmeldingType.BESTILLING))
+            søknadStore.save(
+                mockSøknad(
+                    idSøknad,
+                    fnrInnsender = fnrInnsender,
+                    behovsmeldingType = BehovsmeldingType.SØKNAD,
+                ),
+            )
+            søknadStore.save(
+                mockSøknad(
+                    idBestilling,
+                    fnrInnsender = fnrInnsender,
+                    behovsmeldingType = BehovsmeldingType.BESTILLING,
+                ),
+            )
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("12345678910", InnsenderRolle.BESTILLER)
+                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.BESTILLER)
                 .shouldBeSingleton {
                     it.søknadId shouldBe idBestilling
                 }
 
             søknadStoreInnsender
-                .hentSøknadForInnsender("12345678910", idBestilling, InnsenderRolle.BESTILLER)
+                .hentSøknadForInnsender(fnrInnsender, idBestilling, InnsenderRolle.BESTILLER)
                 .shouldNotBeNull()
                 .should {
                     it.søknadId shouldBe idBestilling
@@ -162,7 +181,7 @@ class SøknadStoreInnsenderTest {
 
     @Test
     fun `Metrikker er non-blocking`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
         testTransaction {
             søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1

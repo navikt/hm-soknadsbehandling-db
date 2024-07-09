@@ -13,9 +13,12 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.mockSøknad
 import no.nav.hjelpemidler.soknad.db.mockSøknadMedRullestol
+import no.nav.hjelpemidler.soknad.db.test.readTree
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -25,13 +28,14 @@ import kotlin.test.assertNull
 class SøknadStoreTest {
     @Test
     fun `Hent lagret søknad 1`() = databaseTest {
-        val søknadId = UUID.randomUUID()
+        val søknadId = lagSøknadId()
+        val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId))
+            søknadStore.save(mockSøknad(søknadId, fnrBruker = fnrBruker))
             val søknad = søknadStore.hentSoknad(søknadId)
 
-            assertEquals("15084300133", søknad?.søknadsdata?.bruker?.fnummer)
+            assertEquals(fnrBruker, søknad?.søknadsdata?.bruker?.fnummer)
             assertEquals("fornavn", søknad?.søknadsdata?.bruker?.fornavn)
             assertEquals("etternavn", søknad?.søknadsdata?.bruker?.etternavn)
             assertEquals("12345678", søknad?.søknadsdata?.bruker?.telefonNummer)
@@ -88,20 +92,20 @@ class SøknadStoreTest {
     @Test
     fun `Hent lagret søknad 2`() = databaseTest {
         val søknadId = UUID.randomUUID()
+        val fnrBruker = lagFødselsnummer()
+        val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            run {
-                søknadStore.save(
-                    SoknadData(
-                        "15084300133",
-                        "Fornavn Etternavn",
-                        "12345678910",
-                        søknadId,
-                        jsonMapper.readTree(
-                            //language=JSON
-                            """
+            søknadStore.save(
+                SoknadData(
+                    fnrBruker = fnrBruker,
+                    navnBruker = "Fornavn Etternavn",
+                    fnrInnsender = fnrInnsender,
+                    soknadId = søknadId,
+                    soknad = readTree(
+                        """
                                 {
-                                  "fnrBruker": "15084300133",
+                                  "fnrBruker": "$fnrBruker",
                                   "soknadId": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
                                   "datoOpprettet": "2021-02-23T09:46:45.146+00:00",
                                   "soknad": {
@@ -110,7 +114,7 @@ class SøknadStoreTest {
                                     "bruker": {
                                       "kilde": "PDL",
                                       "adresse": "Trandemveien 29",
-                                      "fnummer": "15084300133",
+                                      "fnummer": "$fnrBruker",
                                       "fornavn": "Sedat",
                                       "poststed": "Hebnes",
                                       "signatur": "BRUKER_BEKREFTER",
@@ -207,22 +211,21 @@ class SøknadStoreTest {
                                     }
                                   }
                                 }
-                            """.trimIndent(),
-                        ),
-                        status = Status.VENTER_GODKJENNING,
-                        kommunenavn = null,
-                        er_digital = true,
-                        soknadGjelder = null,
+                        """.trimIndent(),
                     ),
-                )
-                val hentSoknad = søknadStore.hentSoknad(søknadId)
-                assertEquals("15084300133", hentSoknad!!.søknadsdata!!.bruker.fnummer)
-                assertEquals(true, hentSoknad.er_digital)
-                assertEquals(
-                    LeveringTilleggsinfo.UTLEVERING_KALENDERAPP,
-                    hentSoknad.søknadsdata!!.levering.tilleggsinfo.first(),
-                )
-            }
+                    status = Status.VENTER_GODKJENNING,
+                    kommunenavn = null,
+                    er_digital = true,
+                    soknadGjelder = null,
+                ),
+            )
+            val hentSoknad = søknadStore.hentSoknad(søknadId)
+            assertEquals(fnrBruker, hentSoknad!!.søknadsdata!!.bruker.fnummer)
+            assertEquals(true, hentSoknad.er_digital)
+            assertEquals(
+                LeveringTilleggsinfo.UTLEVERING_KALENDERAPP,
+                hentSoknad.søknadsdata!!.levering.tilleggsinfo.first(),
+            )
         }
     }
 
@@ -231,11 +234,11 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.save(
                 SoknadData(
-                    "15084300133",
-                    "Fornavn Etternavn",
-                    "12345678910",
-                    UUID.randomUUID(),
-                    jsonMapper.createObjectNode(),
+                    fnrBruker = lagFødselsnummer(),
+                    navnBruker = "Fornavn Etternavn",
+                    fnrInnsender = lagFødselsnummer(),
+                    soknadId = UUID.randomUUID(),
+                    soknad = jsonMapper.createObjectNode(),
                     status = Status.VENTER_GODKJENNING,
                     kommunenavn = null,
                     er_digital = true,
@@ -248,15 +251,16 @@ class SøknadStoreTest {
     @Test
     fun `Fullmakt for søknad innsendt av formidler`() = databaseTest {
         val søknadId = UUID.randomUUID()
+        val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT)) shouldBe 1
+            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrBruker)) shouldBe 1
         }
         testTransaction {
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
-            søknadStore.hentSoknaderForBruker("15084300133").shouldBeSingleton {
+            søknadStore.hentSoknaderForBruker(fnrBruker).shouldBeSingleton {
                 it.fullmakt.shouldBeTrue()
             }
         }
@@ -265,9 +269,10 @@ class SøknadStoreTest {
     @Test
     fun `Ikke fullmakt for søknad med brukers godkjenning`() = databaseTest {
         val søknadId = UUID.randomUUID()
+        val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrBruker)) shouldBe 1
         }
         testTransaction {
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
@@ -276,7 +281,7 @@ class SøknadStoreTest {
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
-            søknadStore.hentSoknaderForBruker("15084300133").shouldBeSingleton {
+            søknadStore.hentSoknaderForBruker(fnrBruker).shouldBeSingleton {
                 it.fullmakt.shouldBeFalse()
             }
         }
@@ -285,15 +290,16 @@ class SøknadStoreTest {
     @Test
     fun `Søknad er utgått`() = databaseTest {
         val søknadId = UUID.randomUUID()
+        val fnrBruker = lagFødselsnummer()
 
         testTransaction { tx ->
             søknadStore.save(
                 SoknadData(
-                    "15084300133",
-                    "Fornavn Etternavn",
-                    "12345678910",
-                    søknadId,
-                    jsonMapper.createObjectNode(),
+                    fnrBruker = fnrBruker,
+                    navnBruker = "Fornavn Etternavn",
+                    fnrInnsender = lagFødselsnummer(),
+                    soknadId = søknadId,
+                    soknad = jsonMapper.createObjectNode(),
                     status = Status.VENTER_GODKJENNING,
                     kommunenavn = null,
                     er_digital = true,
@@ -344,7 +350,7 @@ class SøknadStoreTest {
             søknadStore.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2) shouldHaveSize 1
         }
         testTransaction { tx ->
-            tx.execute("UPDATE V1_SOKNAD SET oppgaveid = '12345' WHERE SOKNADS_ID = '$søknadId2'")
+            tx.execute("UPDATE V1_SOKNAD SET oppgaveid = '123456' WHERE SOKNADS_ID = '$søknadId2'")
         }
         testTransaction {
             søknadStore.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2).shouldBeEmpty()
@@ -354,16 +360,16 @@ class SøknadStoreTest {
     @Test
     fun `Oppdater oppgaveId og ikke overskriv eksisterende oppgaveId`() = databaseTest {
         val søknadId = UUID.randomUUID()
-        val oppgaveId = "57983"
+        val oppgaveId = "102030"
 
         testTransaction {
             søknadStore.save(
                 SoknadData(
-                    "15084300133",
-                    "Fornavn Etternavn",
-                    "12345678910",
-                    søknadId,
-                    jsonMapper.createObjectNode(),
+                    fnrBruker = lagFødselsnummer(),
+                    navnBruker = "Fornavn Etternavn",
+                    fnrInnsender = lagFødselsnummer(),
+                    soknadId = søknadId,
+                    soknad = jsonMapper.createObjectNode(),
                     status = Status.GODKJENT_MED_FULLMAKT,
                     kommunenavn = null,
                     er_digital = true,
@@ -383,11 +389,11 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.savePapir(
                 PapirSøknadData(
-                    "12345678910",
-                    søknadId,
-                    Status.ENDELIG_JOURNALFØRT,
-                    1234567,
-                    "Fornavn Etternavn",
+                    fnrBruker = lagFødselsnummer(),
+                    soknadId = søknadId,
+                    status = Status.ENDELIG_JOURNALFØRT,
+                    journalpostid = 1020,
+                    navnBruker = "Fornavn Etternavn",
                 ),
             ) shouldBe 1
         }
@@ -400,11 +406,11 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.savePapir(
                 PapirSøknadData(
-                    "12345678910",
-                    søknadId,
-                    Status.ENDELIG_JOURNALFØRT,
-                    7654321,
-                    "Fornavn Etternavn",
+                    fnrBruker = lagFødselsnummer(),
+                    soknadId = søknadId,
+                    status = Status.ENDELIG_JOURNALFØRT,
+                    journalpostid = 2040,
+                    navnBruker = "Fornavn Etternavn",
                 ),
             )
             val søknad = søknadStore.hentSoknad(søknadId)

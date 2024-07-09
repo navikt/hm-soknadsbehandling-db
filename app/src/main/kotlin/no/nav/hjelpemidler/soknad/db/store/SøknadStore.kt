@@ -664,14 +664,14 @@ class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
                     $extraWhere2
                 ORDER BY CREATED ASC
                 ;
-            """
+            """.trimIndent()
 
         return time("hentSoknaderForKommuneApiet") {
             tx.list(
                 statement,
                 mapOf(
                     "kommunenummer" to kommunenummer,
-                    "kommunenummerJson" to pgJsonbOf(mapOf("kommunenummer" to kommunenummer)),
+                    "kommunenummerJson" to pgJsonbOf(listOf(mapOf("kommunenummer" to kommunenummer))),
                     "nyereEnn" to nyereEnn,
                     "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                         LocalDateTime.ofInstant(

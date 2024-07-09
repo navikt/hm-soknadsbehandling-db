@@ -3,123 +3,140 @@ package no.nav.hjelpemidler.soknad.db
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.test.readTree
+import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 fun mockSøknad(
     id: UUID,
     status: Status = Status.VENTER_GODKJENNING,
-    fnrInnsender: String = "12345678910",
+    fnrBruker: String = lagFødselsnummer(),
+    fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
-): SoknadData =
-    SoknadData(
-        "15084300133",
-        "Fornavn Etternavn",
-        fnrInnsender,
-        id,
-        jsonMapper.readTree(
-            //language=JSON
-            """
-                {
-                  "fnrBruker": "15084300133",
-                  "soknadId": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
-                  "datoOpprettet": "2021-02-23T09:46:45.146+00:00",
-                  "behovsmeldingType": "$behovsmeldingType",
-                  "soknad": {
-                    "id": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
-                    "date": "2020-06-19",
-                    "bruker": {
-                      "fnummer": "15084300133",
-                      "fornavn": "fornavn",
-                      "signatur": "FULLMAKT",
-                      "etternavn": "etternavn",
-                      "telefonNummer": "12345678",
-                      "poststed": "poststed",
-                      "kroppsmaal": {}
-                    },
-                    "brukersituasjon": {
-                      "bostedRadioButton": "Hjemme",
-                      "bruksarenaErDagliglivet": true,
-                      "nedsattFunksjonTypes": {
-                        "bevegelse": true,
-                        "kognisjon": false,
-                        "horsel": true
-                      }
-                    },
-                    "hjelpemidler": {
-                      "hjelpemiddelTotaltAntall": 2,
-                      "hjelpemiddelListe": [
+): SoknadData = SoknadData(
+    fnrBruker = fnrBruker,
+    navnBruker = "Fornavn Etternavn",
+    fnrInnsender = fnrInnsender,
+    soknadId = id,
+    soknad = readTree(
+        """
+            {
+              "id": "$id",
+              "behovsmeldingType": "$behovsmeldingType",
+              "soknad": {
+                "id": "$id",
+                "date": "${LocalDate.now()}",
+                "bruker": {
+                  "fnummer": "$fnrBruker",
+                  "fornavn": "fornavn",
+                  "signatur": "FULLMAKT",
+                  "etternavn": "etternavn",
+                  "telefonNummer": "12345678",
+                  "poststed": "poststed",
+                  "kommunenummer": "9999",
+                  "kroppsmaal": {}
+                },
+                "brukersituasjon": {
+                  "bostedRadioButton": "Hjemme",
+                  "bruksarenaErDagliglivet": true,
+                  "nedsattFunksjonTypes": {
+                    "bevegelse": true,
+                    "kognisjon": false,
+                    "horsel": true
+                  }
+                },
+                "hjelpemidler": {
+                  "hjelpemiddelTotaltAntall": 2,
+                  "hjelpemiddelListe": [
+                    {
+                      "uniqueKey": "1",
+                      "hmsNr": "123456",
+                      "beskrivelse": "beskrivelse",
+                      "begrunnelsen": "begrunnelse",
+                      "antall": 1,
+                      "navn": "Hjelpemiddelnavn",
+                      "utlevertFraHjelpemiddelsentralen": true,
+                      "tilleggsinformasjon": "Tilleggsinformasjon",
+                      "kanIkkeTilsvarande": true,
+                      "hjelpemiddelkategori": "Arbeidsstoler",
+                      "produkt": {
+                        "postrank": "1"
+                      },
+                      "vilkarliste": [
                         {
-                          "uniqueKey": "1234561592555082660",
-                          "hmsNr": "123456",
-                          "beskrivelse": "beskrivelse",
-                          "begrunnelsen": "begrunnelse",
-                          "antall": 1,
-                          "navn": "Hjelpemiddelnavn",
-                          "utlevertFraHjelpemiddelsentralen": true,
-                          "tilleggsinformasjon": "Tilleggsinformasjon",
-                          "kanIkkeTilsvarande": true,
-                          "hjelpemiddelkategori": "Arbeidsstoler",
-                          "produkt": {
-                            "postrank": "1"
-                          },
-                          "vilkarliste": [
-                            {
-                              "id": 1,
-                              "vilkartekst": "Vilkår 1",
-                              "tilleggsinfo": "Tilleggsinfo",
-                              "checked": true
-                            }
-                          ],
-                          "tilbehorListe": [
-                            {
-                              "hmsnr": "654321",
-                              "navn": "Tilbehør 1",
-                              "antall": 1
-                            }
-                          ]
+                          "vilkartekst": "Vilkår 1",
+                          "tilleggsinfo": "Tilleggsinfo",
+                          "checked": true
+                        }
+                      ],
+                      "tilbehorListe": [
+                        {
+                          "hmsnr": "654321",
+                          "navn": "Tilbehør 1",
+                          "antall": 1
                         }
                       ]
-                    },
-                    "levering": {
-                      "hmfFornavn": "formidlerFornavn",
-                      "hmfEtternavn": "formidlerEtternavn",
-                      "hmfArbeidssted": "arbeidssted",
-                      "hmfStilling": "stilling",
-                      "hmfPostadresse": "postadresse arbeidssted",
-                      "hmfPostnr": "9999",
-                      "hmfPoststed": "poststed",
-                      "hmfTelefon": "12345678",
-                      "hmfTreffesEnklest": "treffesEnklest",
-                      "hmfEpost": "formidler@kommune.no",
-                      "opfRadioButton": "Hjelpemiddelformidler",
-                      "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
-                      "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker"
                     }
-                  }
+                  ]
+                },
+                "levering": {
+                  "hmfFornavn": "formidlerFornavn",
+                  "hmfEtternavn": "formidlerEtternavn",
+                  "hmfArbeidssted": "arbeidssted",
+                  "hmfStilling": "stilling",
+                  "hmfPostadresse": "postadresse arbeidssted",
+                  "hmfPostnr": "9999",
+                  "hmfPoststed": "poststed",
+                  "hmfTelefon": "12345678",
+                  "hmfTreffesEnklest": "treffesEnklest",
+                  "hmfEpost": "formidler@kommune.no",
+                  "opfRadioButton": "Hjelpemiddelformidler",
+                  "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
+                  "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker",
+                  "merknadTilUtlevering": ""
+                },
+                "innsender": {
+                  "somRolle": "FORMIDLER",
+                  "organisasjoner": [
+                    {
+                      "navn": "STORÅS OG HESSENG",
+                      "orgnr": "910753282",
+                      "orgform": "AS",
+                      "kommunenummer": "9999"
+                    }
+                  ],
+                  "godkjenningskurs": []
                 }
-            """.trimIndent(),
-        ),
-        status = status,
-        kommunenavn = null,
-        er_digital = true,
-        soknadGjelder = null,
-    )
+              }
+            }
+        """.trimIndent(),
+    ),
+    status = status,
+    kommunenavn = null,
+    er_digital = true,
+    soknadGjelder = null,
+)
 
-fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GODKJENNING): SoknadData = SoknadData(
-    "15084300133",
-    "Fornavn Etternavn",
-    "12345678910",
-    id,
-    jsonMapper.readTree(
-        //language=JSON
+fun mockSøknadMedRullestol(
+    id: UUID,
+    status: Status = Status.VENTER_GODKJENNING,
+    fnrBruker: String = lagFødselsnummer(),
+): SoknadData = SoknadData(
+    fnrBruker = fnrBruker,
+    navnBruker = "Fornavn Etternavn",
+    fnrInnsender = lagFødselsnummer(),
+    soknadId = id,
+    soknad = readTree(
         """
             {
               "soknad": {
-                "timestamp": "2021-06-18T10:52:09.298Z",
-                "date": "2021-06-18",
-                "id": "6443d777-5df8-475e-a93f-9606da6d27dc",
+                "timestamp": "${Instant.now()}",
+                "date": "${LocalDate.now()}",
+                "id": "$id",
                 "bruker": {
-                  "fnummer": "10127622634",
+                  "fnummer": "$fnrBruker",
                   "fornavn": "Fornavn",
                   "etternavn": "Etternavn",
                   "telefonNummer": "12345678",
@@ -152,7 +169,7 @@ fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GODKJENNING
                 "hjelpemidler": {
                   "hjelpemiddelListe": [
                     {
-                      "uniqueKey": "2783311624013508896",
+                      "uniqueKey": "1",
                       "hmsNr": "278331",
                       "beskrivelse": "Cross 6 allround sb35 sd35-50 kort",
                       "navn": "Cross 6 allround sb35 sd35-50 kort",
@@ -204,13 +221,13 @@ fun mockSøknadMedRullestol(id: UUID, status: Status = Status.VENTER_GODKJENNING
                 "levering": {
                   "hmfFornavn": "Urokkelig Vertikal",
                   "hmfEtternavn": "Familie",
-                  "hmfArbeidssted": "dwa",
-                  "hmfStilling": "dwa",
-                  "hmfPostadresse": "dwa",
+                  "hmfArbeidssted": "",
+                  "hmfStilling": "",
+                  "hmfPostadresse": "",
                   "hmfPostnr": "1234",
                   "hmfPoststed": "dwa",
-                  "hmfTelefon": "12344321",
-                  "hmfTreffesEnklest": "dwa",
+                  "hmfTelefon": "11223344",
+                  "hmfTreffesEnklest": "",
                   "hmfEpost": "dwa@dwa",
                   "opfRadioButton": "Hjelpemiddelformidler",
                   "opfFornavn": "",

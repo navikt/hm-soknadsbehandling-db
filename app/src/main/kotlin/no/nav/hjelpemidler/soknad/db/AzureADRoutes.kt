@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.soknad.db
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -219,16 +220,7 @@ fun Route.azureADRoutes(
         try {
             val søknadId = call.søknadId
             val søknadFinnes = transaction { søknadStore.søknadFinnes(søknadId) }
-
-            when {
-                søknadFinnes -> {
-                    call.respond("soknadFinnes" to true)
-                }
-
-                else -> {
-                    call.respond("soknadFinnes" to false)
-                }
-            }
+            call.respond("soknadFinnes" to søknadFinnes)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
@@ -334,7 +326,7 @@ fun Route.azureADRoutes(
     }
 
     get("/soknad/utgaatt/{dager}") {
-        val dager = call.parameters["dager"]?.toInt() ?: throw RuntimeException("Parameter 'dager' var ugyldig")
+        val dager = call.parameters["dager"]?.toInt() ?: throw BadRequestException("Parameter 'dager' var ugyldig")
 
         try {
             val soknaderTilGodkjenningEldreEnn = transaction { søknadStore.hentSoknaderTilGodkjenningEldreEnn(dager) }

@@ -1,10 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import io.kotest.matchers.shouldBe
-import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
-import no.nav.hjelpemidler.soknad.db.jsonMapper
+import no.nav.hjelpemidler.soknad.db.domain.lagOrdrelinje
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 class OrdreStoreTest {
     @Test
@@ -26,20 +24,3 @@ class OrdreStoreTest {
         }
     }
 }
-
-private fun lagOrdrelinje(): OrdrelinjeData = OrdrelinjeData(
-    søknadId = UUID.randomUUID(),
-    oebsId = 123,
-    fnrBruker = "15084300133",
-    serviceforespørsel = 19162211,
-    ordrenr = 6181503,
-    ordrelinje = 1,
-    delordrelinje = 1,
-    artikkelnr = "123456",
-    antall = 1.0,
-    enhet = "STK",
-    produktgruppe = "Manuelle armdrevne rullestoler",
-    produktgruppeNr = "012345",
-    hjelpemiddeltype = "Hjelpemiddel",
-    data = jsonMapper.createObjectNode(),
-)

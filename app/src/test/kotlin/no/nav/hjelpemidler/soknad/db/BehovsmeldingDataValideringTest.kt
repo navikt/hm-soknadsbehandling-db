@@ -4,23 +4,26 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
+import no.nav.hjelpemidler.soknad.db.test.readTree
 import org.junit.jupiter.api.Test
 
 class BehovsmeldingDataValideringTest {
     @Test
     fun `Validering av en normal søknad i dagens format`() {
-        val node = jsonMapper.readTree(
-            //language=JSON
+        val søknadId = lagSøknadId()
+        val node = readTree(
             """
                 {
-                  "id": "92827da5-da3d-429f-a415-b6c0b9aa6cd6",
+                  "id": "$søknadId",
                   "soknad": {
-                    "id": "92827da5-da3d-429f-a415-b6c0b9aa6cd6",
+                    "id": "$søknadId",
                     "date": "2023-01-17",
                     "bruker": {
                       "kilde": "PDL",
                       "adresse": "Flataberget 19",
-                      "fnummer": "15084300133",
+                      "fnummer": "${lagFødselsnummer()}",
                       "fornavn": "Sedat",
                       "poststed": "Sand",
                       "signatur": "BRUKER_BEKREFTER",

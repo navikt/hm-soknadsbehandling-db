@@ -8,7 +8,7 @@ import io.ktor.client.engine.apache.Apache
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.client.hmdb.HentProdukterMedHmsnrs
 import java.net.URI
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product as HentproduktermedhmsnrsProdukt
+import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product as HentProdukterMedHmsnrsProdukt
 
 private val logg = KotlinLogging.logger {}
 
@@ -19,7 +19,7 @@ class GrunndataClient {
         serializer = GraphQLClientJacksonSerializer(),
     )
 
-    suspend fun hentProdukterMedHmsnrs(hmsnrs: Set<String>): List<HentproduktermedhmsnrsProdukt> {
+    suspend fun hentProdukterMedHmsnrs(hmsnrs: Set<String>): List<HentProdukterMedHmsnrsProdukt> {
         if (hmsnrs.isEmpty()) return emptyList()
         logg.debug { "Henter produkter med hmsnrs: $hmsnrs fra hjelpemiddeldatabasen" }
         val request = HentProdukterMedHmsnrs(variables = HentProdukterMedHmsnrs.Variables(hmsnrs = hmsnrs.toList()))
