@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
@@ -547,10 +548,17 @@ data class Tilbehor(
     val navn: String,
     val automatiskGenerert: AutomatiskGenerertTilbehor?,
     val brukAvForslagsmotoren: BrukAvForslagsmotoren?,
+    val begrunnelse: String?,
+    val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
 )
 
 enum class AutomatiskGenerertTilbehor {
     Sittepute,
+}
+
+enum class FritakFraBegrunnelseÅrsak {
+    ER_PÅ_BESTILLINGSORDNING,
+    IKKE_I_PILOT,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
