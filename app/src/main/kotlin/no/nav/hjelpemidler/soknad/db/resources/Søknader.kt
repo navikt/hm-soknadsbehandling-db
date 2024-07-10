@@ -25,4 +25,16 @@ class Søknader {
             val parent: Innsender = Innsender(),
         )
     }
+
+    @Resource("/{soknadId}")
+    class SøknadId(
+        @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
+        val parent: Søknader = Søknader(),
+    ) {
+        @Resource("/journalforing")
+        class Journalføring(val parent: SøknadId)
+
+        @Resource("/oppgave")
+        class Oppgave(val parent: SøknadId)
+    }
 }

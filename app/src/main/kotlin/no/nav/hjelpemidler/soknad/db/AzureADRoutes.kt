@@ -19,15 +19,10 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
-import no.nav.hjelpemidler.soknad.db.ktor.permanentRedirect
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.resources.Ordre
-import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
-import io.ktor.server.resources.delete as delete2
-import io.ktor.server.resources.post as post2
 
 private val logg = KotlinLogging.logger {}
 
@@ -35,23 +30,18 @@ fun Route.azureADRoutes(
     transaction: Transaction,
     metrics: Metrics,
 ) {
-    get("/soknad/{soknadId}/fodselsnummer") {
+    get("/soknad/fnr/{soknadId}") {
         try {
             val søknadId = call.søknadId
-            val fnr = transaction { søknadStore.hentFnrForSoknad(søknadId) }
-            call.respond(fnr)
+            val fnrForSoknad = transaction { søknadStore.hentFnrForSoknad(søknadId) }
+            call.respond(fnrForSoknad)
         } catch (e: Exception) {
             logg.error(e) { "Feilet ved henting av søknad" }
             call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
         }
     }
 
-    // deprecated
-    get("/soknad/fnr/{soknadId}") {
-        call.permanentRedirect("/soknad/${call.søknadId}/fodselsnummer")
-    }
-
-    post2<Søknader.Bruker> {
+    post("/soknad/bruker") {
         try {
             val soknadToBeSaved = call.receive<SoknadData>()
             transaction { søknadStore.save(soknadToBeSaved) }
@@ -62,7 +52,7 @@ fun Route.azureADRoutes(
         }
     }
 
-    post2<Ordre> {
+    post("/ordre") {
         try {
             val ordreToBeSaved = call.receive<OrdrelinjeData>()
             val rowsUpdated = transaction { ordreStore.save(ordreToBeSaved) }
@@ -177,7 +167,7 @@ fun Route.azureADRoutes(
         }
     }
 
-    delete2<Søknader.Bruker> {
+    delete("/soknad/bruker") {
         try {
             val soknadToBeDeleted = call.receive<UUID>()
             val rowsDeleted = transaction { søknadStore.slettSøknad(soknadToBeDeleted) }
