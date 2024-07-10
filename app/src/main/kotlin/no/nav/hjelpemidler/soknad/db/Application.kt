@@ -16,6 +16,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
+import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
@@ -64,11 +65,11 @@ fun Application.module() {
     routing {
         internal()
         route("/api") {
-            authenticate(TokenXAuthenticator.name) {
-                tokenXRoutes(database, ordreService, rolleService)
-            }
             authenticate(AzureAuthenticator.name) {
                 azureADRoutes(database, metrics)
+            }
+            authenticate(TokenXAuthenticator.name) {
+                tokenXRoutes(database, ordreService, rolleService)
             }
         }
     }
@@ -83,4 +84,5 @@ fun Application.felles() {
         level = Level.TRACE
         filter { call -> call.request.path().startsWith("/api") }
     }
+    feilmelding()
 }

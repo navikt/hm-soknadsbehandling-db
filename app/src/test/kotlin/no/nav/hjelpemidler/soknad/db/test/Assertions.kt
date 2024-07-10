@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.soknad.db.exception.Feilmelding
 
 suspend inline fun <reified T> HttpResponse.expect(
     status: HttpStatusCode,
@@ -19,3 +20,8 @@ suspend inline fun <reified T> HttpResponse.expect(
     status: HttpStatusCode,
     body: T,
 ): HttpResponse = expect<T>(status) { it shouldBe body }
+
+suspend fun HttpResponse.feilmelding(
+    status: HttpStatusCode,
+    matcher: (Feilmelding) -> Unit = {},
+): HttpResponse = expect<Feilmelding>(status) { matcher(it) }

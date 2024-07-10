@@ -69,7 +69,7 @@ class AzureADRoutesTest {
         client
             .post("/api/soknad/fra-vedtaksresultat") {
                 setBody(
-                    SoknadFraVedtaksresultatDto(
+                    SøknadFraVedtaksresultatDto(
                         fnrBruker = vedtaksresultat1.fnrBruker,
                         saksblokkOgSaksnr = vedtaksresultat1.saksblokkOgSaksnr!!,
                         vedtaksdato = vedtaksresultat2.vedtaksdato,
@@ -80,7 +80,7 @@ class AzureADRoutesTest {
         client
             .post("/api/soknad/fra-vedtaksresultat-v2") {
                 setBody(
-                    SoknadFraVedtaksresultatV2Dto(
+                    SøknadFraVedtaksresultatDtoV2(
                         fnrBruker = vedtaksresultat1.fnrBruker,
                         saksblokkOgSaksnr = vedtaksresultat1.saksblokkOgSaksnr!!,
                     ),
@@ -103,7 +103,7 @@ class AzureADRoutesTest {
             .post("/api/hotsak/sak") { setBody(HotsakTilknytningData(søknadId, saksnummer)) }
             .expect(HttpStatusCode.OK, 1)
         client
-            .post("/api/soknad/hotsak/fra-saknummer") { setBody(SoknadFraHotsakNummerDto(saksnummer)) }
+            .post("/api/soknad/hotsak/fra-saknummer") { setBody(SøknadFraHotsakNummerDto(saksnummer)) }
             .expect(HttpStatusCode.OK, mapOf("soknadId" to søknadId.toString()))
         client
             .post("/api/hotsak/vedtaksresultat") { setBody(vedtaksresultat) }

@@ -31,10 +31,16 @@ class Søknader {
         @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
         val parent: Søknader = Søknader(),
     ) {
-        @Resource("/journalforing")
-        class Journalføring(val parent: SøknadId)
+        @Resource("/journalpost")
+        class Journalpost(val parent: SøknadId)
 
         @Resource("/oppgave")
         class Oppgave(val parent: SøknadId)
+
+        @Resource("/ordre")
+        class Ordre(val parent: SøknadId)
+
+        @Resource("/vedtak")
+        class Vedtak(val parent: SøknadId)
     }
 }

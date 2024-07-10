@@ -56,6 +56,10 @@ class TestContext(
         )
     }
 
+    fun createTokenXUserFeiler(melding: String = "Ukjent feil!") {
+        every { tokenXUserFactory.createTokenXUser(any()) } throws RuntimeException(melding)
+    }
+
     fun formidlerRolle() {
         coEvery { rolleClient.hentRolle(any()) } returns RolleResultat(
             formidlerRolle = FormidlerRolle(
@@ -69,6 +73,10 @@ class TestContext(
                 feil = emptyList(),
             ),
         )
+    }
+
+    fun hentRolleFeiler(melding: String = "Ukjent feil!") {
+        coEvery { rolleClient.hentRolle(any()) } throws RuntimeException(melding)
     }
 
     suspend fun lagreSøknad(søknad: SoknadData = lagSøknad()): SoknadData {

@@ -124,11 +124,11 @@ fun Route.azureADRoutes(
 
     post("/soknad/hotsak/fra-saknummer") {
         try {
-            val soknadFraHotsakNummerDto = call.receive<SoknadFraHotsakNummerDto>()
+            val søknadFraHotsakNummerDto = call.receive<SøknadFraHotsakNummerDto>()
             val soknadId = transaction {
-                hotsakStore.hentSøknadsIdForHotsakNummer(soknadFraHotsakNummerDto.saksnummer)
+                hotsakStore.hentSøknadsIdForHotsakNummer(søknadFraHotsakNummerDto.saksnummer)
             }
-            logg.info("Fant søknadsid $soknadId fra HOTSAK nummer ${soknadFraHotsakNummerDto.saksnummer}")
+            logg.info("Fant søknadsid $soknadId fra HOTSAK nummer ${søknadFraHotsakNummerDto.saksnummer}")
 
             soknadId.let { call.respond(mapOf("soknadId" to soknadId)) }
         } catch (e: Exception) {
@@ -274,12 +274,12 @@ fun Route.azureADRoutes(
 
     post("/soknad/fra-vedtaksresultat") {
         try {
-            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatDto>()
+            val søknadFraVedtaksresultatDto = call.receive<SøknadFraVedtaksresultatDto>()
             val soknadId = transaction {
                 infotrygdStore.hentSøknadIdFraVedtaksresultat(
-                    soknadFraVedtaksresultatDto.fnrBruker,
-                    soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                    soknadFraVedtaksresultatDto.vedtaksdato,
+                    søknadFraVedtaksresultatDto.fnrBruker,
+                    søknadFraVedtaksresultatDto.saksblokkOgSaksnr,
+                    søknadFraVedtaksresultatDto.vedtaksdato,
                 )
             }
             call.respond(mapOf(Pair("soknadId", soknadId)))
@@ -291,7 +291,7 @@ fun Route.azureADRoutes(
 
     post("/soknad/fra-vedtaksresultat-v2") {
         try {
-            val soknadFraVedtaksresultatDto = call.receive<SoknadFraVedtaksresultatV2Dto>()
+            val soknadFraVedtaksresultatDto = call.receive<SøknadFraVedtaksresultatDtoV2>()
             val resultater = transaction {
                 infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
                     soknadFraVedtaksresultatDto.fnrBruker,

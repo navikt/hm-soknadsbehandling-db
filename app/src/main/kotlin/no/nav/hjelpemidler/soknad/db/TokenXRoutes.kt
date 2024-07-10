@@ -8,6 +8,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.resources.Søknader
@@ -16,7 +17,6 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDate
-import java.util.Date
 
 private val logg = KotlinLogging.logger {}
 
@@ -27,54 +27,43 @@ fun Route.tokenXRoutes(
     tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
     get<Søknader.Bruker.SøknadId> {
-        try {
-            val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = transaction { søknadStore.hentSoknad(it.søknadId) }
+        val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        val søknad = transaction { søknadStore.hentSoknad(it.søknadId) }
 
-            when {
-                soknad == null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-
-                soknad.fnrBruker != fnr -> {
-                    call.respond(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
-                }
-
-                else -> {
-                    // Fetch ordrelinjer belonging to søknad
-                    soknad.ordrelinjer = ordreService.finnOrdreForSøknad(soknad.søknadId)
-
-                    // Fetch fagsakid if it exists
-                    val fagsakData = transaction { infotrygdStore.hentFagsakIdForSøknad(soknad.søknadId) }
-                    if (fagsakData != null) {
-                        soknad.fagsakId = fagsakData.fagsakId
-                    } else {
-                        val fagsakData2 = transaction { hotsakStore.hentFagsakIdForSøknad(soknad.søknadId) }
-                        if (fagsakData2 != null) soknad.fagsakId = fagsakData2
-                    }
-
-                    // Fetch soknadType for søknad
-                    soknad.søknadType = transaction { infotrygdStore.hentTypeForSøknad(soknad.søknadId) }
-
-                    call.respond(soknad)
-                }
+        when {
+            søknad == null -> {
+                call.feilmelding(HttpStatusCode.NotFound)
             }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
+
+            søknad.fnrBruker != fnr -> {
+                call.feilmelding(HttpStatusCode.Forbidden, "Søknad er ikke registrert på aktuell bruker")
+            }
+
+            else -> {
+                // Fetch ordrelinjer belonging to søknad
+                søknad.ordrelinjer = ordreService.finnOrdreForSøknad(søknad.søknadId)
+
+                // Fetch fagsakId if it exists
+                val fagsakData1 = transaction { infotrygdStore.hentFagsakIdForSøknad(søknad.søknadId) }
+                if (fagsakData1 != null) {
+                    søknad.fagsakId = fagsakData1.fagsakId
+                } else {
+                    val fagsakData2 = transaction { hotsakStore.hentFagsakIdForSøknad(søknad.søknadId) }
+                    if (fagsakData2 != null) søknad.fagsakId = fagsakData2
+                }
+
+                // Fetch søknadType for søknad
+                søknad.søknadType = transaction { infotrygdStore.hentTypeForSøknad(søknad.søknadId) }
+
+                call.respond(søknad)
+            }
         }
     }
 
     get<Søknader.Bruker> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
-
-        try {
-            val brukersSaker = transaction { søknadStore.hentSoknaderForBruker(fnr) }
-            call.respond(brukersSaker)
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching søknader til godkjenning" }
-            call.respond(HttpStatusCode.InternalServerError, "Feil ved henting av saker")
-        }
+        val brukersSaker = transaction { søknadStore.hentSoknaderForBruker(fnr) }
+        call.respond(brukersSaker)
     }
 
     get<Søknader.Innsender> {
@@ -82,33 +71,23 @@ fun Route.tokenXRoutes(
         val fnrInnsender = user.ident
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
-        try {
-            val formidlersSøknader = transaction {
-                søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
-            }
-
-            // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
-            val olderThan6mo = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
-            val datoer = mutableListOf<Date>()
-            formidlersSøknader.forEach {
-                if (it.datoOpprettet.before(olderThan6mo)) {
-                    datoer.add(it.datoOpprettet)
-                }
-            }
-            if (datoer.isNotEmpty()) {
-                val bytes = fnrInnsender.toByteArray()
-                val md = MessageDigest.getInstance("SHA-256")
-                val digest = md.digest(bytes)
-                val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
-                val lastTen = datoer.takeLast(10).reversed().joinToString { it.toString() }
-                logg.info("Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd.: id=$hash, tilfeller=${datoer.count()} stk., datoOpprettet(siste 10): $lastTen.")
-            }
-
-            call.respond(formidlersSøknader)
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching formidlers søknader" }
-            call.respond(HttpStatusCode.InternalServerError, e)
+        val søknader = transaction {
+            søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
         }
+
+        // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
+        val seksMånederSiden = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
+        val datoer = søknader
+            .filter { it.datoOpprettet.before(seksMånederSiden) }
+            .map { it.datoOpprettet }
+        if (datoer.isNotEmpty()) {
+            val digest = MessageDigest.getInstance("SHA-256").digest(fnrInnsender.toByteArray())
+            val hash = digest.fold("") { str, byt -> str + "%02x".format(byt) }.take(10)
+            val sisteTi = datoer.takeLast(10).reversed().joinToString { it.toString() }
+            logg.info { "Formidlersiden ble lastet inn med sak(er) eldre enn 6mnd., id: $hash, tilfeller: ${datoer.count()} stk., datoOpprettet(siste 10): $sisteTi." }
+        }
+
+        call.respond(søknader)
     }
 
     get<Søknader.Innsender.SøknadId> {
@@ -117,45 +96,35 @@ fun Route.tokenXRoutes(
         val fnrInnsender = user.ident
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
 
-        try {
-            val formidlersSoknad = transaction {
-                søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, innsenderRolle)
-            }
-            if (formidlersSoknad == null) {
-                logg.warn { "En formidler forsøkte å hente søknad med id: $søknadId, men den er ikke tilgjengelig for formidler nå" }
-                call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
-            } else {
-                logg.info { "Formidler hentet ut søknad med id: $søknadId" }
-                call.respond(formidlersSoknad)
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching formidlers søknader" }
-            call.respond(HttpStatusCode.InternalServerError, e)
+        val søknad = transaction {
+            søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, innsenderRolle)
+        }
+        if (søknad == null) {
+            logg.warn { "En formidler forsøkte å hente søknad med id: $søknadId, men den er ikke tilgjengelig for formidler nå" }
+            call.feilmelding(HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
+        } else {
+            logg.info { "Formidler hentet ut søknad med id: $søknadId" }
+            call.respond(søknad)
         }
     }
 
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = transaction { søknadStore.hentSoknad(søknadId) }
+        val søknadId = call.søknadId
+        val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        val søknad = transaction { søknadStore.hentSoknad(søknadId) }
 
-            when {
-                soknad == null -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
-                }
+        data class Response(
+            val resultat: Boolean,
+        )
 
-                soknad.fnrBruker != fnr -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(false))
-                }
-
-                else -> {
-                    call.respond(ValiderSøknadsidOgStatusVenterGodkjenningRespons(soknad.status == Status.VENTER_GODKJENNING))
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
-        }
+        call.respond(
+            Response(
+                when {
+                    søknad == null -> false
+                    søknad.fnrBruker != fnr -> false
+                    else -> søknad.status == Status.VENTER_GODKJENNING
+                },
+            ),
+        )
     }
 }
