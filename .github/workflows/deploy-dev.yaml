@@ -10,6 +10,7 @@ on:
     branches:
       - main
       - tilbehør-mapping
+      - url-rydding
 
 jobs:
   build:

@@ -20,8 +20,10 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
+import no.nav.hjelpemidler.soknad.db.ktor.redirectInternally
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
@@ -31,6 +33,9 @@ fun Route.azureADRoutes(
     transaction: Transaction,
     metrics: Metrics,
 ) {
+    søknadApi(transaction, metrics)
+    kommuneApi(transaction)
+
     get("/soknad/fnr/{soknadId}") {
         val søknadId = call.søknadId
         val fnr = transaction { søknadStore.hentFnrForSøknad(søknadId) }
@@ -231,23 +236,11 @@ fun Route.azureADRoutes(
     }
 
     put("/soknad/journalpost-id/{soknadId}") {
-        data class Request(val journalpostId: String)
-
-        val søknadId = call.søknadId
-        val journalpostId = call.receive<Request>().journalpostId
-        logg.info { "Knytter journalpostId: $journalpostId til søknadId: $søknadId" }
-        val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
-        call.respond(rowsUpdated)
+        call.redirectInternally(Søknader.SøknadId.Journalpost(Søknader.SøknadId(call.søknadId)))
     }
 
     put("/soknad/oppgave-id/{soknadId}") {
-        data class Request(val oppgaveId: String)
-
-        val søknadId = call.søknadId
-        val oppgaveId = call.receive<Request>().oppgaveId
-        logg.info { "Knytter oppgaveId: $oppgaveId til søknadId: $søknadId" }
-        val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
-        call.respond(rowsUpdated)
+        call.redirectInternally(Søknader.SøknadId.Oppgave(Søknader.SøknadId(call.søknadId)))
     }
 
     get("/soknad/ordre/ordrelinje-siste-doegn/{soknadId}") {
