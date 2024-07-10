@@ -11,6 +11,7 @@ import io.ktor.server.auth.authentication
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
+import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
@@ -24,6 +25,7 @@ import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.store.Database
+import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
@@ -61,7 +63,7 @@ fun Application.module() {
         tokenX()
     }
 
-    jackson()
+    shared(database)
 
     install(CallLogging) {
         level = Level.TRACE
@@ -92,8 +94,32 @@ fun Application.module() {
     }
 }
 
-fun Application.jackson() {
+fun Application.shared(transaction: Transaction) {
+    // graphQL(transaction)
+    install(Resources)
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(jsonMapper))
     }
 }
+
+fun Application.graphQL(transaction: Transaction) {
+    /*
+    install(GraphQL) {
+        schema {
+            packages = listOf("no.nav.hjelpemidler.soknad.db")
+            queries = listOf(
+                HelloWorldQuery(),
+            )
+        }
+    }
+    install(Routing) {
+        graphQLPostRoute()
+    }
+     */
+}
+
+/*
+class HelloWorldQuery : Query {
+    fun message(): String = "Hello, world!"
+}
+*/

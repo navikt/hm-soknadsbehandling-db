@@ -20,6 +20,7 @@ dependencies {
 
     // Ktor Server
     implementation(libs.bundles.ktor.server)
+    implementation(libs.ktor.server.resources)
 
     // Jackson
     implementation(libs.bundles.jackson)
@@ -47,6 +48,9 @@ dependencies {
     // Metrics
     implementation(libs.bundles.metrics)
 
+    // GraphQL Server
+    // implementation(libs.graphql.ktor.client.server)
+
     // GraphQL Client
     implementation(libs.graphql.ktor.client) {
         exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
@@ -57,6 +61,7 @@ dependencies {
 
     // Test
     testImplementation(libs.bundles.ktor.server.test)
+    testImplementation(libs.ktor.client.resources)
     testImplementation(libs.wiremock)
     testImplementation(libs.hm.database) {
         capabilities {

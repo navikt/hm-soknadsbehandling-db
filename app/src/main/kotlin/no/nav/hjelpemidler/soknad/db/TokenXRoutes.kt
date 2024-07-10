@@ -3,12 +3,14 @@ package no.nav.hjelpemidler.soknad.db
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
+import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -24,11 +26,10 @@ fun Route.tokenXRoutes(
     rolleService: RolleService,
     tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
-    get("/soknad/bruker/{soknadId}") {
+    get<Søknader.Bruker.SøknadId> {
         try {
-            val søknadId = call.søknadId
             val fnr = tokenXUserFactory.createTokenXUser(call).ident
-            val soknad = transaction { søknadStore.hentSoknad(søknadId) }
+            val soknad = transaction { søknadStore.hentSoknad(it.søknadId) }
 
             when {
                 soknad == null -> {
@@ -64,7 +65,7 @@ fun Route.tokenXRoutes(
         }
     }
 
-    get("/soknad/bruker") {
+    get<Søknader.Bruker> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
 
         try {
@@ -76,7 +77,7 @@ fun Route.tokenXRoutes(
         }
     }
 
-    get("/soknad/innsender") {
+    get<Søknader.Innsender> {
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnrInnsender = user.ident
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
@@ -110,8 +111,8 @@ fun Route.tokenXRoutes(
         }
     }
 
-    get("/soknad/innsender/{soknadId}") {
-        val søknadId = call.søknadId
+    get<Søknader.Innsender.SøknadId> {
+        val søknadId = it.søknadId
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnrInnsender = user.ident
         val innsenderRolle = rolleService.hentRolle(user.tokenString)
@@ -121,10 +122,10 @@ fun Route.tokenXRoutes(
                 søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, innsenderRolle)
             }
             if (formidlersSoknad == null) {
-                logg.warn { "En formidler forsøkte å hente søknad <$søknadId>, men den er ikke tilgjengelig for formidler nå" }
+                logg.warn { "En formidler forsøkte å hente søknad med id: $søknadId, men den er ikke tilgjengelig for formidler nå" }
                 call.respond(status = HttpStatusCode.NotFound, "Søknaden er ikke tilgjengelig for innlogget formidler")
             } else {
-                logg.info { "Formidler hentet ut søknad $søknadId" }
+                logg.info { "Formidler hentet ut søknad med id: $søknadId" }
                 call.respond(formidlersSoknad)
             }
         } catch (e: Exception) {
