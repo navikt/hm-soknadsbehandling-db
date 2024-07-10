@@ -80,9 +80,9 @@ class TestContext(
     }
 
     suspend fun lagreSøknad(søknad: SoknadData = lagSøknad()): SoknadData {
-        client.post("/api/soknad/bruker") {
-            setBody(søknad)
-        } shouldHaveStatus HttpStatusCode.OK
+        client
+            .post("/api/soknad/bruker") { setBody(søknad) }
+            .expect(HttpStatusCode.Created, 1)
         return søknad
     }
 

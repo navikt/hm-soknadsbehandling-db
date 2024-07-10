@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db
 
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
@@ -16,7 +15,6 @@ import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.lagOrdrelinje
 import no.nav.hjelpemidler.soknad.db.domain.lagPapirsøknad
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
@@ -42,14 +40,14 @@ class AzureADRoutesTest {
         val søknad = lagreSøknad()
         client
             .post("/api/ordre") { setBody(lagOrdrelinje(søknad)) }
-            .expect(HttpStatusCode.OK, 1)
+            .expect(HttpStatusCode.Created, 1)
     }
 
     @Test
     fun `Skal lagre papirsøknad`() = testApplication {
         client
             .post("/api/soknad/papir") { setBody(lagPapirsøknad()) }
-            .expect(HttpStatusCode.OK, 1)
+            .expect(HttpStatusCode.Created, 1)
     }
 
     @Test
@@ -59,7 +57,7 @@ class AzureADRoutesTest {
         val vedtaksresultat2 = lagVedtaksresultat2(søknadId)
         client
             .post("/api/infotrygd/fagsak") { setBody(vedtaksresultat1) }
-            .expect(HttpStatusCode.OK, 1)
+            .expect(HttpStatusCode.Created, 1)
         client
             .post("/api/infotrygd/vedtaksresultat") { setBody(vedtaksresultat2) }
             .expect(HttpStatusCode.OK, 1)
@@ -69,7 +67,7 @@ class AzureADRoutesTest {
         client
             .post("/api/soknad/fra-vedtaksresultat") {
                 setBody(
-                    SøknadFraVedtaksresultatDto(
+                    SøknadFraVedtaksresultatDtoV1(
                         fnrBruker = vedtaksresultat1.fnrBruker,
                         saksblokkOgSaksnr = vedtaksresultat1.saksblokkOgSaksnr!!,
                         vedtaksdato = vedtaksresultat2.vedtaksdato,
@@ -101,15 +99,15 @@ class AzureADRoutesTest {
         val vedtaksresultat = lagVedtaksresultat2(søknadId)
         client
             .post("/api/hotsak/sak") { setBody(HotsakTilknytningData(søknadId, saksnummer)) }
-            .expect(HttpStatusCode.OK, 1)
+            .expect(HttpStatusCode.Created, 1)
         client
-            .post("/api/soknad/hotsak/fra-saknummer") { setBody(SøknadFraHotsakNummerDto(saksnummer)) }
+            .post("/api/soknad/hotsak/fra-saknummer") { setBody(mapOf("saksnummer" to saksnummer)) }
             .expect(HttpStatusCode.OK, mapOf("soknadId" to søknadId.toString()))
         client
             .post("/api/hotsak/vedtaksresultat") { setBody(vedtaksresultat) }
             .expect(HttpStatusCode.OK, 1)
         client
-            .post("/api/soknad/hotsak/har-vedtak/fra-søknadid") { setBody(HarVedtakFraHotsakSøknadIdDto(søknadId)) }
+            .post("/api/soknad/hotsak/har-vedtak/fra-søknadid") { setBody(mapOf("søknadId" to søknadId)) }
             .expect(HttpStatusCode.OK, mapOf("harVedtak" to true))
     }
 
@@ -167,7 +165,7 @@ class AzureADRoutesTest {
     fun `Skal sjekke om fnr og journalpostId finnes`() = testApplication {
         val søknad = lagreSøknad()
         val journalpostId = 102030
-        val dto = FnrOgJournalpostIdFinnesDto(fnrBruker = søknad.fnrBruker, journalpostId = journalpostId)
+        val dto = mapOf("fnrBruker" to søknad.fnrBruker, "journalpostId" to journalpostId)
         client
             .post("/api/infotrygd/fnr-jounralpost") { setBody(dto) }
             .expect(HttpStatusCode.OK, "fnrOgJournalpostIdFinnes" to false)
@@ -225,16 +223,6 @@ class AzureADRoutesTest {
         client.get("/api/soknad/behovsmeldingType/${søknad.soknadId}")
             .expect<Map<String, Any?>>(HttpStatusCode.OK) {
                 it.shouldContain("behovsmeldingType", "SØKNAD")
-            }
-    }
-
-    @Test
-    fun `Skal hente søknader for kommune-API-et`() = testApplication {
-        val søknad = lagreSøknad()
-        client
-            .post("/api/kommune-api/soknader") { setBody(mapOf("kommunenummer" to "9999")) }
-            .expect<List<SøknadForKommuneApi>>(HttpStatusCode.OK) { søknader ->
-                søknader.shouldHaveSingleElement { it.soknadId == søknad.soknadId }
             }
     }
 

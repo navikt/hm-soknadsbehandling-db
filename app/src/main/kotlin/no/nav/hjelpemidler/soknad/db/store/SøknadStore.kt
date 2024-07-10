@@ -56,17 +56,17 @@ interface SøknadStore {
     fun slettUtløptSøknad(søknadId: UUID): Int
     fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String): Int
     fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: String): Int
-    fun hentFnrForSoknad(søknadId: UUID): String
-    fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
+    fun hentFnrForSøknad(søknadId: UUID): String
+    fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad>
     fun søknadFinnes(søknadId: UUID): Boolean
     fun hentSoknadOpprettetDato(søknadId: UUID): Date?
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean
-    fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler>
+    fun hentInitieltDatasettForForslagsmotorTilbehør(): List<ForslagsmotorTilbehørHjelpemidler>
     fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String>
     fun behovsmeldingTypeFor(søknadId: UUID): BehovsmeldingType?
     fun tellStatuser(): List<StatusCountRow>
     fun hentStatuser(søknadId: UUID): List<StatusRow>
-    fun hentSoknaderForKommuneApiet(
+    fun hentSøknaderForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
         nyereEnnTidsstempel: Long?,
@@ -225,7 +225,7 @@ class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
         }
     }
 
-    override fun hentFnrForSoknad(søknadId: UUID): String {
+    override fun hentFnrForSøknad(søknadId: UUID): String {
         val fnrBruker = time("hent_soknad") {
             tx.singleOrNull(
                 """
@@ -400,7 +400,7 @@ class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
         }
     }
 
-    override fun hentSoknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
+    override fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
         @Language("PostgreSQL")
         val statement =
             """
@@ -499,7 +499,7 @@ class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
             ).actualRowCount
         }
 
-    override fun initieltDatasettForForslagsmotorTilbehoer(): List<ForslagsmotorTilbehørHjelpemidler> {
+    override fun hentInitieltDatasettForForslagsmotorTilbehør(): List<ForslagsmotorTilbehørHjelpemidler> {
         @Language("PostgreSQL")
         val statement =
             """
@@ -627,7 +627,7 @@ class SøknadStorePostgres(private val tx: JdbcOperations) : SøknadStore {
     }
 
     private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
-    override fun hentSoknaderForKommuneApiet(
+    override fun hentSøknaderForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
         nyereEnnTidsstempel: Long?,

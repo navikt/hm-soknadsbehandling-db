@@ -10,12 +10,7 @@ data class VedtaksresultatDto(
     val soknadsType: String,
 )
 
-data class FnrOgJournalpostIdFinnesDto(
-    val fnrBruker: String,
-    val journalpostId: Int,
-)
-
-data class SøknadFraVedtaksresultatDto(
+data class SøknadFraVedtaksresultatDtoV1(
     val fnrBruker: String,
     val saksblokkOgSaksnr: String,
     val vedtaksdato: LocalDate,
@@ -25,7 +20,3 @@ data class SøknadFraVedtaksresultatDtoV2(
     val fnrBruker: String,
     val saksblokkOgSaksnr: String,
 )
-
-data class SøknadFraHotsakNummerDto(val saksnummer: String)
-
-data class HarVedtakFraHotsakSøknadIdDto(val søknadId: UUID)

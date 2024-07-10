@@ -14,6 +14,7 @@ import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
 import no.nav.hjelpemidler.soknad.db.jsonMapper
+import no.nav.hjelpemidler.soknad.db.kommuneApi
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.store.testDatabase
@@ -50,6 +51,9 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
                 azureADRoutes(
                     transaction = database,
                     metrics = context.metrics,
+                )
+                kommuneApi(
+                    transaction = database,
                 )
             }
         }

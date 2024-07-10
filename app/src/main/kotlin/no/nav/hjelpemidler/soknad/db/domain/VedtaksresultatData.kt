@@ -21,6 +21,14 @@ data class VedtaksresultatData(
                 "$saksblokk$saksnr"
             }
 
+    val fagsakId: String?
+        @JsonIgnore get() =
+            if (trygdekontorNr.isNullOrBlank() || saksblokk.isNullOrBlank() || saksnr.isNullOrBlank()) {
+                null
+            } else {
+                "$trygdekontorNr$saksblokk$saksnr"
+            }
+
     companion object {
         fun getTrygdekontorNrFromFagsakId(fagsakId: String): String {
             return fagsakId.take(4)

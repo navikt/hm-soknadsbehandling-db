@@ -310,7 +310,7 @@ class SøknadStoreTest {
         }
 
         testTransaction {
-            søknadStore.hentSoknaderTilGodkjenningEldreEnn(14).shouldBeSingleton()
+            søknadStore.hentSøknaderTilGodkjenningEldreEnn(14).shouldBeSingleton()
         }
 
         testTransaction { tx ->
@@ -318,7 +318,7 @@ class SøknadStoreTest {
         }
 
         testTransaction {
-            søknadStore.hentSoknaderTilGodkjenningEldreEnn(14).shouldBeEmpty()
+            søknadStore.hentSøknaderTilGodkjenningEldreEnn(14).shouldBeEmpty()
         }
     }
 

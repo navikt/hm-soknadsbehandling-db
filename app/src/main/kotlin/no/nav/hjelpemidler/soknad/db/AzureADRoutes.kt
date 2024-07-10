@@ -19,6 +19,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.store.Transaction
@@ -31,431 +32,254 @@ fun Route.azureADRoutes(
     metrics: Metrics,
 ) {
     get("/soknad/fnr/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val fnrForSoknad = transaction { søknadStore.hentFnrForSoknad(søknadId) }
-            call.respond(fnrForSoknad)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
-        }
+        val søknadId = call.søknadId
+        val fnr = transaction { søknadStore.hentFnrForSøknad(søknadId) }
+        call.respond(fnr)
     }
 
     post("/soknad/bruker") {
-        try {
-            val soknadToBeSaved = call.receive<SoknadData>()
-            transaction { søknadStore.save(soknadToBeSaved) }
-            call.respond("OK")
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av søknad")
-        }
+        val søknad = call.receive<SoknadData>()
+        logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
+        val rowsUpdated = transaction { søknadStore.save(søknad) }
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/ordre") {
-        try {
-            val ordreToBeSaved = call.receive<OrdrelinjeData>()
-            val rowsUpdated = transaction { ordreStore.save(ordreToBeSaved) }
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av ordrelinje" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
-        }
+        val ordrelinje = call.receive<OrdrelinjeData>()
+        logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
+        val rowsUpdated = transaction { ordreStore.save(ordrelinje) }
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/soknad/papir") {
-        try {
-            val papirsoknadToBeSaved = call.receive<PapirSøknadData>()
-            val rowsUpdated = transaction { søknadStore.savePapir(papirsoknadToBeSaved) }
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av papirsøknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av papirsøknad")
-        }
+        val søknad = call.receive<PapirSøknadData>()
+        logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.soknadId}" }
+        val rowsUpdated = transaction { søknadStore.savePapir(søknad) }
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/infotrygd/fagsak") {
-        try {
-            val vedtaksresultatData = call.receive<VedtaksresultatData>()
-            val numRows = transaction { infotrygdStore.lagKnytningMellomFagsakOgSøknad(vedtaksresultatData) }
-            call.respond(numRows)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av ordrelinje" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av ordrelinje")
-        }
+        val knytning = call.receive<VedtaksresultatData>()
+        logg.info { "Lagrer knytning mellom sak fra Infotrygd og søknad, søknadId: ${knytning.søknadId}, fagsakId: ${knytning.fagsakId}" }
+        val rowsUpdated = transaction { infotrygdStore.lagKnytningMellomFagsakOgSøknad(knytning) }
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/hotsak/sak") {
-        try {
-            val hotsakTilknytningData = call.receive<HotsakTilknytningData>()
-            val numRows = transaction { hotsakStore.lagKnytningMellomSakOgSøknad(hotsakTilknytningData) }
-            call.respond(numRows)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av hotsak-tilknytning" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av hotsak-tilknytning")
-        }
+        val knytning = call.receive<HotsakTilknytningData>()
+        logg.info { "Lagrer knytning mellom sak fra Hotsak og søknad, søknadId: ${knytning.søknadId}, saksnummer: ${knytning.saksnr}" }
+        val rowsUpdated = transaction { hotsakStore.lagKnytningMellomSakOgSøknad(knytning) }
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/infotrygd/vedtaksresultat") {
-        try {
-            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = transaction {
-                infotrygdStore.lagreVedtaksresultat(
-                    vedtaksresultatToBeSaved.søknadId,
-                    vedtaksresultatToBeSaved.vedtaksresultat,
-                    vedtaksresultatToBeSaved.vedtaksdato,
-                    vedtaksresultatToBeSaved.soknadsType,
-                )
-            }
-            call.respond(rowUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av vedtaksresultat" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat")
+        val vedtaksresultat = call.receive<VedtaksresultatDto>()
+        logg.info { "Lagrer vedtaksresultat fra Infotrygd: ${vedtaksresultat.søknadId}" }
+        val rowsUpdated = transaction {
+            infotrygdStore.lagreVedtaksresultat(
+                vedtaksresultat.søknadId,
+                vedtaksresultat.vedtaksresultat,
+                vedtaksresultat.vedtaksdato,
+                vedtaksresultat.soknadsType,
+            )
         }
+        call.respond(rowsUpdated)
     }
 
     get("/infotrygd/søknadsType/{soknadId}") {
         val søknadId = call.søknadId
-        val søknadsType = transaction { infotrygdStore.hentTypeForSøknad(søknadId) }
+        val søknadstype = transaction { infotrygdStore.hentTypeForSøknad(søknadId) }
 
         data class Response(val søknadsType: String?)
-        call.respond(Response(søknadsType))
+        call.respond(Response(søknadstype))
     }
 
     post("/soknad/hotsak/fra-saknummer") {
-        try {
-            val søknadFraHotsakNummerDto = call.receive<SøknadFraHotsakNummerDto>()
-            val soknadId = transaction {
-                hotsakStore.hentSøknadsIdForHotsakNummer(søknadFraHotsakNummerDto.saksnummer)
-            }
-            logg.info("Fant søknadsid $soknadId fra HOTSAK nummer ${søknadFraHotsakNummerDto.saksnummer}")
+        data class Request(val saksnummer: String)
+        data class Response(val soknadId: UUID?)
 
-            soknadId.let { call.respond(mapOf("soknadId" to soknadId)) }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad fra HOTSAK data" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra HOTSAK data")
-        }
+        val saksnummer = call.receive<Request>().saksnummer
+        val søknadId = transaction { hotsakStore.hentSøknadsIdForHotsakNummer(saksnummer) }
+        logg.info { "Fant søknadId: $søknadId for saksnummer: $saksnummer fra Hotsak" }
+        call.respond(Response(søknadId))
     }
 
     post("/soknad/hotsak/har-vedtak/fra-søknadid") {
-        try {
-            val soknadId = call.receive<HarVedtakFraHotsakSøknadIdDto>().søknadId
-            val harVedtak = transaction { hotsakStore.harVedtakForSøknadId(soknadId) }
-            logg.info("Fant harVedtak $harVedtak fra HOTSAK med søknadId $soknadId")
+        data class Request(val søknadId: UUID)
+        data class Response(val harVedtak: Boolean)
 
-            soknadId.let { call.respond(mapOf("harVedtak" to harVedtak)) }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av harVedtak fra HOTSAK data" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av harVedtak fra HOTSAK data")
-        }
+        val søknadId = call.receive<Request>().søknadId
+        val harVedtak = transaction { hotsakStore.harVedtakForSøknadId(søknadId) }
+        logg.info { "Sjekker om søknad med søknadId: $søknadId har vedtak i Hotsak, harVedtak: $harVedtak" }
+        call.respond(Response(harVedtak))
     }
 
     post("/hotsak/vedtaksresultat") {
-        try {
-            val vedtaksresultatToBeSaved = call.receive<VedtaksresultatDto>()
-            val rowUpdated = transaction {
-                hotsakStore.lagreVedtaksresultat(
-                    vedtaksresultatToBeSaved.søknadId,
-                    vedtaksresultatToBeSaved.vedtaksresultat,
-                    vedtaksresultatToBeSaved.vedtaksdato,
-                )
-            }
-            call.respond(rowUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved lagring av vedtaksresultat fra hotsak" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved lagring av vedtaksresultat fra hotsak")
+        val vedtaksresultat = call.receive<VedtaksresultatDto>()
+        logg.info { "Lagrer vedtaksresultat fra Hotsak: ${vedtaksresultat.søknadId}" }
+        val rowsUpdated = transaction {
+            hotsakStore.lagreVedtaksresultat(
+                vedtaksresultat.søknadId,
+                vedtaksresultat.vedtaksresultat,
+                vedtaksresultat.vedtaksdato,
+            )
         }
+        call.respond(rowsUpdated)
     }
 
     delete("/soknad/bruker") {
-        try {
-            val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = transaction { søknadStore.slettSøknad(soknadToBeDeleted) }
-            call.respond(rowsDeleted)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved sletting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
-        }
+        val søknadId = call.receive<UUID>()
+        logg.info { "Sletter søknad med søknadId: $søknadId" }
+        val rowsDeleted = transaction { søknadStore.slettSøknad(søknadId) }
+        call.respond(rowsDeleted)
     }
 
     delete("/soknad/utlopt/bruker") {
-        try {
-            val soknadToBeDeleted = call.receive<UUID>()
-            val rowsDeleted = transaction { søknadStore.slettUtløptSøknad(soknadToBeDeleted) }
-            call.respond(rowsDeleted)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved sletting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved sletting av søknad")
-        }
+        val søknadId = call.receive<UUID>()
+        logg.info { "Sletter utløpt søknad med søknadId: $søknadId" }
+        val rowsDeleted = transaction { søknadStore.slettUtløptSøknad(søknadId) }
+        call.respond(rowsDeleted)
     }
 
     put("/soknad/status/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val newStatus = call.receive<Status>()
-            val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, newStatus) }
-            call.respond(rowsUpdated)
-
-            metrics.measureElapsedTimeBetweenStatusChanges(søknadId, newStatus)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved oppdatering av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
-        }
+        val søknadId = call.søknadId
+        val nyStatus = call.receive<Status>()
+        logg.info { "Oppdaterer status på søknad med søknadId: $søknadId, nyStatus: $nyStatus" }
+        val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, nyStatus) }
+        call.respond(rowsUpdated)
+        metrics.measureElapsedTimeBetweenStatusChanges(søknadId, nyStatus)
     }
 
     put("/soknad/statusV2") {
-        try {
-            val statusMedÅrsak = call.receive<StatusMedÅrsak>()
-            val rowsUpdated = transaction { søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak) }
-            call.respond(rowsUpdated)
-
-            metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved oppdatering av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av søknad")
-        }
+        val statusMedÅrsak = call.receive<StatusMedÅrsak>()
+        logg.info { "Oppdaterer status på søknad med søknadId: ${statusMedÅrsak.søknadId}, nyStatus: ${statusMedÅrsak.status} (v2)" }
+        val rowsUpdated = transaction { søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak) }
+        call.respond(rowsUpdated)
+        metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
     }
 
     get("/soknad/bruker/finnes/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val søknadFinnes = transaction { søknadStore.søknadFinnes(søknadId) }
-            call.respond("soknadFinnes" to søknadFinnes)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad")
-        }
+        val søknadId = call.søknadId
+        val søknadFinnes = transaction { søknadStore.søknadFinnes(søknadId) }
+        call.respond("soknadFinnes" to søknadFinnes)
     }
 
+    // NB! Skrivefeil i denne.
     post("/infotrygd/fnr-jounralpost") {
-        try {
-            val fnrOgJournalpostIdFinnesDto = call.receive<FnrOgJournalpostIdFinnesDto>()
-            val fnrOgJournalpostIdFinnes = transaction {
-                søknadStore.fnrOgJournalpostIdFinnes(
-                    fnrOgJournalpostIdFinnesDto.fnrBruker,
-                    fnrOgJournalpostIdFinnesDto.journalpostId,
-                )
-            }
+        data class Request(
+            val fnrBruker: String,
+            val journalpostId: Int,
+        )
 
-            when {
-                fnrOgJournalpostIdFinnes -> {
-                    call.respond("fnrOgJournalpostIdFinnes" to true)
-                }
-
-                else -> {
-                    call.respond("fnrOgJournalpostIdFinnes" to false)
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av fnr og journalpost" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av fnr og journalpost")
+        val fnrOgJournalpostIdFinnesDto = call.receive<Request>()
+        val fnrOgJournalpostIdFinnes = transaction {
+            søknadStore.fnrOgJournalpostIdFinnes(
+                fnrOgJournalpostIdFinnesDto.fnrBruker,
+                fnrOgJournalpostIdFinnesDto.journalpostId,
+            )
         }
+        call.respond("fnrOgJournalpostIdFinnes" to fnrOgJournalpostIdFinnes)
     }
 
     get("/soknadsdata/bruker/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val søknad = transaction { søknadStore.hentSoknadData(søknadId) }
-
-            when (søknad) {
-                null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-
-                else -> {
-                    call.respond(søknad)
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknadsdata" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknadsdata")
+        val søknadId = call.søknadId
+        val søknad = transaction { søknadStore.hentSoknadData(søknadId) }
+        when (søknad) {
+            null -> call.feilmelding(HttpStatusCode.NotFound)
+            else -> call.respond(søknad)
         }
     }
 
     post("/soknad/fra-vedtaksresultat") {
-        try {
-            val søknadFraVedtaksresultatDto = call.receive<SøknadFraVedtaksresultatDto>()
-            val soknadId = transaction {
-                infotrygdStore.hentSøknadIdFraVedtaksresultat(
-                    søknadFraVedtaksresultatDto.fnrBruker,
-                    søknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                    søknadFraVedtaksresultatDto.vedtaksdato,
-                )
-            }
-            call.respond(mapOf(Pair("soknadId", soknadId)))
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
+        val dto = call.receive<SøknadFraVedtaksresultatDtoV1>()
+        val søknadId = transaction {
+            infotrygdStore.hentSøknadIdFraVedtaksresultat(
+                dto.fnrBruker,
+                dto.saksblokkOgSaksnr,
+                dto.vedtaksdato,
+            )
         }
+
+        data class Response(val soknadId: UUID?)
+        call.respond(Response(søknadId))
     }
 
     post("/soknad/fra-vedtaksresultat-v2") {
-        try {
-            val soknadFraVedtaksresultatDto = call.receive<SøknadFraVedtaksresultatDtoV2>()
-            val resultater = transaction {
-                infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
-                    soknadFraVedtaksresultatDto.fnrBruker,
-                    soknadFraVedtaksresultatDto.saksblokkOgSaksnr,
-                )
-            }
-            call.respond(resultater)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av søknad fra vedtaksdata" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknad fra vedtaksdata")
+        val dto = call.receive<SøknadFraVedtaksresultatDtoV2>()
+        val resultater = transaction {
+            infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
+                dto.fnrBruker,
+                dto.saksblokkOgSaksnr,
+            )
         }
+        call.respond(resultater)
     }
 
     get("/soknad/opprettet-dato/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(søknadId) }
-
-            when (opprettetDato) {
-                null -> {
-                    call.respond(HttpStatusCode.NotFound)
-                }
-
-                else -> {
-                    call.respond(opprettetDato)
-                }
-            }
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved henting av opprettet dato" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av opprettet dato")
+        val søknadId = call.søknadId
+        val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(søknadId) }
+        when (opprettetDato) {
+            null -> call.feilmelding(HttpStatusCode.NotFound)
+            else -> call.respond(opprettetDato)
         }
     }
 
     get("/soknad/utgaatt/{dager}") {
         val dager = call.parameters["dager"]?.toInt() ?: throw BadRequestException("Parameter 'dager' var ugyldig")
-
-        try {
-            val soknaderTilGodkjenningEldreEnn = transaction { søknadStore.hentSoknaderTilGodkjenningEldreEnn(dager) }
-            call.respond(soknaderTilGodkjenningEldreEnn)
-        } catch (e: Exception) {
-            logg.error(e) { "Error on fetching søknader til godkjenning eldre enn" }
-            call.respond(HttpStatusCode.InternalServerError, e)
-        }
+        val søknader = transaction { søknadStore.hentSøknaderTilGodkjenningEldreEnn(dager) }
+        call.respond(søknader)
     }
 
     put("/soknad/journalpost-id/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val newJournalpostDto = call.receive<Map<String, String>>()
-            val journalpostId = newJournalpostDto["journalpostId"] ?: throw Exception("journalpostId mangler i body")
-            val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved oppdatering av journalpost-id" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av journalpost-id")
-        }
+        data class Request(val journalpostId: String)
+
+        val søknadId = call.søknadId
+        val journalpostId = call.receive<Request>().journalpostId
+        logg.info { "Knytter journalpostId: $journalpostId til søknadId: $søknadId" }
+        val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
+        call.respond(rowsUpdated)
     }
 
     put("/soknad/oppgave-id/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val newOppgaveDto = call.receive<Map<String, String>>()
-            val oppgaveId = newOppgaveDto["oppgaveId"] ?: throw Exception("No oppgaveId in body")
-            val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
-            call.respond(rowsUpdated)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved oppdatering av oppgave-id" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved oppdatering av oppgave-id")
-        }
+        data class Request(val oppgaveId: String)
+
+        val søknadId = call.søknadId
+        val oppgaveId = call.receive<Request>().oppgaveId
+        logg.info { "Knytter oppgaveId: $oppgaveId til søknadId: $søknadId" }
+        val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
+        call.respond(rowsUpdated)
     }
 
     get("/soknad/ordre/ordrelinje-siste-doegn/{soknadId}") {
-        try {
-            val soknadsId = call.søknadId
-            val result = transaction { ordreStore.ordreSisteDøgn(soknadsId) }
-            call.respond(result)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet" }
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Feilet ved sjekk om en ordre har blitt oppdatert det siste døgnet",
-            )
-        }
+        val søknadId = call.søknadId
+        val result = transaction { ordreStore.ordreSisteDøgn(søknadId) }
+        call.respond(result)
     }
 
     get("/soknad/ordre/har-ordre/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val result = transaction { ordreStore.harOrdre(søknadId) }
-            call.respond(result)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved sjekk om en søknad har ordre" }
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Feilet ved sjekk om en søknad har ordre",
-            )
-        }
+        val søknadId = call.søknadId
+        val result = transaction { ordreStore.harOrdre(søknadId) }
+        call.respond(result)
     }
 
     get("/soknad/behovsmeldingType/{soknadId}") {
-        try {
-            val søknadId = call.søknadId
-            val result = transaction { søknadStore.behovsmeldingTypeFor(søknadId) }
-            if (result == null) {
-                logg.info("Failed to get result for behovsmeldingType (result=$result) for søknadsId=$søknadId")
-            } else {
-                logg.info("Found behovsmeldingType=$result for soknadsId=$søknadId")
+        val søknadId = call.søknadId
+        val behovsmeldingType = transaction { søknadStore.behovsmeldingTypeFor(søknadId) }
+        logg.info {
+            when (behovsmeldingType) {
+                null -> "Kunne ikke finne behovsmeldingType for søknadId: $søknadId"
+                else -> "Fant behovsmeldingType: $behovsmeldingType for søknadId: $søknadId"
             }
-            data class Result(val behovsmeldingType: BehovsmeldingType?)
-            call.respond(Result(result))
-        } catch (e: Exception) {
-            logg.error(e) { "Kunne ikke hente ut behovsmeldingsType" }
-            call.respond(
-                HttpStatusCode.BadRequest,
-                "Kunne ikke hente ut behovsmeldingsType",
-            )
         }
-    }
-
-    post("/kommune-api/soknader") {
-        data class Request(
-            val kommunenummer: String,
-            val nyereEnn: UUID?,
-            val nyereEnnTidsstempel: Long?,
-        ) {
-            fun isValid() =
-                kommunenummer.isNotEmpty() &&
-                    (kommunenummer.toIntOrNull()?.let { it in 0..10000 } ?: false)
-        }
-
-        val req = runCatching {
-            val req = call.receive<Request>()
-            if (!req.isValid()) throw IllegalArgumentException("Request not valid: $req")
-            req
-        }.getOrElse { e ->
-            logg.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
-            call.respond(HttpStatusCode.BadRequest, "Feilet ved henting av søknader for kommune-apiet")
-            return@post
-        }
-
-        runCatching {
-            val soknader = transaction {
-                søknadStore.hentSoknaderForKommuneApiet(req.kommunenummer, req.nyereEnn, req.nyereEnnTidsstempel)
-            }
-            call.respond(soknader)
-        }.getOrElse { e ->
-            logg.error(e) { "Feilet ved henting av søknader for kommune-apiet" }
-            call.respond(HttpStatusCode.InternalServerError, "Feilet ved henting av søknader for kommune-apiet")
-            return@post
-        }
+        data class Result(val behovsmeldingType: BehovsmeldingType?)
+        call.respond(Result(behovsmeldingType))
     }
 
     get("/forslagsmotor/tilbehoer/datasett") {
-        try {
-            val result = transaction {
-                søknadStore.initieltDatasettForForslagsmotorTilbehoer()
-            }
-            call.respond(result)
-        } catch (e: Exception) {
-            logg.error(e) { "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør" }
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                "Feilet ved uthenting av initielt datasett for forslagsmotor for tilbehør",
-            )
+        logg.info { "Henter initielt datasett til forslagsmotoren for tilbehør" }
+        val result = transaction {
+            søknadStore.hentInitieltDatasettForForslagsmotorTilbehør()
         }
+        call.respond(result)
     }
 }
