@@ -48,9 +48,6 @@ dependencies {
     // Metrics
     implementation(libs.bundles.metrics)
 
-    // GraphQL Server
-    // implementation(libs.graphql.ktor.client.server)
-
     // GraphQL Client
     implementation(libs.graphql.ktor.client) {
         exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson

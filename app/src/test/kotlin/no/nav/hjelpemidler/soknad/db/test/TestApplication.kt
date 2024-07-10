@@ -12,10 +12,10 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
+import no.nav.hjelpemidler.soknad.db.felles
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.shared
 import no.nav.hjelpemidler.soknad.db.store.testDatabase
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 
@@ -37,7 +37,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
     }
 
     application {
-        shared(database)
+        felles()
 
         routing {
             route("/api") {

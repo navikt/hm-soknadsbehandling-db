@@ -14,9 +14,6 @@ import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.LocalEnvironment
-import no.nav.hjelpemidler.configuration.TestEnvironment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
@@ -25,7 +22,6 @@ import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.store.Database
-import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
@@ -63,12 +59,7 @@ fun Application.module() {
         tokenX()
     }
 
-    shared(database)
-
-    install(CallLogging) {
-        level = Level.TRACE
-        filter { call -> call.request.path().startsWith("/api") }
-    }
+    felles()
 
     routing {
         internal()
@@ -76,50 +67,20 @@ fun Application.module() {
             authenticate(TokenXAuthenticator.name) {
                 tokenXRoutes(database, ordreService, rolleService)
             }
-
-            when (Environment.current) {
-                LocalEnvironment, TestEnvironment -> azureADRoutes(
-                    database,
-                    metrics,
-                )
-
-                else -> authenticate(AzureAuthenticator.name) {
-                    azureADRoutes(
-                        database,
-                        metrics,
-                    )
-                }
+            authenticate(AzureAuthenticator.name) {
+                azureADRoutes(database, metrics)
             }
         }
     }
 }
 
-fun Application.shared(transaction: Transaction) {
-    // graphQL(transaction)
+fun Application.felles() {
     install(Resources)
     install(ContentNegotiation) {
         register(ContentType.Application.Json, JacksonConverter(jsonMapper))
     }
-}
-
-fun Application.graphQL(transaction: Transaction) {
-    /*
-    install(GraphQL) {
-        schema {
-            packages = listOf("no.nav.hjelpemidler.soknad.db")
-            queries = listOf(
-                HelloWorldQuery(),
-            )
-        }
+    install(CallLogging) {
+        level = Level.TRACE
+        filter { call -> call.request.path().startsWith("/api") }
     }
-    install(Routing) {
-        graphQLPostRoute()
-    }
-     */
 }
-
-/*
-class HelloWorldQuery : Query {
-    fun message(): String = "Hello, world!"
-}
-*/
