@@ -60,14 +60,14 @@ fun Route.azureADRoutes(
 
     post("/infotrygd/fagsak") {
         val knytning = call.receive<VedtaksresultatData>()
-        logg.info { "Lagrer knytning mellom sak fra Infotrygd og søknad, søknadId: ${knytning.søknadId}, fagsakId: ${knytning.fagsakId}" }
+        logg.info { "Knytter fagsakId: ${knytning.fagsakId} til søknadId: ${knytning.søknadId}" }
         val rowsUpdated = transaction { infotrygdStore.lagKnytningMellomFagsakOgSøknad(knytning) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/hotsak/sak") {
         val knytning = call.receive<HotsakTilknytningData>()
-        logg.info { "Lagrer knytning mellom sak fra Hotsak og søknad, søknadId: ${knytning.søknadId}, saksnummer: ${knytning.saksnr}" }
+        logg.info { "Knytter saksnummer: ${knytning.saksnr} til søknadId: ${knytning.søknadId}" }
         val rowsUpdated = transaction { hotsakStore.lagKnytningMellomSakOgSøknad(knytning) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
