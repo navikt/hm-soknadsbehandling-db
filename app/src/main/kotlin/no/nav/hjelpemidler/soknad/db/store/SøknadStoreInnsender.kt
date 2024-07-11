@@ -1,49 +1,34 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
+import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
-import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
 
 private const val UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS = 4
 
-interface SøknadStoreInnsender {
+class SøknadStoreInnsender(private val tx: JdbcOperations) {
     fun hentSøknaderForInnsender(
         fnrInnsender: String,
         innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
-    ): List<SoknadForInnsender>
-
-    fun hentSøknadForInnsender(
-        fnrInnsender: String,
-        soknadId: UUID,
-        innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
-    ): SoknadForInnsender?
-}
-
-class SøknadStoreInnsenderPostgres(private val tx: JdbcOperations) : SøknadStoreInnsender {
-    override fun hentSøknaderForInnsender(
-        fnrInnsender: String,
-        innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int,
-    ): List<SoknadForInnsender> {
+    ): List<SøknadForInnsender> {
         val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
+            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
             else -> ""
         }
 
-        @Language("PostgreSQL")
-        val statement =
+        val statement = Sql(
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, 
                 soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,
@@ -69,45 +54,43 @@ class SøknadStoreInnsenderPostgres(private val tx: JdbcOperations) : SøknadSto
                     AND status.CREATED < (now() - interval '4 week') -- Vises i maks fire uker etter vedtak
                 )
                 ORDER BY soknad.UPDATED DESC
-            """.trimIndent()
+            """.trimIndent(),
+        )
 
-        return time("hent_soknader_for_innsender") {
-            tx.list(
-                statement,
-                mapOf(
-                    "fnrInnsender" to fnrInnsender,
-                    "opprettetEtter" to LocalDateTime.now().minusMonths(6),
-                ),
-            ) {
-                val datoOpprettet = it.sqlTimestamp("created")
-                SoknadForInnsender(
-                    søknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    datoOpprettet = datoOpprettet,
-                    datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
-                    status = it.enum<Status>("status"),
-                    fullmakt = it.boolean("fullmakt"),
-                    fnrBruker = it.string("fnr_bruker"),
-                    navnBruker = it.stringOrNull("navn_bruker"),
-                    valgteÅrsaker = it.jsonOrNull("arsaker") ?: emptyList(),
-                )
-            }
+        return tx.list(
+            statement,
+            mapOf(
+                "fnrInnsender" to fnrInnsender,
+                "opprettetEtter" to LocalDateTime.now().minusMonths(6),
+            ),
+        ) {
+            val datoOpprettet = it.sqlTimestamp("created")
+            SøknadForInnsender(
+                søknadId = it.uuid("soknads_id"),
+                behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                datoOpprettet = datoOpprettet,
+                datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
+                status = it.enum<Status>("status"),
+                fullmakt = it.boolean("fullmakt"),
+                fnrBruker = it.string("fnr_bruker"),
+                navnBruker = it.stringOrNull("navn_bruker"),
+                valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
+            )
         }
     }
 
-    override fun hentSøknadForInnsender(
+    fun hentSøknadForInnsender(
         fnrInnsender: String,
-        soknadId: UUID,
+        søknadId: UUID,
         innsenderRolle: InnsenderRolle?,
-        ukerEtterEndeligStatus: Int,
-    ): SoknadForInnsender? {
+        ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
+    ): SøknadForInnsender? {
         val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING' "
+            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
             else -> ""
         }
 
-        @Language("PostgreSQL")
-        val statement =
+        val statement = Sql(
             """
                 SELECT soknad.SOKNADS_ID, soknad.DATA ->> 'behovsmeldingType' AS behovsmeldingType, soknad.CREATED, soknad.UPDATED, soknad.DATA, soknad.FNR_BRUKER, soknad.NAVN_BRUKER, status.STATUS, status.ARSAKER,  
                 (CASE WHEN EXISTS (
@@ -133,36 +116,35 @@ class SøknadStoreInnsenderPostgres(private val tx: JdbcOperations) : SøknadSto
                     AND status.CREATED < '2022-02-14' -- Dagen etter vi lanserte de siste fiksene
                     AND status.CREATED < (now() - interval '4 week') -- Vises i maks fire uker etter vedtak
                 )
-            """
+            """.trimIndent(),
+        )
 
-        return time("hent_soknad_for_innsender") {
-            tx.singleOrNull(
-                statement,
-                mapOf(
-                    "fnrInnsender" to fnrInnsender,
-                    "soknadId" to soknadId,
-                    "opprettetEtter" to LocalDateTime.now().minusMonths(6),
-                ),
-            ) {
-                val datoOpprettet = it.sqlTimestamp("created")
-                SoknadForInnsender(
-                    søknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    datoOpprettet = datoOpprettet,
-                    datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
-                    status = it.enum<Status>("status"),
-                    fullmakt = it.boolean("fullmakt"),
-                    fnrBruker = it.string("fnr_bruker"),
-                    navnBruker = it.stringOrNull("navn_bruker"),
-                    søknadsdata = Søknadsdata(it.json("data"), null),
-                    valgteÅrsaker = it.jsonOrNull("arsaker") ?: emptyList(),
-                )
-            }
+        return tx.singleOrNull(
+            statement,
+            mapOf(
+                "fnrInnsender" to fnrInnsender,
+                "soknadId" to søknadId,
+                "opprettetEtter" to LocalDateTime.now().minusMonths(6),
+            ),
+        ) {
+            val datoOpprettet = it.sqlTimestamp("created")
+            SøknadForInnsender(
+                søknadId = it.uuid("soknads_id"),
+                behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                datoOpprettet = datoOpprettet,
+                datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
+                status = it.enum<Status>("status"),
+                fullmakt = it.boolean("fullmakt"),
+                fnrBruker = it.string("fnr_bruker"),
+                navnBruker = it.stringOrNull("navn_bruker"),
+                søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
+                valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
+            )
         }
     }
 }
 
-class SoknadForInnsender(
+class SøknadForInnsender(
     val søknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
     val datoOpprettet: Date,

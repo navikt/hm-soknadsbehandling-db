@@ -11,7 +11,7 @@ class OrdreService(
     private val grunndataClient: GrunndataClient,
 ) {
     suspend fun finnOrdreForSøknad(søknadId: UUID): List<SøknadForBrukerOrdrelinje> {
-        val ordrelinjer = transaction { ordreStore.ordreForSoknad(søknadId) }
+        val ordrelinjer = transaction { ordreStore.finnOrdreForSøknad(søknadId) }
         val produkter = grunndataClient
             .hentProdukterMedHmsnrs(ordrelinjer.map(SøknadForBrukerOrdrelinje::artikkelNr).toSet())
             .groupBy(Product::hmsArtNr)

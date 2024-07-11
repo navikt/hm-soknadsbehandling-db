@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 
-fun lagOrdrelinje(søknad: SoknadData): OrdrelinjeData =
+fun lagOrdrelinje(søknad: SøknadData): OrdrelinjeData =
     lagOrdrelinje().copy(søknadId = søknad.soknadId, fnrBruker = søknad.fnrBruker)
 
 fun lagOrdrelinje(): OrdrelinjeData = OrdrelinjeData(

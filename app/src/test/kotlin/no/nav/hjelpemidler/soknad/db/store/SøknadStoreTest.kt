@@ -11,8 +11,8 @@ import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
-import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.jsonMapper
@@ -97,7 +97,7 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.save(
-                SoknadData(
+                SøknadData(
                     fnrBruker = fnrBruker,
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = fnrInnsender,
@@ -233,7 +233,7 @@ class SøknadStoreTest {
     fun `Lagre søknad`() = databaseTest {
         testTransaction {
             søknadStore.save(
-                SoknadData(
+                SøknadData(
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = lagFødselsnummer(),
@@ -294,7 +294,7 @@ class SøknadStoreTest {
 
         testTransaction { tx ->
             søknadStore.save(
-                SoknadData(
+                SøknadData(
                     fnrBruker = fnrBruker,
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = lagFødselsnummer(),
@@ -364,7 +364,7 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.save(
-                SoknadData(
+                SøknadData(
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = lagFødselsnummer(),
