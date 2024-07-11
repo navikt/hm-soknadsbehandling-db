@@ -595,7 +595,6 @@ class SøknadStore(private val tx: JdbcOperations) {
                     $extraWhere1
                     $extraWhere2
                 ORDER BY CREATED ASC
-                ;
             """.trimIndent(),
         )
 
