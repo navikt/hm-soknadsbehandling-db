@@ -74,7 +74,7 @@ fun Route.azureADRoutes(
 
     post("/infotrygd/vedtaksresultat") {
         val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Infotrygd: ${vedtaksresultat.søknadId}" }
+        logg.info { "Lagrer vedtaksresultat fra Infotrygd, søknadId: ${vedtaksresultat.søknadId}" }
         val rowsUpdated = transaction {
             infotrygdStore.lagreVedtaksresultat(
                 vedtaksresultat.søknadId,
@@ -116,7 +116,7 @@ fun Route.azureADRoutes(
 
     post("/hotsak/vedtaksresultat") {
         val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Hotsak: ${vedtaksresultat.søknadId}" }
+        logg.info { "Lagrer vedtaksresultat fra Hotsak, søknadId: ${vedtaksresultat.søknadId}" }
         val rowsUpdated = transaction {
             hotsakStore.lagreVedtaksresultat(
                 vedtaksresultat.søknadId,
