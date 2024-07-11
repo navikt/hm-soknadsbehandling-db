@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.util.Date
 import java.util.UUID
 
-class SoknadMedStatus private constructor(
+class SøknadMedStatus private constructor(
     val soknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
@@ -30,7 +30,7 @@ class SoknadMedStatus private constructor(
             soknadGjelder: String?,
             valgteÅrsaker: List<String>,
         ) =
-            SoknadMedStatus(
+            SøknadMedStatus(
                 soknadId,
                 behovsmeldingType,
                 journalpostId,
@@ -57,7 +57,7 @@ class SoknadMedStatus private constructor(
             soknadGjelder: String?,
             valgteÅrsaker: List<String>,
         ) =
-            SoknadMedStatus(
+            SøknadMedStatus(
                 soknadId,
                 behovsmeldingType,
                 journalpostId,

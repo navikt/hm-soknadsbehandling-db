@@ -15,9 +15,9 @@ import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
+import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
@@ -38,7 +38,7 @@ fun Route.azureADRoutes(
     }
 
     post("/soknad/bruker") {
-        val søknad = call.receive<SoknadData>()
+        val søknad = call.receive<SøknadData>()
         logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
         val rowsUpdated = transaction { søknadStore.save(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
@@ -183,7 +183,7 @@ fun Route.azureADRoutes(
 
     get("/soknadsdata/bruker/{soknadId}") {
         val søknadId = call.søknadId
-        val søknad = transaction { søknadStore.hentSoknadData(søknadId) }
+        val søknad = transaction { søknadStore.hentSøknadData(søknadId) }
         when (søknad) {
             null -> call.feilmelding(HttpStatusCode.NotFound)
             else -> call.respond(søknad)
@@ -217,7 +217,7 @@ fun Route.azureADRoutes(
 
     get("/soknad/opprettet-dato/{soknadId}") {
         val søknadId = call.søknadId
-        val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(søknadId) }
+        val opprettetDato = transaction { søknadStore.hentSøknadOpprettetDato(søknadId) }
         when (opprettetDato) {
             null -> call.feilmelding(HttpStatusCode.NotFound)
             else -> call.respond(opprettetDato)

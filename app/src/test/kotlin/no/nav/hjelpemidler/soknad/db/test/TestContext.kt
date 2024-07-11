@@ -11,7 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
-import no.nav.hjelpemidler.soknad.db.domain.SoknadData
+import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
@@ -79,7 +79,7 @@ class TestContext(
         coEvery { rolleClient.hentRolle(any()) } throws RuntimeException(melding)
     }
 
-    suspend fun lagreSøknad(søknad: SoknadData = lagSøknad()): SoknadData {
+    suspend fun lagreSøknad(søknad: SøknadData = lagSøknad()): SøknadData {
         client
             .post("/api/soknad/bruker") { setBody(søknad) }
             .expect(HttpStatusCode.Created, 1)
