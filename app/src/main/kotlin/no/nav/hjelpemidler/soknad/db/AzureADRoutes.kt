@@ -15,9 +15,9 @@ import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
+import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.redirectInternally
@@ -43,23 +43,23 @@ fun Route.azureADRoutes(
     }
 
     post("/soknad/bruker") {
-        val søknad = call.receive<SoknadData>()
+        val søknad = call.receive<SøknadData>()
         logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
-        val rowsUpdated = transaction { søknadStore.save(søknad) }
+        val rowsUpdated = transaction { søknadStore.lagreBehovsmelding(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/ordre") {
         val ordrelinje = call.receive<OrdrelinjeData>()
         logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
-        val rowsUpdated = transaction { ordreStore.save(ordrelinje) }
+        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/soknad/papir") {
         val søknad = call.receive<PapirSøknadData>()
         logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.soknadId}" }
-        val rowsUpdated = transaction { søknadStore.savePapir(søknad) }
+        val rowsUpdated = transaction { søknadStore.lagrePapirsøknad(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
@@ -79,7 +79,7 @@ fun Route.azureADRoutes(
 
     post("/infotrygd/vedtaksresultat") {
         val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Infotrygd: ${vedtaksresultat.søknadId}" }
+        logg.info { "Lagrer vedtaksresultat fra Infotrygd, søknadId: ${vedtaksresultat.søknadId}" }
         val rowsUpdated = transaction {
             infotrygdStore.lagreVedtaksresultat(
                 vedtaksresultat.søknadId,
@@ -104,7 +104,7 @@ fun Route.azureADRoutes(
         data class Response(val soknadId: UUID?)
 
         val saksnummer = call.receive<Request>().saksnummer
-        val søknadId = transaction { hotsakStore.hentSøknadsIdForHotsakNummer(saksnummer) }
+        val søknadId = transaction { hotsakStore.finnSøknadIdForSak(saksnummer) }
         logg.info { "Fant søknadId: $søknadId for saksnummer: $saksnummer fra Hotsak" }
         call.respond(Response(søknadId))
     }
@@ -121,7 +121,7 @@ fun Route.azureADRoutes(
 
     post("/hotsak/vedtaksresultat") {
         val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Hotsak: ${vedtaksresultat.søknadId}" }
+        logg.info { "Lagrer vedtaksresultat fra Hotsak, søknadId: ${vedtaksresultat.søknadId}" }
         val rowsUpdated = transaction {
             hotsakStore.lagreVedtaksresultat(
                 vedtaksresultat.søknadId,
@@ -188,7 +188,7 @@ fun Route.azureADRoutes(
 
     get("/soknadsdata/bruker/{soknadId}") {
         val søknadId = call.søknadId
-        val søknad = transaction { søknadStore.hentSoknadData(søknadId) }
+        val søknad = transaction { søknadStore.hentSøknadData(søknadId) }
         when (søknad) {
             null -> call.feilmelding(HttpStatusCode.NotFound)
             else -> call.respond(søknad)
@@ -222,7 +222,7 @@ fun Route.azureADRoutes(
 
     get("/soknad/opprettet-dato/{soknadId}") {
         val søknadId = call.søknadId
-        val opprettetDato = transaction { søknadStore.hentSoknadOpprettetDato(søknadId) }
+        val opprettetDato = transaction { søknadStore.hentSøknadOpprettetDato(søknadId) }
         when (opprettetDato) {
             null -> call.feilmelding(HttpStatusCode.NotFound)
             else -> call.respond(opprettetDato)

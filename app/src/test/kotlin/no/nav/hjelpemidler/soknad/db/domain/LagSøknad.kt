@@ -7,7 +7,7 @@ fun lagSøknadId(): UUID = UUID.randomUUID()
 
 fun lagSøknad(
     søknadId: UUID = lagSøknadId(),
-): SoknadData = mockSøknad(søknadId)
+): SøknadData = mockSøknad(søknadId)
 
 fun lagPapirsøknad(
     søknadId: UUID = lagSøknadId(),

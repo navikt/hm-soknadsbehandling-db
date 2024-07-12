@@ -22,7 +22,7 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
-    val brukerpassbyttedata: Brukerpassbyttedata?,
+    val brukerpassbyttedata: BrukerpassbytteData?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -68,7 +68,7 @@ class SøknadForBruker private constructor(
                 },
                 brukerpassbyttedata = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbyttedata>(søknad["brukerpassbytte"])
+                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<BrukerpassbytteData>(søknad["brukerpassbytte"])
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,

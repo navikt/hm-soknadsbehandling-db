@@ -8,10 +8,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingResponse
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import kotlin.test.Test
 
-class SoknadDataTest {
+class SøknadDataTest {
     @Test
     fun `SoknadData skal kunne deserialiseres til BehovsmeldingResponse`() {
-        val properties1 = jsonMapper.introspect<SoknadData>().findProperties()
+        val properties1 = jsonMapper.introspect<SøknadData>().findProperties()
         val properties2 = jsonMapper.introspect<BehovsmeldingResponse>().findProperties()
 
         properties1.forEach { property1 ->

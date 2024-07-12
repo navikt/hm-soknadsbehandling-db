@@ -28,7 +28,7 @@ fun Route.tokenXRoutes(
 ) {
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
-        val søknad = transaction { søknadStore.hentSoknad(it.søknadId) }
+        val søknad = transaction { søknadStore.hentSøknad(it.søknadId) }
 
         when {
             søknad == null -> {
@@ -48,7 +48,7 @@ fun Route.tokenXRoutes(
                 if (fagsakData1 != null) {
                     søknad.fagsakId = fagsakData1.fagsakId
                 } else {
-                    val fagsakData2 = transaction { hotsakStore.hentFagsakIdForSøknad(søknad.søknadId) }
+                    val fagsakData2 = transaction { hotsakStore.finnSaksnummerForSøknad(søknad.søknadId) }
                     if (fagsakData2 != null) søknad.fagsakId = fagsakData2
                 }
 
@@ -62,7 +62,7 @@ fun Route.tokenXRoutes(
 
     get<Søknader.Bruker> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
-        val brukersSaker = transaction { søknadStore.hentSoknaderForBruker(fnr) }
+        val brukersSaker = transaction { søknadStore.hentSøknaderForBruker(fnr) }
         call.respond(brukersSaker)
     }
 
@@ -111,7 +111,7 @@ fun Route.tokenXRoutes(
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadId}") {
         val søknadId = call.søknadId
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
-        val søknad = transaction { søknadStore.hentSoknad(søknadId) }
+        val søknad = transaction { søknadStore.hentSøknad(søknadId) }
 
         data class Response(
             val resultat: Boolean,

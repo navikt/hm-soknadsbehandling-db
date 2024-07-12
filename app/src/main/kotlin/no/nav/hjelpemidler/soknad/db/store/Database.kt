@@ -28,10 +28,10 @@ class Database(private val dataSource: DataSource) : Transaction, Closeable {
     }
 
     class StoreProvider(tx: JdbcOperations) {
-        val hotsakStore = HotsakStorePostgres(tx)
-        val infotrygdStore = InfotrygdStorePostgres(tx)
-        val ordreStore = OrdreStorePostgres(tx)
-        val søknadStore = SøknadStorePostgres(tx)
-        val søknadStoreInnsender = SøknadStoreInnsenderPostgres(tx)
+        val hotsakStore = HotsakStore(tx)
+        val infotrygdStore = InfotrygdStore(tx)
+        val ordreStore = OrdreStore(tx)
+        val søknadStore = SøknadStore(tx)
+        val søknadStoreInnsender = SøknadStoreInnsender(tx)
     }
 }

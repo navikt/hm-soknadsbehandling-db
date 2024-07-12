@@ -6,7 +6,7 @@ import java.util.UUID
 /**
  * @see [no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingResponse]
  */
-data class SoknadData(
+data class SøknadData(
     val fnrBruker: String,
     val navnBruker: String,
     val fnrInnsender: String?,

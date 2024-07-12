@@ -1,8 +1,8 @@
 package no.nav.hjelpemidler.soknad.db
 
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.SoknadData
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.test.readTree
 import java.time.Instant
@@ -15,7 +15,7 @@ fun mockSøknad(
     fnrBruker: String = lagFødselsnummer(),
     fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
-): SoknadData = SoknadData(
+): SøknadData = SøknadData(
     fnrBruker = fnrBruker,
     navnBruker = "Fornavn Etternavn",
     fnrInnsender = fnrInnsender,
@@ -123,7 +123,7 @@ fun mockSøknadMedRullestol(
     id: UUID,
     status: Status = Status.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
-): SoknadData = SoknadData(
+): SøknadData = SøknadData(
     fnrBruker = fnrBruker,
     navnBruker = "Fornavn Etternavn",
     fnrInnsender = lagFødselsnummer(),
