@@ -20,6 +20,7 @@ dependencies {
 
     // Ktor Server
     implementation(libs.bundles.ktor.server)
+    implementation(libs.ktor.server.resources)
 
     // Jackson
     implementation(libs.bundles.jackson)
@@ -57,6 +58,7 @@ dependencies {
 
     // Test
     testImplementation(libs.bundles.ktor.server.test)
+    testImplementation(libs.ktor.client.resources)
     testImplementation(libs.wiremock)
     testImplementation(libs.hm.database) {
         capabilities {

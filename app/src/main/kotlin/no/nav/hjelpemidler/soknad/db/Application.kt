@@ -11,21 +11,18 @@ import io.ktor.server.auth.authentication
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
+import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.LocalEnvironment
-import no.nav.hjelpemidler.configuration.TestEnvironment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
-import no.nav.hjelpemidler.soknad.db.client.hmdb.HjelpemiddeldatabasenClient
-import no.nav.hjelpemidler.soknad.db.db.Database
+import no.nav.hjelpemidler.soknad.db.exception.feilmelding
+import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.routes.azureAdRoutes
-import no.nav.hjelpemidler.soknad.db.routes.tokenXRoutes
+import no.nav.hjelpemidler.soknad.db.store.Database
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
@@ -48,9 +45,9 @@ fun Application.module() {
     environment.monitor.subscribe(ApplicationStarted) { database.migrate() }
     environment.monitor.subscribe(ApplicationStopping) { database.close() }
 
-    val hjelpemiddeldatabasenClient = HjelpemiddeldatabasenClient()
+    val grunndataClient = GrunndataClient()
 
-    val ordreService = OrdreService(database, hjelpemiddeldatabasenClient)
+    val ordreService = OrdreService(database, grunndataClient)
     val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     val rolleService = RolleService(RolleClient(tokendingsService))
 
@@ -63,35 +60,30 @@ fun Application.module() {
         tokenX()
     }
 
-    install(ContentNegotiation) {
-        register(ContentType.Application.Json, JacksonConverter(jsonMapper))
-    }
-
-    install(CallLogging) {
-        level = Level.TRACE
-        filter { call -> call.request.path().startsWith("/api") }
-    }
+    felles()
 
     routing {
         internal()
         route("/api") {
+            authenticate(AzureAuthenticator.name) {
+                azureADRoutes(database, metrics)
+                kommuneApi(database)
+            }
             authenticate(TokenXAuthenticator.name) {
                 tokenXRoutes(database, ordreService, rolleService)
             }
-
-            when (Environment.current) {
-                LocalEnvironment, TestEnvironment -> azureAdRoutes(
-                    database,
-                    metrics,
-                )
-
-                else -> authenticate(AzureAuthenticator.name) {
-                    azureAdRoutes(
-                        database,
-                        metrics,
-                    )
-                }
-            }
         }
     }
+}
+
+fun Application.felles() {
+    install(Resources)
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, JacksonConverter(jsonMapper))
+    }
+    install(CallLogging) {
+        level = Level.TRACE
+        filter { call -> call.request.path().startsWith("/api") }
+    }
+    feilmelding()
 }

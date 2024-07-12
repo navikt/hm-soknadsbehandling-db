@@ -1,4 +1,4 @@
 ### Hent søknad med søknadsId
-GET {{baseUrl}}/api/soknad/bruker/{{soknadsId}}
+GET {{baseUrl}}/api/soknad/bruker/{{soknadId}}
 Accept: application/json
 Authorization: Bearer {{accessToken}}

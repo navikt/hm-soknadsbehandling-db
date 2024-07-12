@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.kotlin.serialization)
     implementation(libs.graphql.gradle.plugin)
     implementation(libs.ktor.gradle.plugin)
     implementation(libs.spotless.gradle.plugin)

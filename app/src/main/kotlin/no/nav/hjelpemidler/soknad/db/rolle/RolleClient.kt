@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.soknad.db.Configuration
+import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 
 private val logg = KotlinLogging.logger { }
@@ -19,7 +20,7 @@ class RolleClient(
     private val url: String = Configuration.HM_ROLLER_URL,
     private val audience: String = Configuration.HM_ROLLER_AUDIENCE,
 ) {
-    private val client: HttpClient = createHttpClient(Apache.create())
+    private val client: HttpClient = createHttpClient(Apache.create(), jsonMapper)
 
     suspend fun hentRolle(token: String): RolleResultat {
         return try {

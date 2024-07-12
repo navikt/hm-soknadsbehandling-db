@@ -1,0 +1,97 @@
+package no.nav.hjelpemidler.soknad.db.store
+
+import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Store
+import no.nav.hjelpemidler.database.pgJsonbOf
+import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
+import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
+import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
+import java.util.UUID
+
+class OrdreStore(private val tx: JdbcOperations) : Store {
+    fun lagre(ordrelinje: OrdrelinjeData): Int {
+        return tx.update(
+            """
+                INSERT INTO v1_oebs_data (soknads_id, oebs_id, fnr_bruker, serviceforespoersel, ordrenr, ordrelinje, delordrelinje,
+                                          artikkelnr, antall, enhet, produktgruppe, produktgruppenr, hjelpemiddeltype, data)
+                VALUES (:soknadId, :oebsId, :fnrBruker, :serviceforesporsel, :ordrenr, :ordrelinje, :delordrelinje,
+                        :artikkelnr, :antall, :enhet, :produktgruppe, :produktgruppeNr, :hjelpemiddeltype, :data)
+                ON CONFLICT DO NOTHING
+            """.trimIndent(),
+            mapOf(
+                "soknadId" to ordrelinje.søknadId,
+                "oebsId" to ordrelinje.oebsId,
+                "fnrBruker" to ordrelinje.fnrBruker,
+                "serviceforesporsel" to ordrelinje.serviceforespørsel,
+                "ordrenr" to ordrelinje.ordrenr,
+                "ordrelinje" to ordrelinje.ordrelinje,
+                "delordrelinje" to ordrelinje.delordrelinje,
+                "artikkelnr" to ordrelinje.artikkelnr,
+                "antall" to ordrelinje.antall,
+                "enhet" to ordrelinje.enhet,
+                "produktgruppe" to ordrelinje.produktgruppe,
+                "produktgruppeNr" to ordrelinje.produktgruppeNr,
+                "hjelpemiddeltype" to ordrelinje.hjelpemiddeltype,
+                "data" to pgJsonbOf(ordrelinje.data),
+            ),
+        ).actualRowCount
+    }
+
+    fun ordreSisteDøgn(søknadId: UUID): HarOrdre {
+        val result = tx.list(
+            """
+                SELECT hjelpemiddeltype
+                FROM v1_oebs_data
+                WHERE created > NOW() - '24 hours'::INTERVAL
+                  AND soknads_id = :soknadId
+                GROUP BY hjelpemiddeltype
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { it.string("hjelpemiddeltype") }
+        return HarOrdre(
+            harOrdreAvTypeHjelpemidler = result.any { it != "Del" },
+            harOrdreAvTypeDel = result.any { it == "Del" },
+        )
+    }
+
+    fun harOrdre(søknadId: UUID): HarOrdre {
+        val result = tx.list(
+            """
+                SELECT hjelpemiddeltype
+                FROM v1_oebs_data
+                WHERE soknads_id = :soknadId
+                GROUP BY hjelpemiddeltype
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { it.string("hjelpemiddeltype") }
+        return HarOrdre(
+            harOrdreAvTypeHjelpemidler = result.any { it != "Del" },
+            harOrdreAvTypeDel = result.any { it == "Del" },
+        )
+    }
+
+    fun finnOrdreForSøknad(søknadId: UUID): List<SøknadForBrukerOrdrelinje> {
+        return tx.list(
+            """
+                SELECT artikkelnr,
+                       data ->> 'artikkelbeskrivelse' AS artikkelbeskrivelse,
+                       antall,
+                       produktgruppe,
+                       created
+                FROM v1_oebs_data
+                WHERE soknads_id = :soknadId
+                  AND hjelpemiddeltype <> 'Del'
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) {
+            SøknadForBrukerOrdrelinje(
+                antall = it.double("antall"),
+                antallEnhet = "STK",
+                kategori = it.string("produktgruppe"),
+                artikkelBeskrivelse = it.string("artikkelbeskrivelse"),
+                artikkelNr = it.string("artikkelnr"),
+                datoUtsendelse = it.localDateOrNull("created").toString(),
+            )
+        }
+    }
+}

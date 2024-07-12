@@ -5,8 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import no.nav.hjelpemidler.soknad.db.db.Transaction
 import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
