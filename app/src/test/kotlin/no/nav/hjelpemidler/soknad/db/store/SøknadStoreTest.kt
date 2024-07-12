@@ -32,7 +32,7 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, fnrBruker = fnrBruker))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, fnrBruker = fnrBruker))
             val søknad = søknadStore.hentSøknad(søknadId)
 
             assertEquals(fnrBruker, søknad?.søknadsdata?.bruker?.fnummer)
@@ -96,7 +96,7 @@ class SøknadStoreTest {
         val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 SøknadData(
                     fnrBruker = fnrBruker,
                     navnBruker = "Fornavn Etternavn",
@@ -232,7 +232,7 @@ class SøknadStoreTest {
     @Test
     fun `Lagre søknad`() = databaseTest {
         testTransaction {
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 SøknadData(
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
@@ -254,7 +254,7 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrBruker)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrBruker)) shouldBe 1
         }
         testTransaction {
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
@@ -272,7 +272,7 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrBruker)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrBruker)) shouldBe 1
         }
         testTransaction {
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
@@ -293,7 +293,7 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction { tx ->
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 SøknadData(
                     fnrBruker = fnrBruker,
                     navnBruker = "Fornavn Etternavn",
@@ -328,8 +328,8 @@ class SøknadStoreTest {
         val søknadId2 = UUID.randomUUID()
 
         testTransaction { tx ->
-            søknadStore.save(mockSøknad(søknadId1, Status.GODKJENT))
-            søknadStore.save(mockSøknad(søknadId2, Status.GODKJENT_MED_FULLMAKT))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId1, Status.GODKJENT))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId2, Status.GODKJENT_MED_FULLMAKT))
         }
         testTransaction { tx ->
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '2 day') WHERE SOKNADS_ID = '$søknadId1'")
@@ -363,7 +363,7 @@ class SøknadStoreTest {
         val oppgaveId = "102030"
 
         testTransaction {
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 SøknadData(
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
@@ -423,7 +423,7 @@ class SøknadStoreTest {
         val søknadId = UUID.randomUUID()
 
         testTransaction {
-            søknadStore.save(mockSøknadMedRullestol(søknadId))
+            søknadStore.lagreBehovsmelding(mockSøknadMedRullestol(søknadId))
             val søknad = søknadStore.hentSøknad(søknadId)
 
             assertNotNull(søknad?.søknadsdata?.bruker?.kroppsmaal)

@@ -40,7 +40,7 @@ fun Route.azureADRoutes(
     post("/soknad/bruker") {
         val søknad = call.receive<SøknadData>()
         logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
-        val rowsUpdated = transaction { søknadStore.save(søknad) }
+        val rowsUpdated = transaction { søknadStore.lagreBehovsmelding(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 

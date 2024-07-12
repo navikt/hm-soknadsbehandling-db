@@ -421,7 +421,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         }
     }
 
-    fun save(søknadData: SøknadData): Int {
+    fun lagreBehovsmelding(søknadData: SøknadData): Int {
         if (!checkIfLastStatusMatches(søknadData.soknadId, søknadData.status)) {
             tx.update(
                 """

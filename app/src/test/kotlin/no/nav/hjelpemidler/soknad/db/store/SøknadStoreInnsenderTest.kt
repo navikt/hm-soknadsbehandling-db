@@ -25,7 +25,7 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
@@ -41,8 +41,8 @@ class SøknadStoreInnsenderTest {
         val fnrAnnenFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
-            søknadStore.save(mockSøknad(lagSøknadId(), fnrInnsender = fnrAnnenFormidler))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
+            søknadStore.lagreBehovsmelding(mockSøknad(lagSøknadId(), fnrInnsender = fnrAnnenFormidler))
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER) shouldHaveSize 1
 
@@ -61,7 +61,7 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrFormidler)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrFormidler)) shouldBe 1
             søknadStore.slettSøknad(søknadId) shouldBe 1
 
             søknadStoreInnsender
@@ -78,7 +78,7 @@ class SøknadStoreInnsenderTest {
         val fnrInnsender = lagFødselsnummer()
 
         testTransaction { tx ->
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 SøknadData(
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
@@ -112,7 +112,7 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrInnsender = fnrFormidler)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrInnsender = fnrFormidler)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
@@ -129,7 +129,7 @@ class SøknadStoreInnsenderTest {
         val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrInnsender)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrInnsender)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
 
@@ -148,14 +148,14 @@ class SøknadStoreInnsenderTest {
         val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 mockSøknad(
                     idSøknad,
                     fnrInnsender = fnrInnsender,
                     behovsmeldingType = BehovsmeldingType.SØKNAD,
                 ),
             )
-            søknadStore.save(
+            søknadStore.lagreBehovsmelding(
                 mockSøknad(
                     idBestilling,
                     fnrInnsender = fnrInnsender,
@@ -183,7 +183,7 @@ class SøknadStoreInnsenderTest {
     fun `Metrikker er non-blocking`() = databaseTest {
         val søknadId = lagSøknadId()
         testTransaction {
-            søknadStore.save(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, Status.VEDTAKSRESULTAT_ANNET) shouldBe 1
         }
