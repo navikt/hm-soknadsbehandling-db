@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.enumOrNull
 import no.nav.hjelpemidler.database.json
@@ -44,7 +45,7 @@ import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadStore(private val tx: JdbcOperations) {
+class SøknadStore(private val tx: JdbcOperations) : Store {
     private val slack = slack(engine = Apache.create())
 
     fun søknadFinnes(søknadId: UUID): Boolean {
@@ -75,18 +76,31 @@ class SøknadStore(private val tx: JdbcOperations) {
         return uuid != null
     }
 
-    fun hentSoknad(søknadId: UUID): SøknadForBruker? {
+    fun hentSøknad(søknadId: UUID): SøknadForBruker? {
         val statement = Sql(
             """
-                SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.data, soknad.created, soknad.kommunenavn, soknad.fnr_bruker, soknad.updated, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker, 
-                (CASE WHEN EXISTS (
-                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')
-                ) THEN TRUE ELSE FALSE END) AS fullmakt
-                FROM v1_soknad AS soknad 
-                LEFT JOIN v1_status AS status
-                ON status.id = (
-                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
-                )
+                SELECT soknad.soknads_id,
+                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.journalpostid,
+                       soknad.data,
+                       soknad.created,
+                       soknad.kommunenavn,
+                       soknad.fnr_bruker,
+                       soknad.updated,
+                       soknad.er_digital,
+                       soknad.soknad_gjelder,
+                       status.status,
+                       status.arsaker,
+                       (CASE
+                            WHEN EXISTS (SELECT 1
+                                         FROM v1_status
+                                         WHERE soknads_id = soknad.soknads_id
+                                           AND status IN ('GODKJENT_MED_FULLMAKT')) THEN TRUE
+                            ELSE FALSE END)                AS fullmakt
+                FROM v1_soknad AS soknad
+                         LEFT JOIN v1_status AS status
+                                   ON status.id =
+                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE soknad.soknads_id = :soknadId
                   AND NOT (status.status = ANY (:status))
             """.trimIndent(),
@@ -105,41 +119,41 @@ class SøknadStore(private val tx: JdbcOperations) {
             val status = it.enum<Status>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
-            if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
+            if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadForBruker.newEmptySøknad(
-                    søknadId = it.uuid("SOKNADS_ID"),
+                    søknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                    journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    fnrBruker = it.string("FNR_BRUKER"),
-                    er_digital = it.boolean("ER_DIGITAL"),
-                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                    fnrBruker = it.string("fnr_bruker"),
+                    er_digital = it.boolean("er_digital"),
+                    soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     ordrelinjer = emptyList(),
                     fagsakId = null,
                     søknadType = null,
-                    valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
+                    valgteÅrsaker = it.jsonOrNull<List<String>>("arsaker") ?: emptyList(),
                 )
             } else {
                 SøknadForBruker.new(
-                    søknadId = it.uuid("SOKNADS_ID"),
+                    søknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                    journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    søknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
-                    kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                    fnrBruker = it.string("FNR_BRUKER"),
-                    er_digital = it.boolean("ER_DIGITAL"),
-                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                    kommunenavn = it.stringOrNull("kommunenavn"),
+                    fnrBruker = it.string("fnr_bruker"),
+                    er_digital = it.boolean("er_digital"),
+                    soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     ordrelinjer = emptyList(),
                     fagsakId = null,
                     søknadType = null,
-                    valgteÅrsaker = it.jsonOrNull<List<String>>("ARSAKER") ?: emptyList(),
+                    valgteÅrsaker = it.jsonOrNull<List<String>>("arsaker") ?: emptyList(),
                 )
             }
         }
@@ -159,12 +173,19 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun hentSøknadData(søknadId: UUID): SøknadData? {
         val statement = Sql(
             """
-                SELECT soknad.soknads_id, soknad.fnr_bruker, soknad.navn_bruker, soknad.fnr_innsender, soknad.data, soknad.kommunenavn, soknad.er_digital, soknad.soknad_gjelder, status.status
+                SELECT soknad.soknads_id,
+                       soknad.fnr_bruker,
+                       soknad.navn_bruker,
+                       soknad.fnr_innsender,
+                       soknad.data,
+                       soknad.kommunenavn,
+                       soknad.er_digital,
+                       soknad.soknad_gjelder,
+                       status.status
                 FROM v1_soknad AS soknad
-                LEFT JOIN v1_status AS status
-                ON status.id = (
-                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
-                )
+                         LEFT JOIN v1_status AS status
+                                   ON status.id =
+                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE soknad.soknads_id = :soknadId
             """.trimIndent(),
         )
@@ -174,15 +195,15 @@ class SøknadStore(private val tx: JdbcOperations) {
             mapOf("soknadId" to søknadId),
         ) {
             SøknadData(
-                fnrBruker = it.string("FNR_BRUKER"),
-                navnBruker = it.string("NAVN_BRUKER"),
-                fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
-                soknadId = it.uuid("SOKNADS_ID"),
-                status = Status.valueOf(it.string("STATUS")),
-                soknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
-                kommunenavn = it.stringOrNull("KOMMUNENAVN"),
-                er_digital = it.boolean("ER_DIGITAL"),
-                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
+                fnrBruker = it.string("fnr_bruker"),
+                navnBruker = it.string("navn_bruker"),
+                fnrInnsender = it.stringOrNull("fnr_innsender"),
+                soknadId = it.uuid("soknads_id"),
+                status = Status.valueOf(it.string("status")),
+                soknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                kommunenavn = it.stringOrNull("kommunenavn"),
+                er_digital = it.boolean("er_digital"),
+                soknadGjelder = it.stringOrNull("soknad_gjelder"),
             )
         }
     }
@@ -213,7 +234,11 @@ class SøknadStore(private val tx: JdbcOperations) {
             ),
         )
         return tx.update(
-            "UPDATE v1_soknad SET updated = NOW() WHERE soknads_id = :soknadId",
+            """
+                UPDATE v1_soknad
+                SET updated = NOW()
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
             mapOf("soknadId" to statusMedÅrsak.søknadId),
         ).actualRowCount
     }
@@ -221,14 +246,21 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun oppdaterStatus(søknadId: UUID, status: Status): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
-            "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+            """
+                INSERT INTO v1_status (soknads_id, status)
+                VALUES (:soknadId, :status)
+            """.trimIndent(),
             mapOf(
                 "soknadId" to søknadId,
                 "status" to status,
             ),
         )
         return tx.update(
-            "UPDATE v1_soknad SET updated = NOW() WHERE soknads_id = :soknadId",
+            """
+                UPDATE v1_soknad
+                SET updated = NOW()
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ).actualRowCount
     }
@@ -240,14 +272,22 @@ class SøknadStore(private val tx: JdbcOperations) {
     private fun slettSøknad(søknadId: UUID, status: Status): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
-            "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+            """
+                INSERT INTO v1_status (soknads_id, status)
+                VALUES (:soknadId, :status)
+            """.trimIndent(),
             mapOf(
                 "soknadId" to søknadId,
                 "status" to status,
             ),
         )
         return tx.update(
-            "UPDATE v1_soknad SET updated = NOW(), data = NULL WHERE soknads_id = :soknadId",
+            """
+                UPDATE v1_soknad
+                SET updated = NOW(),
+                    data    = NULL
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ).actualRowCount
     }
@@ -255,9 +295,9 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String): Int {
         return tx.update(
             """
-                UPDATE v1_soknad 
+                UPDATE v1_soknad
                 SET journalpostid = :journalpostId,
-                    updated = NOW() 
+                    updated       = NOW()
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
             mapOf(
@@ -272,7 +312,7 @@ class SøknadStore(private val tx: JdbcOperations) {
             """
                 UPDATE v1_soknad
                 SET oppgaveid = :oppgaveId,
-                    updated = NOW()
+                    updated   = NOW()
                 WHERE soknads_id = :soknadId
                   AND oppgaveid IS NULL
             """.trimIndent(),
@@ -283,20 +323,30 @@ class SøknadStore(private val tx: JdbcOperations) {
         ).actualRowCount
     }
 
-    fun hentSoknaderForBruker(fnrBruker: String): List<SøknadMedStatus> {
+    fun hentSøknaderForBruker(fnrBruker: String): List<SøknadMedStatus> {
         val statement = Sql(
             """
-                SELECT soknad.soknads_id, soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype, soknad.journalpostid, soknad.created, soknad.updated, soknad.data, soknad.er_digital, soknad.soknad_gjelder, status.status, status.arsaker,
-                (CASE WHEN EXISTS (
-                    SELECT 1 FROM v1_status WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')
-                ) THEN TRUE ELSE FALSE END) AS fullmakt
+                SELECT soknad.soknads_id,
+                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.journalpostid,
+                       soknad.created,
+                       soknad.updated,
+                       soknad.data,
+                       soknad.er_digital,
+                       soknad.soknad_gjelder,
+                       status.status,
+                       status.arsaker,
+                       (CASE
+                            WHEN EXISTS (SELECT 1
+                                         FROM v1_status
+                                         WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')) THEN TRUE
+                            ELSE FALSE END)                AS fullmakt
                 FROM v1_soknad AS soknad
-                LEFT JOIN v1_status AS status
-                ON status.id = (
-                    SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1
-                )
+                         LEFT JOIN v1_status AS status
+                                   ON status.id =
+                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE soknad.fnr_bruker = :fnrBruker
-                  AND NOT(status.status = ANY (:status))
+                  AND NOT (status.status = ANY (:status))
                 ORDER BY soknad.created DESC
             """.trimIndent(),
         )
@@ -311,35 +361,35 @@ class SøknadStore(private val tx: JdbcOperations) {
                 ).toStringArray(),
             ),
         ) {
-            val status = it.enum<Status>("STATUS")
+            val status = it.enum<Status>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
-            if (status.isSlettetEllerUtløpt() || !it.boolean("ER_DIGITAL")) {
+            if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadMedStatus.newSøknadUtenFormidlernavn(
-                    soknadId = it.uuid("SOKNADS_ID"),
+                    soknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                    journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    er_digital = it.boolean("ER_DIGITAL"),
-                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                    valgteÅrsaker = it.jsonOrNull<List<String>?>("ARSAKER") ?: emptyList(),
+                    er_digital = it.boolean("er_digital"),
+                    soknadGjelder = it.stringOrNull("soknad_gjelder"),
+                    valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 )
             } else {
                 SøknadMedStatus.newSøknadMedFormidlernavn(
-                    soknadId = it.uuid("SOKNADS_ID"),
+                    soknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("JOURNALPOSTID"),
+                    journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    søknad = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode(),
-                    er_digital = it.boolean("ER_DIGITAL"),
-                    soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                    valgteÅrsaker = it.jsonOrNull<List<String>?>("ARSAKER") ?: emptyList(),
+                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                    er_digital = it.boolean("er_digital"),
+                    soknadGjelder = it.stringOrNull("soknad_gjelder"),
+                    valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 )
             }
         }
@@ -348,15 +398,14 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
         val statement = Sql(
             """
-                SELECT soknad.SOKNADS_ID, soknad.FNR_BRUKER, status.STATUS
-                FROM V1_SOKNAD AS soknad
-                LEFT JOIN V1_STATUS AS status
-                ON status.ID = (
-                    SELECT ID FROM V1_STATUS WHERE SOKNADS_ID = soknad.SOKNADS_ID ORDER BY created DESC LIMIT 1
-                )
-                WHERE status.STATUS = :status
-                  AND (soknad.CREATED + interval '$dager day') < now()
-                ORDER BY soknad.CREATED DESC
+                SELECT soknad.soknads_id, soknad.fnr_bruker, status.status
+                FROM v1_soknad AS soknad
+                         LEFT JOIN v1_status AS status
+                                   ON status.id =
+                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
+                WHERE status.status = :status
+                  AND (soknad.created + INTERVAL '$dager day') < NOW()
+                ORDER BY soknad.created DESC
             """.trimIndent(),
         )
 
@@ -365,9 +414,9 @@ class SøknadStore(private val tx: JdbcOperations) {
             mapOf("status" to Status.VENTER_GODKJENNING),
         ) {
             UtgåttSøknad(
-                søknadId = it.uuid("SOKNADS_ID"),
-                status = it.enum<Status>("STATUS"),
-                fnrBruker = it.string("FNR_BRUKER"),
+                søknadId = it.uuid("soknads_id"),
+                status = it.enum<Status>("status"),
+                fnrBruker = it.string("fnr_bruker"),
             )
         }
     }
@@ -375,7 +424,10 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun save(søknadData: SøknadData): Int {
         if (!checkIfLastStatusMatches(søknadData.soknadId, søknadData.status)) {
             tx.update(
-                "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                """
+                    INSERT INTO v1_status (soknads_id, status)
+                    VALUES (:soknadId, :status)
+                """.trimIndent(),
                 mapOf(
                     "soknadId" to søknadData.soknadId,
                     "status" to søknadData.status,
@@ -384,7 +436,8 @@ class SøknadStore(private val tx: JdbcOperations) {
         }
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital, soknad_gjelder)
+                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital,
+                                       soknad_gjelder)
                 VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, :kommunenavn, TRUE, :soknadGjelder)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
@@ -403,22 +456,25 @@ class SøknadStore(private val tx: JdbcOperations) {
     private fun checkIfLastStatusMatches(søknadId: UUID, status: Status): Boolean {
         return tx.singleOrNull(
             """
-                SELECT status FROM v1_status
-                WHERE id = (
-                    SELECT id FROM v1_status
-                    WHERE soknads_id = :soknadId
-                    ORDER BY created DESC
-                    LIMIT 1
-                )
+                SELECT status
+                FROM v1_status
+                WHERE id = (SELECT id
+                            FROM v1_status
+                            WHERE soknads_id = :soknadId
+                            ORDER BY created DESC
+                            LIMIT 1)
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ) { it.enumOrNull<Status>("status") } == status
     }
 
-    fun savePapir(soknadData: PapirSøknadData): Int {
+    fun lagrePapirsøknad(soknadData: PapirSøknadData): Int {
         if (!checkIfLastStatusMatches(soknadData.soknadId, soknadData.status)) {
             tx.update(
-                "INSERT INTO v1_status (soknads_id, status) VALUES (:soknadId, :status)",
+                """
+                    INSERT INTO v1_status (soknads_id, status)
+                    VALUES (:soknadId, :status)
+                """.trimIndent(),
                 mapOf(
                     "soknadId" to soknadData.soknadId,
                     "status" to soknadData.status,
@@ -443,7 +499,10 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun hentInitieltDatasettForForslagsmotorTilbehør(): List<ForslagsmotorTilbehørHjelpemidler> {
         val statement = Sql(
             """
-                SELECT data, created FROM v1_soknad WHERE er_digital AND data IS NOT NULL
+                SELECT data, created
+                FROM v1_soknad
+                WHERE er_digital
+                  AND data IS NOT NULL
             """.trimIndent(),
         )
 
@@ -472,24 +531,22 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String> {
         val statement = Sql(
             """
-                WITH soknader_med_siste_status_godkjent AS (
-                SELECT *
-                FROM (SELECT soknads_id,
-                             status,
-                             RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
-                      FROM V1_STATUS
-                      WHERE created > NOW() - INTERVAL '90 DAYS') AS t
-                WHERE rangering = 1
-                  AND STATUS = ANY (:status)
-                )
-
+                WITH soknader_med_siste_status_godkjent AS (SELECT *
+                                                            FROM (SELECT soknads_id,
+                                                                         status,
+                                                                         RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
+                                                                  FROM v1_status
+                                                                  WHERE created > NOW() - INTERVAL '90 DAYS') AS t
+                                                            WHERE rangering = 1
+                                                              AND status = ANY (:status))
+                
                 SELECT soknad.soknads_id
-                FROM V1_SOKNAD AS soknad
+                FROM v1_soknad AS soknad
                          INNER JOIN soknader_med_siste_status_godkjent
                                     ON soknad.soknads_id = soknader_med_siste_status_godkjent.soknads_id
                 WHERE soknad.oppgaveid IS NULL
-                    AND soknad.CREATED < now() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
-                    AND soknad.created > now() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
+                  AND soknad.created < NOW() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
+                  AND soknad.created > NOW() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
             """.trimIndent(),
         )
 
@@ -521,12 +578,12 @@ class SøknadStore(private val tx: JdbcOperations) {
         return tx.list(
             """
                 WITH siste_status AS (SELECT soknads_id, status
-                      FROM (SELECT soknads_id,
-                                   status,
-                                   RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
-                            FROM v1_status) t
-                      WHERE rangering = 1)
-
+                                      FROM (SELECT soknads_id,
+                                                   status,
+                                                   RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
+                                            FROM v1_status) t
+                                      WHERE rangering = 1)
+                
                 SELECT status,
                        COUNT(soknads_id) AS count
                 FROM siste_status
@@ -534,8 +591,8 @@ class SøknadStore(private val tx: JdbcOperations) {
             """.trimIndent(),
         ) {
             StatusCountRow(
-                it.enum("STATUS"),
-                it.int("COUNT"),
+                it.enum("status"),
+                it.int("count"),
             )
         }
     }
@@ -543,18 +600,18 @@ class SøknadStore(private val tx: JdbcOperations) {
     fun hentStatuser(søknadId: UUID): List<StatusRow> {
         return tx.list(
             """
-                SELECT status, v1_status.created AS created, er_digital 
+                SELECT status, v1_status.created AS created, er_digital
                 FROM v1_status
-                    JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id 
+                         JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id
                 WHERE v1_status.soknads_id = :soknadId
                 ORDER BY created DESC
             """.trimIndent(), // ORDER is just a preventative measure
             mapOf("soknadId" to søknadId),
         ) {
             StatusRow(
-                it.enum("STATUS"),
-                it.sqlTimestamp("CREATED"),
-                it.boolean("ER_DIGITAL"),
+                it.enum("status"),
+                it.sqlTimestamp("created"),
+                it.boolean("er_digital"),
             )
         }
     }
@@ -571,29 +628,28 @@ class SøknadStore(private val tx: JdbcOperations) {
 
         val statement = Sql(
             """
-                SELECT
-                    FNR_BRUKER,
-                    NAVN_BRUKER,
-                    FNR_INNSENDER,
-                    SOKNADS_ID,
-                    DATA,
-                    SOKNAD_GJELDER,
-                    CREATED
-                FROM V1_SOKNAD
+                SELECT fnr_bruker,
+                       navn_bruker,
+                       fnr_innsender,
+                       soknads_id,
+                       data,
+                       soknad_gjelder,
+                       created
+                FROM v1_soknad
                 WHERE
-                    -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
-                	DATA->'soknad'->'innsender'->'organisasjoner' @> :kommunenummerJson
-                    -- Sjekk at brukeren det søkes om bor i samme kommune
-                    AND DATA->'soknad'->'bruker'->>'kommunenummer' = :kommunenummer
-                    -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
-                    AND DATA->'soknad'->'innsender'->>'somRolle' = 'FORMIDLER'
-                    -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
-                    AND CREATED > NOW() - '7 days'::interval
-                    -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
-                    AND ER_DIGITAL
-                    -- Videre filtrering basert på kommunens filtre
-                    $extraWhere1
-                    $extraWhere2
+                  -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
+                    data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
+                  -- Sjekk at brukeren det søkes om bor i samme kommune
+                  AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
+                  -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet
+                  AND data -> 'soknad' -> 'innsender' ->> 'somRolle' = 'FORMIDLER'
+                  -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
+                  AND created > NOW() - '7 days'::INTERVAL
+                  -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
+                  AND er_digital
+                  -- Videre filtrering basert på kommunens filtre
+                  $extraWhere1
+                  $extraWhere2
                 ORDER BY CREATED ASC
             """.trimIndent(),
         )
@@ -617,7 +673,7 @@ class SøknadStore(private val tx: JdbcOperations) {
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
             val validatedData = runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
                 val logId = UUID.randomUUID()
-                logg.error(cause) { "Kunne ikke tolke søknad data, har datamodellen endret seg? Se igjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logId)" }
+                logg.error(cause) { "Kunne ikke tolke søknadsdata, har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logId)" }
                 synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                     if (
                         hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
@@ -664,13 +720,13 @@ class SøknadStore(private val tx: JdbcOperations) {
             val filteredData = validatedData.filtrerForKommuneApiet()
 
             SøknadForKommuneApi(
-                fnrBruker = it.string("FNR_BRUKER"),
-                navnBruker = it.string("NAVN_BRUKER"),
-                fnrInnsender = it.stringOrNull("FNR_INNSENDER"),
-                soknadId = it.uuid("SOKNADS_ID"),
+                fnrBruker = it.string("fnr_bruker"),
+                navnBruker = it.string("navn_bruker"),
+                fnrInnsender = it.stringOrNull("fnr_innsender"),
+                soknadId = it.uuid("soknads_id"),
                 soknad = filteredData,
-                soknadGjelder = it.stringOrNull("SOKNAD_GJELDER"),
-                opprettet = it.localDateTime("CREATED"),
+                soknadGjelder = it.stringOrNull("soknad_gjelder"),
+                opprettet = it.localDateTime("created"),
             )
         }
     }

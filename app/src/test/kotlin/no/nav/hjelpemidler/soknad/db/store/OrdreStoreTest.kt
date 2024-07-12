@@ -10,7 +10,7 @@ class OrdreStoreTest {
         val ordrelinje = lagOrdrelinje()
 
         testTransaction {
-            ordreStore.save(ordrelinje) shouldBe 1
+            ordreStore.lagre(ordrelinje) shouldBe 1
         }
     }
 
@@ -19,8 +19,8 @@ class OrdreStoreTest {
         val ordrelinje = lagOrdrelinje()
 
         testTransaction {
-            ordreStore.save(ordrelinje) shouldBe 1
-            ordreStore.save(ordrelinje) shouldBe 0
+            ordreStore.lagre(ordrelinje) shouldBe 1
+            ordreStore.lagre(ordrelinje) shouldBe 0
         }
     }
 }

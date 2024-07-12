@@ -47,14 +47,14 @@ fun Route.azureADRoutes(
     post("/ordre") {
         val ordrelinje = call.receive<OrdrelinjeData>()
         logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
-        val rowsUpdated = transaction { ordreStore.save(ordrelinje) }
+        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     post("/soknad/papir") {
         val søknad = call.receive<PapirSøknadData>()
         logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.soknadId}" }
-        val rowsUpdated = transaction { søknadStore.savePapir(søknad) }
+        val rowsUpdated = transaction { søknadStore.lagrePapirsøknad(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
@@ -99,7 +99,7 @@ fun Route.azureADRoutes(
         data class Response(val soknadId: UUID?)
 
         val saksnummer = call.receive<Request>().saksnummer
-        val søknadId = transaction { hotsakStore.hentSøknadsIdForHotsakNummer(saksnummer) }
+        val søknadId = transaction { hotsakStore.finnSøknadIdForSak(saksnummer) }
         logg.info { "Fant søknadId: $søknadId for saksnummer: $saksnummer fra Hotsak" }
         call.respond(Response(søknadId))
     }

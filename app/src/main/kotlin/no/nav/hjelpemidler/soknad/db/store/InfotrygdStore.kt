@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.store
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.soknad.db.domain.FagsakData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import java.time.LocalDate
@@ -9,7 +10,7 @@ import java.util.UUID
 
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-class InfotrygdStore(private val tx: JdbcOperations) {
+class InfotrygdStore(private val tx: JdbcOperations) : Store {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
     fun lagKnytningMellomFagsakOgSøknad(vedtaksresultatData: VedtaksresultatData): Int =
         tx.update(
@@ -37,8 +38,8 @@ class InfotrygdStore(private val tx: JdbcOperations) {
         """
             UPDATE v1_infotrygd_data
             SET vedtaksresultat = :vedtaksresultat,
-                vedtaksdato = :vedtaksdato,
-                soknadstype = :soknadstype
+                vedtaksdato     = :vedtaksdato,
+                soknadstype     = :soknadstype
             WHERE soknads_id = :soknadId
         """.trimIndent(),
         mapOf(
@@ -123,13 +124,13 @@ class InfotrygdStore(private val tx: JdbcOperations) {
             mapOf("soknadId" to søknadId),
         ) {
             VedtaksresultatData(
-                søknadId = it.uuid("SOKNADS_ID"),
-                fnrBruker = it.string("FNR_BRUKER"),
-                trygdekontorNr = it.string("TRYGDEKONTORNR"),
-                saksblokk = it.string("SAKSBLOKK"),
-                saksnr = it.string("SAKSNR"),
-                vedtaksresultat = it.stringOrNull("VEDTAKSRESULTAT"),
-                vedtaksdato = it.localDateOrNull("VEDTAKSDATO"),
+                søknadId = it.uuid("soknads_id"),
+                fnrBruker = it.string("fnr_bruker"),
+                trygdekontorNr = it.string("trygdekontornr"),
+                saksblokk = it.string("saksblokk"),
+                saksnr = it.string("saksnr"),
+                vedtaksresultat = it.stringOrNull("vedtaksresultat"),
+                vedtaksdato = it.localDateOrNull("vedtaksdato"),
             )
         }
     }
@@ -147,8 +148,8 @@ class InfotrygdStore(private val tx: JdbcOperations) {
             mapOf("soknadId" to søknadId),
         ) {
             FagsakData(
-                søknadId = it.uuid("SOKNADS_ID"),
-                fagsakId = it.string("TRYGDEKONTORNR") + it.string("SAKSBLOKK") + it.string("SAKSNR"),
+                søknadId = it.uuid("soknads_id"),
+                fagsakId = it.string("trygdekontornr") + it.string("saksblokk") + it.string("saksnr"),
             )
         }
     }

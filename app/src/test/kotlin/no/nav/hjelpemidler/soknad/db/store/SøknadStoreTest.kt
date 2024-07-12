@@ -33,7 +33,7 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.save(mockSøknad(søknadId, fnrBruker = fnrBruker))
-            val søknad = søknadStore.hentSoknad(søknadId)
+            val søknad = søknadStore.hentSøknad(søknadId)
 
             assertEquals(fnrBruker, søknad?.søknadsdata?.bruker?.fnummer)
             assertEquals("fornavn", søknad?.søknadsdata?.bruker?.fornavn)
@@ -219,7 +219,7 @@ class SøknadStoreTest {
                     soknadGjelder = null,
                 ),
             )
-            val hentSoknad = søknadStore.hentSoknad(søknadId)
+            val hentSoknad = søknadStore.hentSøknad(søknadId)
             assertEquals(fnrBruker, hentSoknad!!.søknadsdata!!.bruker.fnummer)
             assertEquals(true, hentSoknad.er_digital)
             assertEquals(
@@ -260,7 +260,7 @@ class SøknadStoreTest {
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
-            søknadStore.hentSoknaderForBruker(fnrBruker).shouldBeSingleton {
+            søknadStore.hentSøknaderForBruker(fnrBruker).shouldBeSingleton {
                 it.fullmakt.shouldBeTrue()
             }
         }
@@ -281,7 +281,7 @@ class SøknadStoreTest {
             søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
-            søknadStore.hentSoknaderForBruker(fnrBruker).shouldBeSingleton {
+            søknadStore.hentSøknaderForBruker(fnrBruker).shouldBeSingleton {
                 it.fullmakt.shouldBeFalse()
             }
         }
@@ -387,7 +387,7 @@ class SøknadStoreTest {
         val søknadId = UUID.randomUUID()
 
         testTransaction {
-            søknadStore.savePapir(
+            søknadStore.lagrePapirsøknad(
                 PapirSøknadData(
                     fnrBruker = lagFødselsnummer(),
                     soknadId = søknadId,
@@ -404,7 +404,7 @@ class SøknadStoreTest {
         val søknadId = UUID.randomUUID()
 
         testTransaction {
-            søknadStore.savePapir(
+            søknadStore.lagrePapirsøknad(
                 PapirSøknadData(
                     fnrBruker = lagFødselsnummer(),
                     soknadId = søknadId,
@@ -413,7 +413,7 @@ class SøknadStoreTest {
                     navnBruker = "Fornavn Etternavn",
                 ),
             )
-            val søknad = søknadStore.hentSoknad(søknadId)
+            val søknad = søknadStore.hentSøknad(søknadId)
             assertEquals(false, søknad?.er_digital)
         }
     }
@@ -424,7 +424,7 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.save(mockSøknadMedRullestol(søknadId))
-            val søknad = søknadStore.hentSoknad(søknadId)
+            val søknad = søknadStore.hentSøknad(søknadId)
 
             assertNotNull(søknad?.søknadsdata?.bruker?.kroppsmaal)
             assertEquals(176, søknad?.søknadsdata?.bruker?.kroppsmaal?.hoyde)

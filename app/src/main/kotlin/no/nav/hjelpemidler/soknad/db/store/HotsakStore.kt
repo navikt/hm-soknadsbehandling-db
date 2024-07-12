@@ -1,12 +1,13 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
 import java.time.LocalDate
 import java.util.UUID
 
-class HotsakStore(private val tx: JdbcOperations) {
+class HotsakStore(private val tx: JdbcOperations) : Store {
     fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int =
         tx.update(
             """
@@ -28,7 +29,7 @@ class HotsakStore(private val tx: JdbcOperations) {
         """
             UPDATE v1_hotsak_data
             SET vedtaksresultat = :vedtaksresultat,
-                vedtaksdato = :vedtaksdato
+                vedtaksdato     = :vedtaksdato
             WHERE soknads_id = :soknadId
         """.trimIndent(),
         mapOf(
@@ -56,21 +57,34 @@ class HotsakStore(private val tx: JdbcOperations) {
         }
     }
 
-    fun hentSøknadsIdForHotsakNummer(saksnummer: String): UUID? =
+    fun finnSøknadIdForSak(saksnummer: String): UUID? =
         tx.singleOrNull(
-            "SELECT soknads_id FROM v1_hotsak_data WHERE saksnummer = :saksnummer",
+            """
+                SELECT soknads_id
+                FROM v1_hotsak_data
+                WHERE saksnummer = :saksnummer
+            """.trimIndent(),
             mapOf("saksnummer" to saksnummer),
         ) { it.uuid("soknads_id") }
 
-    fun harVedtakForSøknadId(søknadId: UUID): Boolean =
+    fun finnSaksnummerForSøknad(søknadId: UUID): String? =
         tx.singleOrNull(
-            "SELECT 1 FROM v1_hotsak_data WHERE soknads_id = :soknadId AND vedtaksresultat IS NOT NULL",
-            mapOf("soknadId" to søknadId),
-        ) { true } ?: false
-
-    fun hentFagsakIdForSøknad(søknadId: UUID): String? =
-        tx.singleOrNull(
-            "SELECT saksnummer FROM v1_hotsak_data WHERE soknads_id = :soknadId",
+            """
+                SELECT saksnummer
+                FROM v1_hotsak_data
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ) { it.string("saksnummer") }
+
+    fun harVedtakForSøknadId(søknadId: UUID): Boolean =
+        tx.singleOrNull(
+            """
+                SELECT 1
+                FROM v1_hotsak_data
+                WHERE soknads_id = :soknadId
+                  AND vedtaksresultat IS NOT NULL
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { true } ?: false
 }

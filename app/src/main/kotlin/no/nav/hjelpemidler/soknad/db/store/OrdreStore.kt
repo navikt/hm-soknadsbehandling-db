@@ -1,14 +1,15 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 import java.util.UUID
 
-class OrdreStore(private val tx: JdbcOperations) {
-    fun save(ordrelinje: OrdrelinjeData): Int {
+class OrdreStore(private val tx: JdbcOperations) : Store {
+    fun lagre(ordrelinje: OrdrelinjeData): Int {
         return tx.update(
             """
                 INSERT INTO v1_oebs_data (soknads_id, oebs_id, fnr_bruker, serviceforespoersel, ordrenr, ordrelinje, delordrelinje,
@@ -40,7 +41,7 @@ class OrdreStore(private val tx: JdbcOperations) {
         val result = tx.list(
             """
                 SELECT hjelpemiddeltype
-                FROM v1_oebs_data 
+                FROM v1_oebs_data
                 WHERE created > NOW() - '24 hours'::INTERVAL
                   AND soknads_id = :soknadId
                 GROUP BY hjelpemiddeltype
@@ -78,7 +79,8 @@ class OrdreStore(private val tx: JdbcOperations) {
                        produktgruppe,
                        created
                 FROM v1_oebs_data
-                WHERE soknads_id = :soknadId AND hjelpemiddeltype <> 'Del'
+                WHERE soknads_id = :soknadId
+                  AND hjelpemiddeltype <> 'Del'
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ) {

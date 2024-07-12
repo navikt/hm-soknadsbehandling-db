@@ -47,7 +47,7 @@ class HotsakStoreTest {
             søknad.vedtaksresultat shouldBe "I"
             søknad.vedtaksdato shouldBe vedtaksdato
 
-            hotsakStore.hentSøknadsIdForHotsakNummer("1002") shouldBe søknadId
+            hotsakStore.finnSøknadIdForSak("1002") shouldBe søknadId
         }
     }
 }
