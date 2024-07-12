@@ -458,11 +458,9 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             """
                 SELECT status
                 FROM v1_status
-                WHERE id = (SELECT id
-                            FROM v1_status
-                            WHERE soknads_id = :soknadId
-                            ORDER BY created DESC
-                            LIMIT 1)
+                WHERE soknads_id = :soknadId
+                ORDER BY created DESC
+                LIMIT 1
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
         ) { it.enumOrNull<Status>("status") } == status

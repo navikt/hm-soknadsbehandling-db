@@ -1,10 +1,11 @@
 package no.nav.hjelpemidler.soknad.db
 
 import io.kotest.matchers.collections.shouldHaveSingleElement
-import io.ktor.client.request.post
+import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.resources.KommuneApi
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.feilmelding
 import no.nav.hjelpemidler.soknad.db.test.testApplication
@@ -15,7 +16,7 @@ class KommuneApiTest {
     fun `Skal hente søknader`() = testApplication {
         val søknad = lagreSøknad()
         client
-            .post("/api/kommune-api/soknader") { setBody(mapOf("kommunenummer" to "9999")) }
+            .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "9999")) }
             .expect<List<SøknadForKommuneApi>>(HttpStatusCode.OK) { søknader ->
                 søknader.shouldHaveSingleElement { it.soknadId == søknad.soknadId }
             }
@@ -25,10 +26,10 @@ class KommuneApiTest {
     fun `Henting av søknader feiler`() = testApplication {
         lagreSøknad()
         client
-            .post("/api/kommune-api/soknader") { setBody(mapOf("kommunenummer" to "-1")) }
+            .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "-1")) }
             .feilmelding(HttpStatusCode.BadRequest)
         client
-            .post("/api/kommune-api/soknader") { setBody(mapOf("foobar" to "9999")) }
+            .post(KommuneApi.Søknader()) { setBody(mapOf("foobar" to "9999")) }
             .feilmelding(HttpStatusCode.BadRequest)
     }
 }

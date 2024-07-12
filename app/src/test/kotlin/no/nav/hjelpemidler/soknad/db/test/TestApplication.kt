@@ -59,7 +59,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
 }
 
 private val RewriteUrl = createClientPlugin("RewriteUrl") {
-    onRequest { request, content ->
+    onRequest { request, _ ->
         request.url {
             if ("api" !in pathSegments) {
                 pathSegments = listOf("api") + pathSegments
