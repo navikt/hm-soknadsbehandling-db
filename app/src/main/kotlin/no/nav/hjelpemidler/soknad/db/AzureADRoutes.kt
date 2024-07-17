@@ -38,8 +38,10 @@ fun Route.azureADRoutes(
 
     get("/soknad/fnr/{soknadId}") {
         val søknadId = call.søknadId
-        val fnr = transaction { søknadStore.hentFnrForSøknad(søknadId) }
-        call.respond(fnr)
+        val søknad = transaction {
+            søknadStore.finnSøknad(søknadId)
+        } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke fnr for søknadId: $søknadId")
+        call.respond(søknad.fnrBruker)
     }
 
     post("/soknad/bruker") {
@@ -165,7 +167,7 @@ fun Route.azureADRoutes(
 
     get("/soknad/bruker/finnes/{soknadId}") {
         val søknadId = call.søknadId
-        val søknadFinnes = transaction { søknadStore.søknadFinnes(søknadId) }
+        val søknadFinnes = transaction { søknadStore.finnSøknad(søknadId) } != null
         call.respond("soknadFinnes" to søknadFinnes)
     }
 
@@ -222,7 +224,7 @@ fun Route.azureADRoutes(
 
     get("/soknad/opprettet-dato/{soknadId}") {
         val søknadId = call.søknadId
-        val opprettetDato = transaction { søknadStore.hentSøknadOpprettetDato(søknadId) }
+        val opprettetDato = transaction { søknadStore.finnSøknad(søknadId) }?.søknadOpprettet
         when (opprettetDato) {
             null -> call.feilmelding(HttpStatusCode.NotFound)
             else -> call.respond(opprettetDato)
@@ -257,7 +259,7 @@ fun Route.azureADRoutes(
 
     get("/soknad/behovsmeldingType/{soknadId}") {
         val søknadId = call.søknadId
-        val behovsmeldingType = transaction { søknadStore.behovsmeldingTypeFor(søknadId) }
+        val behovsmeldingType = transaction { søknadStore.finnSøknad(søknadId) }?.behovsmeldingstype
         logg.info {
             when (behovsmeldingType) {
                 null -> "Kunne ikke finne behovsmeldingType for søknadId: $søknadId"

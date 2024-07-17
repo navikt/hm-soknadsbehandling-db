@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.enumOrNull
@@ -18,7 +19,6 @@ import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
@@ -27,6 +27,7 @@ import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
+import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
@@ -34,30 +35,50 @@ import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.tilSøknad
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import java.math.BigInteger
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations) : Store {
+    // fixme -> singleton
     private val slack = slack(engine = Apache.create())
 
-    fun søknadFinnes(søknadId: UUID): Boolean {
-        val uuid = tx.singleOrNull(
+    fun finnSøknad(søknadId: UUID): Søknad? {
+        return tx.singleOrNull(
             """
-                SELECT soknads_id
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
+                SELECT DISTINCT ON (soknad.soknads_id)
+                       soknad.soknads_id,
+                       soknad.created AS soknad_opprettet,
+                       soknad.updated AS soknad_endret,
+                       soknad.soknad_gjelder,
+                       soknad.fnr_innsender,
+                       soknad.fnr_bruker,
+                       soknad.navn_bruker,
+                       soknad.kommunenavn,
+                       soknad.journalpostid,
+                       soknad.oppgaveid,
+                       soknad.er_digital,
+                       COALESCE(
+                               soknad.data ->> 'behovsmeldingType',
+                               'SØKNAD'
+                       )              AS behovsmeldingstype,
+                       status.status  AS status,
+                       status.created AS status_endret
+                FROM v1_soknad AS soknad
+                         INNER JOIN v1_status AS status ON soknad.soknads_id = status.soknads_id
+                WHERE soknad.soknads_id = :soknadId
+                ORDER BY soknad.soknads_id, status.created DESC
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) { it.uuid("soknads_id") }
-        return uuid != null
+            Row::tilSøknad,
+        )
     }
 
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
@@ -159,17 +180,6 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         }
     }
 
-    fun hentSøknadOpprettetDato(søknadId: UUID): Date? {
-        return tx.singleOrNull(
-            """
-                SELECT created
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.sqlTimestamp("created") }
-    }
-
     fun hentSøknadData(søknadId: UUID): SøknadData? {
         val statement = Sql(
             """
@@ -206,17 +216,6 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                 soknadGjelder = it.stringOrNull("soknad_gjelder"),
             )
         }
-    }
-
-    fun hentFnrForSøknad(søknadId: UUID): String {
-        return tx.singleOrNull(
-            """
-                SELECT fnr_bruker
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.string("fnr_bruker") } ?: error("Fant ikke fnr for søknadId: $søknadId")
     }
 
     fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int {
@@ -559,17 +558,6 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                 ).toStringArray(),
             ),
         ) { it.string("soknads_id") }
-    }
-
-    fun behovsmeldingTypeFor(søknadId: UUID): BehovsmeldingType? {
-        return tx.singleOrNull(
-            """
-                SELECT soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype
-                FROM v1_soknad AS soknad
-                WHERE soknad.soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.behovsmeldingType("behovsmeldingType") }
     }
 
     fun tellStatuser(): List<StatusCountRow> {
