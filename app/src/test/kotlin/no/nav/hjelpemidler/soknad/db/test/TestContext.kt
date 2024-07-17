@@ -2,6 +2,8 @@ package no.nav.hjelpemidler.soknad.db.test
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.resources.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -11,10 +13,13 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
+import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
@@ -22,7 +27,6 @@ import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.time.Instant
-import java.util.UUID
 
 class TestContext(
     val client: HttpClient,
@@ -86,13 +90,19 @@ class TestContext(
         return søknad
     }
 
-    suspend fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String) {
+    suspend fun hentSøknad(søknadId: SøknadId): Søknad {
+        val response = client.get(Søknader.SøknadId(søknadId))
+        response shouldHaveStatus HttpStatusCode.OK
+        return response.body()
+    }
+
+    suspend fun oppdaterJournalpostId(søknadId: SøknadId, journalpostId: String) {
         client.put("/api/soknad/journalpost-id/$søknadId") {
             setBody(mapOf("journalpostId" to journalpostId))
         } shouldHaveStatus HttpStatusCode.OK
     }
 
-    suspend fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: String) {
+    suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
         client.put("/api/soknad/oppgave-id/$søknadId") {
             setBody(mapOf("oppgaveId" to oppgaveId))
         } shouldHaveStatus HttpStatusCode.OK
