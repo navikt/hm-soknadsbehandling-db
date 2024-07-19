@@ -36,6 +36,7 @@ fun Route.azureADRoutes(
     søknadApi(transaction, metrics)
     kommuneApi(transaction)
 
+    // fixme -> slettes
     get("/soknad/fnr/{soknadId}") {
         val søknadId = call.søknadId
         val søknad = transaction {
@@ -91,14 +92,6 @@ fun Route.azureADRoutes(
             )
         }
         call.respond(rowsUpdated)
-    }
-
-    get("/infotrygd/søknadsType/{soknadId}") {
-        val søknadId = call.søknadId
-        val søknadstype = transaction { infotrygdStore.hentTypeForSøknad(søknadId) }
-
-        data class Response(val søknadsType: String?)
-        call.respond(Response(søknadstype))
     }
 
     post("/soknad/hotsak/fra-saknummer") {
@@ -222,6 +215,7 @@ fun Route.azureADRoutes(
         call.respond(resultater)
     }
 
+    // fixme -> slettes
     get("/soknad/opprettet-dato/{soknadId}") {
         val søknadId = call.søknadId
         val opprettetDato = transaction { søknadStore.finnSøknad(søknadId) }?.søknadOpprettet
@@ -237,10 +231,12 @@ fun Route.azureADRoutes(
         call.respond(søknader)
     }
 
+    // fixme -> slettes
     put("/soknad/journalpost-id/{soknadId}") {
         call.redirectInternally(Søknader.SøknadId.Journalpost(Søknader.SøknadId(call.søknadId)))
     }
 
+    // fixme -> slettes
     put("/soknad/oppgave-id/{soknadId}") {
         call.redirectInternally(Søknader.SøknadId.Oppgave(Søknader.SøknadId(call.søknadId)))
     }
@@ -257,6 +253,7 @@ fun Route.azureADRoutes(
         call.respond(result)
     }
 
+    // fixme -> slettes
     get("/soknad/behovsmeldingType/{soknadId}") {
         val søknadId = call.søknadId
         val behovsmeldingType = transaction { søknadStore.finnSøknad(søknadId) }?.behovsmeldingstype
