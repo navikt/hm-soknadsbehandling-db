@@ -15,10 +15,22 @@ fun Route.sakApi(
      * NB! Kun saker fra Hotsak har en entydig sakId.
      */
     get<Saker.SakId> {
-        val sakId = it.sakId
+        val sakId = HotsakSakId(it.sakId)
         val sak = transaction {
-            hotsakStore.finnSak(HotsakSakId(sakId))
-        } ?: return@get call.feilmelding(HttpStatusCode.NotFound)
+            hotsakStore.finnSak(sakId)
+        } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke sak med sakId: $sakId")
         call.respond(sak)
+    }
+
+    /**
+     * NB! Kun saker fra Hotsak har en entydig sakId.
+     */
+    get<Saker.SakId.Søknad> {
+        val sakId = HotsakSakId(it.sakId)
+        val søknad = transaction {
+            val sak = hotsakStore.finnSak(sakId) ?: return@transaction null
+            søknadStore.finnSøknad(sak.søknadId)
+        } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke søknad for sakId: $sakId")
+        call.respond(søknad)
     }
 }
