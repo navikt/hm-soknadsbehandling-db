@@ -12,11 +12,11 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
@@ -164,7 +164,7 @@ fun Route.azureADRoutes(
 
     put("/soknad/status/{soknadId}") {
         val søknadId = call.søknadId
-        val nyStatus = call.receive<Status>()
+        val nyStatus = call.receive<BehovsmeldingStatus>()
         logg.info { "Oppdaterer status på søknad med søknadId: $søknadId, nyStatus: $nyStatus" }
         val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, nyStatus) }
         call.respond(rowsUpdated)

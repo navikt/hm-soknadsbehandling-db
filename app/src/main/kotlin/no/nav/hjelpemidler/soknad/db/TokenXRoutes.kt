@@ -7,7 +7,7 @@ import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
@@ -123,7 +123,7 @@ fun Route.tokenXRoutes(
                 when {
                     søknad == null -> false
                     søknad.fnrBruker != fnr -> false
-                    else -> søknad.status == Status.VENTER_GODKJENNING
+                    else -> søknad.status == BehovsmeldingStatus.VENTER_GODKJENNING
                 },
             ),
         )

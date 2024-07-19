@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import java.util.Date
 import java.util.UUID
 
@@ -10,7 +12,7 @@ class SøknadMedStatus private constructor(
     val journalpostId: String?,
     val datoOpprettet: Date,
     val datoOppdatert: Date,
-    val status: Status,
+    val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val formidlerNavn: String?,
     val er_digital: Boolean,
@@ -24,7 +26,7 @@ class SøknadMedStatus private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            status: Status,
+            status: BehovsmeldingStatus,
             fullmakt: Boolean,
             er_digital: Boolean,
             soknadGjelder: String?,
@@ -50,7 +52,7 @@ class SøknadMedStatus private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            status: Status,
+            status: BehovsmeldingStatus,
             fullmakt: Boolean,
             søknad: JsonNode,
             er_digital: Boolean,
@@ -73,7 +75,10 @@ class SøknadMedStatus private constructor(
     }
 }
 
-private fun formidlerNavn(soknad: JsonNode, behovsmeldingType: BehovsmeldingType): String? {
+private fun formidlerNavn(
+    soknad: JsonNode,
+    behovsmeldingType: BehovsmeldingType,
+): String? {
     if (behovsmeldingType == BehovsmeldingType.BRUKERPASSBYTTE) {
         return null
     }

@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
@@ -23,7 +24,6 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelLi
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
@@ -132,12 +132,12 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             mapOf(
                 "soknadId" to søknadId,
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
                 ).toStringArray(),
             ),
         ) {
-            val status = it.enum<Status>("status")
+            val status = it.enum<BehovsmeldingStatus>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
@@ -209,7 +209,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                 navnBruker = it.string("navn_bruker"),
                 fnrInnsender = it.stringOrNull("fnr_innsender"),
                 soknadId = it.uuid("soknads_id"),
-                status = Status.valueOf(it.string("status")),
+                status = it.enum("status"),
                 soknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
                 kommunenavn = it.stringOrNull("kommunenavn"),
                 er_digital = it.boolean("er_digital"),
@@ -242,7 +242,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    fun oppdaterStatus(søknadId: UUID, status: Status): Int {
+    fun oppdaterStatus(søknadId: UUID, status: BehovsmeldingStatus): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
             """
@@ -264,11 +264,11 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    fun slettSøknad(søknadId: UUID): Int = slettSøknad(søknadId, Status.SLETTET)
+    fun slettSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.SLETTET)
 
-    fun slettUtløptSøknad(søknadId: UUID): Int = slettSøknad(søknadId, Status.UTLØPT)
+    fun slettUtløptSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.UTLØPT)
 
-    private fun slettSøknad(søknadId: UUID, status: Status): Int {
+    private fun slettSøknad(søknadId: UUID, status: BehovsmeldingStatus): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
             """
@@ -355,12 +355,12 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             mapOf(
                 "fnrBruker" to fnrBruker,
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
                 ).toStringArray(),
             ),
         ) {
-            val status = it.enum<Status>("status")
+            val status = it.enum<BehovsmeldingStatus>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
@@ -410,11 +410,11 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
 
         return tx.list(
             statement,
-            mapOf("status" to Status.VENTER_GODKJENNING),
+            mapOf("status" to BehovsmeldingStatus.VENTER_GODKJENNING),
         ) {
             UtgåttSøknad(
                 søknadId = it.uuid("soknads_id"),
-                status = it.enum<Status>("status"),
+                status = it.enum<BehovsmeldingStatus>("status"),
                 fnrBruker = it.string("fnr_bruker"),
             )
         }
@@ -452,7 +452,10 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    private fun checkIfLastStatusMatches(søknadId: UUID, status: Status): Boolean {
+    private fun checkIfLastStatusMatches(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+    ): Boolean {
         return tx.singleOrNull(
             """
                 SELECT status
@@ -462,7 +465,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                 LIMIT 1
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) { it.enumOrNull<Status>("status") } == status
+        ) { it.enumOrNull<BehovsmeldingStatus>("status") } == status
     }
 
     fun lagrePapirsøknad(soknadData: PapirSøknadData): Int {
@@ -551,10 +554,10 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             statement,
             mapOf(
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.GODKJENT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
-                    Status.BRUKERPASSBYTTE_INNSENDT,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.GODKJENT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.BRUKERPASSBYTTE_INNSENDT,
                 ).toStringArray(),
             ),
         ) { it.string("soknads_id") }

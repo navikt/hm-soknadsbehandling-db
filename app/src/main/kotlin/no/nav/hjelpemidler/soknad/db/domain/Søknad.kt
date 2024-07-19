@@ -1,5 +1,7 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.soknad.db.soknad.TilknyttetSøknad
@@ -18,7 +20,7 @@ data class Søknad(
     val oppgaveId: String?,
     val digital: Boolean,
     val behovsmeldingstype: BehovsmeldingType,
-    val status: Status,
+    val status: BehovsmeldingStatus,
     val statusEndret: Instant,
 ) : TilknyttetSøknad
 
@@ -36,7 +38,7 @@ fun Row.tilSøknad(): Søknad {
         oppgaveId = stringOrNull("oppgaveid"),
         digital = boolean("er_digital"),
         behovsmeldingstype = enum<BehovsmeldingType>("behovsmeldingstype"),
-        status = enum<Status>("status"),
+        status = enum<BehovsmeldingStatus>("status"),
         statusEndret = instant("status_endret"),
     )
 }

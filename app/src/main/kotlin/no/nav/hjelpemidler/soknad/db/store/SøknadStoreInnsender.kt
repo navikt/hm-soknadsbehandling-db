@@ -1,14 +1,14 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
@@ -81,7 +81,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
                 datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
-                status = it.enum<Status>("status"),
+                status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
@@ -155,7 +155,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
                 datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
-                status = it.enum<Status>("status"),
+                status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
@@ -171,7 +171,7 @@ class SøknadForInnsender(
     val behovsmeldingType: BehovsmeldingType,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
-    val status: Status,
+    val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val fnrBruker: String,
     val navnBruker: String?,
