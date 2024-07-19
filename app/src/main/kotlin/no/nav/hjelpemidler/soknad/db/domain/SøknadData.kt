@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.soknad.db.soknad.TilknyttetSøknad
 import java.util.UUID
 
 /**
@@ -16,4 +18,6 @@ data class SøknadData(
     val kommunenavn: String?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
-)
+) : TilknyttetSøknad {
+    override val søknadId: SøknadId @JsonIgnore get() = soknadId
+}

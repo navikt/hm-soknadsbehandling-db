@@ -5,7 +5,6 @@ import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
-import no.nav.hjelpemidler.soknad.db.resources.KommuneApi
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.feilmelding
 import no.nav.hjelpemidler.soknad.db.test.testApplication

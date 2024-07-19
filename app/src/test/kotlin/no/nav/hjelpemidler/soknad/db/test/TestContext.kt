@@ -4,6 +4,7 @@ import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -19,10 +20,12 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
+import no.nav.hjelpemidler.soknad.db.sak.Sakstilknytning
+import no.nav.hjelpemidler.soknad.db.sak.Vedtaksresultat
+import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -96,15 +99,33 @@ class TestContext(
         return response.body()
     }
 
+    // fixme -> ny url
     suspend fun oppdaterJournalpostId(søknadId: SøknadId, journalpostId: String) {
         client.put("/api/soknad/journalpost-id/$søknadId") {
             setBody(mapOf("journalpostId" to journalpostId))
         } shouldHaveStatus HttpStatusCode.OK
     }
 
+    // fixme -> ny url
     suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
         client.put("/api/soknad/oppgave-id/$søknadId") {
             setBody(mapOf("oppgaveId" to oppgaveId))
         } shouldHaveStatus HttpStatusCode.OK
+    }
+
+    suspend fun lagreSakstilknytning(søknadId: SøknadId, sakstilknytning: Sakstilknytning) {
+        client
+            .post(Søknader.SøknadId.Sak(søknadId)) {
+                setBody(sakstilknytning)
+            }
+            .expect(HttpStatusCode.OK, 1)
+    }
+
+    suspend fun lagreVedtaksresultat(søknadId: SøknadId, vedtaksresultat: Vedtaksresultat) {
+        client
+            .post(Søknader.SøknadId.Vedtaksresultat(søknadId)) {
+                setBody(vedtaksresultat)
+            }
+            .expect(HttpStatusCode.OK, 1)
     }
 }

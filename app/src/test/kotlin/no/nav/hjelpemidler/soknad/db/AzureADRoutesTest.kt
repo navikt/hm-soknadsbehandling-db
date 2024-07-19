@@ -62,9 +62,6 @@ class AzureADRoutesTest {
             .post("/api/infotrygd/vedtaksresultat") { setBody(vedtaksresultat2) }
             .expect(HttpStatusCode.OK, 1)
         client
-            .get("/api/infotrygd/søknadsType/$søknadId")
-            .expect(HttpStatusCode.OK, mapOf("søknadsType" to vedtaksresultat2.soknadsType))
-        client
             .post("/api/soknad/fra-vedtaksresultat") {
                 setBody(
                     SøknadFraVedtaksresultatDtoV1(

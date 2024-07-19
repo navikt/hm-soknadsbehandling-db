@@ -2,10 +2,11 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
+import no.nav.hjelpemidler.soknad.db.soknad.TilknyttetSøknad
 import java.time.Instant
 
 data class Søknad(
-    val søknadId: SøknadId,
+    override val søknadId: SøknadId,
     val søknadOpprettet: Instant,
     val søknadEndret: Instant,
     val søknadGjelder: String,
@@ -19,11 +20,11 @@ data class Søknad(
     val behovsmeldingstype: BehovsmeldingType,
     val status: Status,
     val statusEndret: Instant,
-)
+) : TilknyttetSøknad
 
 fun Row.tilSøknad(): Søknad {
     return Søknad(
-        søknadId = søknadId(),
+        søknadId = tilSøknadId(),
         søknadOpprettet = instant("soknad_opprettet"),
         søknadEndret = instant("soknad_endret"),
         søknadGjelder = string("soknad_gjelder"),

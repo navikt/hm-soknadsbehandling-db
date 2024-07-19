@@ -5,4 +5,4 @@ import java.util.UUID
 
 typealias SøknadId = UUID
 
-fun Row.søknadId(columnLabel: String = "soknads_id"): SøknadId = uuid(columnLabel)
+fun Row.tilSøknadId(columnLabel: String = "soknads_id"): SøknadId = uuid(columnLabel)

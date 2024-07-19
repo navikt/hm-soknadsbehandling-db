@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db
+package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.should
@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.resources.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
-import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import kotlin.test.Test

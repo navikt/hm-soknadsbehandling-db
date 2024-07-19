@@ -3,14 +3,19 @@ package no.nav.hjelpemidler.soknad.db
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import io.kotest.matchers.collections.shouldBeSingleton
+import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.resources.Søknader
+import no.nav.hjelpemidler.soknad.db.sak.InfotrygdSakId
+import no.nav.hjelpemidler.soknad.db.sak.Sakstilknytning
+import no.nav.hjelpemidler.soknad.db.sak.Vedtaksresultat
+import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.feilmelding
 import no.nav.hjelpemidler.soknad.db.test.testApplication
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
 
@@ -18,6 +23,16 @@ class TokenXRoutesTest {
     @Test
     fun `Hent søknad med søknadId for bruker`() = testApplication {
         val søknad = lagreSøknad()
+        val sakId = InfotrygdSakId("9999A01")
+        val søknadstype = "TEST"
+        lagreSakstilknytning(
+            søknad.søknadId,
+            Sakstilknytning.Infotrygd(sakId, søknad.fnrBruker),
+        )
+        lagreVedtaksresultat(
+            søknad.søknadId,
+            Vedtaksresultat.Infotrygd("I", LocalDate.now(), søknadstype),
+        )
 
         tokenXUser(søknad.fnrBruker)
 
@@ -25,6 +40,8 @@ class TokenXRoutesTest {
             .get(Søknader.Bruker.SøknadId(søknad.soknadId))
             .expect<SøknadDto>(HttpStatusCode.OK) {
                 it.søknadId shouldBe søknad.soknadId
+                it.andre.shouldContain("fagsakId", sakId.toString())
+                it.andre.shouldContain("søknadType", søknadstype)
             }
     }
 

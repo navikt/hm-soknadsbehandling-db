@@ -10,5 +10,6 @@ enum class BehovsmeldingType {
     BRUKERPASSBYTTE,
 }
 
+// fixme -> tilBehovsmeldingType
 fun Row.behovsmeldingType(columnLabel: String = "behovsmeldingType"): BehovsmeldingType =
     enumOrNull<BehovsmeldingType>(columnLabel) ?: BehovsmeldingType.SØKNAD
