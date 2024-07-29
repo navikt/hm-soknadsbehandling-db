@@ -46,7 +46,7 @@ class Søknader {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
         }
 
-        @Resource("/vedtak")
+        @Resource("/vedtaksresultat")
         class Vedtaksresultat(val parent: SøknadId) {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
         }
