@@ -12,13 +12,13 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
-import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
@@ -100,7 +100,10 @@ class TestContext(
     }
 
     // fixme -> ny url
-    suspend fun oppdaterJournalpostId(søknadId: SøknadId, journalpostId: String) {
+    suspend fun oppdaterJournalpostId(
+        søknadId: SøknadId,
+        journalpostId: String,
+    ) {
         client.put("/api/soknad/journalpost-id/$søknadId") {
             setBody(mapOf("journalpostId" to journalpostId))
         } shouldHaveStatus HttpStatusCode.OK
@@ -113,7 +116,10 @@ class TestContext(
         } shouldHaveStatus HttpStatusCode.OK
     }
 
-    suspend fun lagreSakstilknytning(søknadId: SøknadId, sakstilknytning: Sakstilknytning) {
+    suspend fun lagreSakstilknytning(
+        søknadId: SøknadId,
+        sakstilknytning: Sakstilknytning,
+    ) {
         client
             .post(Søknader.SøknadId.Sak(søknadId)) {
                 setBody(sakstilknytning)
@@ -121,7 +127,10 @@ class TestContext(
             .expect(HttpStatusCode.OK, 1)
     }
 
-    suspend fun lagreVedtaksresultat(søknadId: SøknadId, vedtaksresultat: Vedtaksresultat) {
+    suspend fun lagreVedtaksresultat(
+        søknadId: SøknadId,
+        vedtaksresultat: Vedtaksresultat,
+    ) {
         client
             .post(Søknader.SøknadId.Vedtaksresultat(søknadId)) {
                 setBody(vedtaksresultat)

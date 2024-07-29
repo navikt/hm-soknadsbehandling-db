@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.soknad.db.soknad.TilknyttetSøknad

@@ -1,12 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.sak.tilInfotrygdSak
 import java.time.LocalDate
 import java.util.UUID
@@ -15,7 +15,11 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class InfotrygdStore(private val tx: JdbcOperations) : Store {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
-    fun lagKnytningMellomSakOgSøknad(søknadId: SøknadId, sakId: InfotrygdSakId, fnrBruker: String): Int =
+    fun lagKnytningMellomSakOgSøknad(
+        søknadId: SøknadId,
+        sakId: InfotrygdSakId,
+        fnrBruker: String,
+    ): Int =
         tx.update(
             """
                 INSERT INTO v1_infotrygd_data (soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr)

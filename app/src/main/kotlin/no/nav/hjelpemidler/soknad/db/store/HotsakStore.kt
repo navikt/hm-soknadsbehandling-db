@@ -1,11 +1,11 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.sak.tilHotsakSak
 import java.time.LocalDate
 import java.util.UUID

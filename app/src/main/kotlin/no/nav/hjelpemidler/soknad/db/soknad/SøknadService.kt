@@ -1,10 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
-import no.nav.hjelpemidler.soknad.db.domain.SøknadId
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
 private val logg = KotlinLogging.logger {}
@@ -16,7 +16,10 @@ class SøknadService(private val transaction: Transaction) {
         }
     }
 
-    suspend fun lagreSakstilknytning(søknadId: SøknadId, sakstilknytning: Sakstilknytning): Int {
+    suspend fun lagreSakstilknytning(
+        søknadId: SøknadId,
+        sakstilknytning: Sakstilknytning,
+    ): Int {
         logg.info { "Knytter sakId: ${sakstilknytning.sakId} til søknadId: $søknadId, system: ${sakstilknytning.system}" }
         return when (sakstilknytning) {
             is Sakstilknytning.Hotsak -> transaction {
@@ -36,7 +39,10 @@ class SøknadService(private val transaction: Transaction) {
         }
     }
 
-    suspend fun lagreVedtaksresultat(søknadId: SøknadId, vedtaksresultat: Vedtaksresultat): Int {
+    suspend fun lagreVedtaksresultat(
+        søknadId: SøknadId,
+        vedtaksresultat: Vedtaksresultat,
+    ): Int {
         logg.info { "Lagrer vedtaksresultat for søknadId: $søknadId, system: ${vedtaksresultat.system}" }
         return when (vedtaksresultat) {
             is Vedtaksresultat.Hotsak -> transaction {
