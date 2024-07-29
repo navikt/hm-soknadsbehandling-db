@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.store
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.hjelpemidler.soknad.db.sak.HotsakSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID

@@ -7,10 +7,10 @@ import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.sak.InfotrygdSakId
-import no.nav.hjelpemidler.soknad.db.sak.Sakstilknytning
-import no.nav.hjelpemidler.soknad.db.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.feilmelding

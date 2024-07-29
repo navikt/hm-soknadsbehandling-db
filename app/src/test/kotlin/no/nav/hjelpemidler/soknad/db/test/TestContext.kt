@@ -12,6 +12,8 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
@@ -23,8 +25,6 @@ import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
-import no.nav.hjelpemidler.soknad.db.sak.Sakstilknytning
-import no.nav.hjelpemidler.soknad.db.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser

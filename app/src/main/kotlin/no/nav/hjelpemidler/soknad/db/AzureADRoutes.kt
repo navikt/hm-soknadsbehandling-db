@@ -14,6 +14,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
@@ -24,8 +26,6 @@ import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.redirectInternally
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.sak.HotsakSakId
-import no.nav.hjelpemidler.soknad.db.sak.InfotrygdSakId
 import no.nav.hjelpemidler.soknad.db.sak.sakApi
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.søknadApi

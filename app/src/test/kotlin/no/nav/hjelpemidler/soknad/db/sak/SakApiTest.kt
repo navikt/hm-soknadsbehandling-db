@@ -4,6 +4,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import kotlin.test.Test

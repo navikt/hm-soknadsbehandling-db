@@ -1,10 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.domain.SøknadId
-import no.nav.hjelpemidler.soknad.db.sak.Fagsak
-import no.nav.hjelpemidler.soknad.db.sak.Sakstilknytning
-import no.nav.hjelpemidler.soknad.db.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
 private val logg = KotlinLogging.logger {}
