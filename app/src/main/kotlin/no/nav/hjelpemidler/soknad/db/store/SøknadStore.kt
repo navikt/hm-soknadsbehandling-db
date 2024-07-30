@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
@@ -18,7 +17,7 @@ import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
-import no.nav.hjelpemidler.http.slack.slack
+import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
@@ -32,9 +31,9 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.tilBehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.tilSøknad
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import java.math.BigInteger
@@ -46,10 +45,7 @@ import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadStore(private val tx: JdbcOperations) : Store {
-    // fixme -> singleton
-    private val slack = slack(engine = Apache.create())
-
+class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
     fun finnSøknad(søknadId: UUID): Søknad? {
         return tx.singleOrNull(
             """
@@ -143,7 +139,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadForBruker.newEmptySøknad(
                     søknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
@@ -160,7 +156,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             } else {
                 SøknadForBruker.new(
                     søknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
@@ -366,7 +362,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadMedStatus.newSøknadUtenFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
@@ -379,7 +375,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             } else {
                 SøknadMedStatus.newSøknadMedFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
@@ -675,19 +671,17 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                     ) {
                         hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
                         runBlocking(Dispatchers.IO) {
-                            slack.sendMessage(
+                            slackClient.sendMessage(
                                 "hm-soknadsbehandling-db",
                                 slackIconEmoji(":this-is-fine-fire:"),
                                 if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
-                                "Søknad datamodellen har endret seg og kvittering av innsendte " +
-                                    "søknader tilbake til kommunen er satt på pause inntil noen har " +
-                                    "vurdert om endringene kan medføre juridiske utfordringer. Oppdater " +
-                                    "no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at " +
-                                    "vi filtrerer ut verdier som ikke skal kvitteres tilbake. " +
-                                    "Se <https://github.com/navikt/hm-soknadsbehandling-db/blob" +
-                                    "/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain" +
-                                    "/kommuneapi/Valideringsmodell.kt|Valideringsmodell.kt>.\n\n" +
-                                    "Bør fikses ASAP.\n\nFeilmelding: søk etter uuid i kibana: $logId",
+                                """
+                                    Datamodellen for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/Valideringsmodell.kt|Valideringsmodell.kt>.
+                                    
+                                    Bør fikses ASAP.
+                                    
+                                    Feilmelding: Søk etter UUID i logger: $logId
+                                """.trimIndent(),
                             )
                         }
                     }

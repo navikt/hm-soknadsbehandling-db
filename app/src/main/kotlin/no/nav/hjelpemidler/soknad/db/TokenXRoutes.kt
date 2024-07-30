@@ -11,9 +11,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
-import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
-import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -24,12 +21,12 @@ private val logg = KotlinLogging.logger {}
 
 fun Route.tokenXRoutes(
     transaction: Transaction,
-    ordreService: OrdreService,
-    rolleService: RolleService,
+    serviceContext: ServiceContext,
     tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
-    // fixme -> singleton
-    val søknadService = SøknadService(transaction)
+    val ordreService = serviceContext.ordreService
+    val rolleService = serviceContext.rolleService
+    val søknadService = serviceContext.søknadService
 
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident

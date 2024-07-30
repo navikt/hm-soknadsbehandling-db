@@ -10,7 +10,7 @@ import java.util.UUID
 
 class HotsakStoreTest {
     @Test
-    fun `Lag knytning mellom endeleg journalført digital søknad og Hotsak basert på sakId`() = databaseTest {
+    fun `Lag knytning mellom endelig journalført digital søknad og Hotsak basert på sakId`() = databaseTest {
         val søknadId = UUID.randomUUID() // Digital søknad får denne i kanalReferanseId fra Joark
         val sakId = HotsakSakId("1001")
 
@@ -24,7 +24,7 @@ class HotsakStoreTest {
     }
 
     @Test
-    fun `Lagrer vedtaksresultat frå Hotsak`() = databaseTest {
+    fun `Lagrer vedtaksresultat fra Hotsak`() = databaseTest {
         val søknadId = UUID.randomUUID()
         val sakId = HotsakSakId("1002")
 

@@ -24,7 +24,7 @@ sealed interface Fagsak : TilknyttetSøknad {
     /**
      * FagsakId i SAF/Joark.
      */
-    sealed interface Id
+    sealed interface Id : CharSequence
 
     /**
      * Fagsaksystem i SAF/Joark.

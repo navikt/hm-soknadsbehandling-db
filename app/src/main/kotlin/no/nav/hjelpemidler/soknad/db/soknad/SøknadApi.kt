@@ -11,6 +11,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
@@ -18,8 +19,9 @@ private val logg = KotlinLogging.logger {}
 
 fun Route.søknadApi(
     transaction: Transaction,
+    serviceContext: ServiceContext,
 ) {
-    val søknadService = SøknadService(transaction)
+    val søknadService = serviceContext.søknadService
 
     get<Søknader.SøknadId> {
         val søknad = transaction {

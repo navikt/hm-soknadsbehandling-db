@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Testcontainers
@@ -38,6 +39,6 @@ class TestDatabase(private val dataSource: DataSource) : Transaction by Database
 
     suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T =
         transactionAsync(dataSource, strict = true) {
-            Database.StoreProvider(it).block(it)
+            Database.StoreProvider(it, mockk(relaxed = true)).block(it)
         }
 }

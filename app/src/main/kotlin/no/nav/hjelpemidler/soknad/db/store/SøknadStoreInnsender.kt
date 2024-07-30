@@ -10,7 +10,7 @@ import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
-import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
+import no.nav.hjelpemidler.soknad.db.domain.tilBehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.LocalDateTime
 import java.util.Date
@@ -78,7 +78,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
             val datoOpprettet = it.sqlTimestamp("created")
             SøknadForInnsender(
                 søknadId = it.uuid("soknads_id"),
-                behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
                 datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),
@@ -152,7 +152,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
             val datoOpprettet = it.sqlTimestamp("created")
             SøknadForInnsender(
                 søknadId = it.uuid("soknads_id"),
-                behovsmeldingType = it.behovsmeldingType("behovsmeldingType"),
+                behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
                 datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),

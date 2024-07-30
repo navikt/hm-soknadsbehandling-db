@@ -25,7 +25,6 @@ import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.redirectInternally
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
-import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.sak.sakApi
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.søknadApi
@@ -37,9 +36,9 @@ private val logg = KotlinLogging.logger {}
 
 fun Route.azureADRoutes(
     transaction: Transaction,
-    metrics: Metrics,
+    serviceContext: ServiceContext,
 ) {
-    søknadApi(transaction)
+    søknadApi(transaction, serviceContext)
     sakApi(transaction)
     kommuneApi(transaction)
 
@@ -168,7 +167,7 @@ fun Route.azureADRoutes(
         logg.info { "Oppdaterer status på søknad med søknadId: $søknadId, nyStatus: $nyStatus" }
         val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, nyStatus) }
         call.respond(rowsUpdated)
-        metrics.measureElapsedTimeBetweenStatusChanges(søknadId, nyStatus)
+        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, nyStatus)
     }
 
     put("/soknad/statusV2") {
@@ -176,7 +175,7 @@ fun Route.azureADRoutes(
         logg.info { "Oppdaterer status på søknad med søknadId: ${statusMedÅrsak.søknadId}, nyStatus: ${statusMedÅrsak.status} (v2)" }
         val rowsUpdated = transaction { søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak) }
         call.respond(rowsUpdated)
-        metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
+        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
     }
 
     get("/soknad/bruker/finnes/{soknadId}") {

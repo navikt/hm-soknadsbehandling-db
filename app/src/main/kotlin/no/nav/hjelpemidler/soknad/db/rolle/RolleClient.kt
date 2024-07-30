@@ -11,15 +11,15 @@ import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.jsonMapper
-import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 
 private val logg = KotlinLogging.logger { }
 
 class RolleClient(
-    private val tokendingsService: TokendingsService,
     private val url: String = Configuration.HM_ROLLER_URL,
     private val audience: String = Configuration.HM_ROLLER_AUDIENCE,
 ) {
+    private val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     private val client: HttpClient = createHttpClient(Apache.create(), jsonMapper)
 
     suspend fun hentRolle(token: String): RolleResultat {

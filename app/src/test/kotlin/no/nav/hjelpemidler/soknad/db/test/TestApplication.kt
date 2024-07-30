@@ -11,11 +11,10 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
 import no.nav.hjelpemidler.soknad.db.jsonMapper
-import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
-import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.store.testDatabase
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 
@@ -39,17 +38,23 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
     application {
         felles()
 
+        val serviceContext = ServiceContext(
+            transaction = database,
+            grunndataClient = context.grunndataClient,
+            rolleClient = context.rolleClient,
+            metrics = context.metrics,
+        )
+
         routing {
             route("/api") {
                 tokenXRoutes(
                     transaction = database,
-                    ordreService = OrdreService(database, context.grunndataClient),
-                    rolleService = RolleService(context.rolleClient),
+                    serviceContext = serviceContext,
                     tokenXUserFactory = context.tokenXUserFactory,
                 )
                 azureADRoutes(
                     transaction = database,
-                    metrics = context.metrics,
+                    serviceContext = serviceContext,
                 )
             }
         }

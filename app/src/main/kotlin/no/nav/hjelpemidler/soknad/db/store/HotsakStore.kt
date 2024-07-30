@@ -20,7 +20,7 @@ class HotsakStore(private val tx: JdbcOperations) : Store {
             """.trimIndent(),
             mapOf(
                 "soknadId" to søknadId,
-                "sakId" to sakId.toString(),
+                "sakId" to sakId,
             ),
         ).actualRowCount
 
