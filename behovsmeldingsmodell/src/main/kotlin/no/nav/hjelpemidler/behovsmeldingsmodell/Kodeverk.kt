@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 
 enum class BehovsmeldingType {
     SØKNAD,
@@ -30,6 +31,19 @@ enum class BehovsmeldingStatus {
     ;
 
     fun isSlettetEllerUtløpt(): Boolean = this == SLETTET || this == UTLØPT
+
+    companion object {
+        fun fraVedtaksresultat(vedtaksresultat: Vedtaksresultat): BehovsmeldingStatus {
+            return when (vedtaksresultat.vedtaksresultat) {
+                "A" -> VEDTAKSRESULTAT_AVSLÅTT
+                "DI" -> VEDTAKSRESULTAT_DELVIS_INNVILGET
+                "IM" -> VEDTAKSRESULTAT_MUNTLIG_INNVILGET
+                "I" -> VEDTAKSRESULTAT_INNVILGET
+                "HB" -> VEDTAKSRESULTAT_HENLAGTBORTFALT
+                else -> VEDTAKSRESULTAT_ANNET
+            }
+        }
+    }
 }
 
 enum class InnsenderRolle {

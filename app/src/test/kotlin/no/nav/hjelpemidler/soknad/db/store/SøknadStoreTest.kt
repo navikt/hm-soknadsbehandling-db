@@ -6,12 +6,12 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.domain.BruksarenaBruker
 import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
@@ -213,7 +213,7 @@ class SøknadStoreTest {
                                 }
                         """.trimIndent(),
                     ),
-                    status = Status.VENTER_GODKJENNING,
+                    status = BehovsmeldingStatus.VENTER_GODKJENNING,
                     kommunenavn = null,
                     er_digital = true,
                     soknadGjelder = null,
@@ -239,7 +239,7 @@ class SøknadStoreTest {
                     fnrInnsender = lagFødselsnummer(),
                     soknadId = UUID.randomUUID(),
                     soknad = jsonMapper.createObjectNode(),
-                    status = Status.VENTER_GODKJENNING,
+                    status = BehovsmeldingStatus.VENTER_GODKJENNING,
                     kommunenavn = null,
                     er_digital = true,
                     soknadGjelder = null,
@@ -254,10 +254,16 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrBruker)) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                mockSøknad(
+                    søknadId,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    fnrBruker,
+                ),
+            ) shouldBe 1
         }
         testTransaction {
-            søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
             søknadStore.hentSøknaderForBruker(fnrBruker).shouldBeSingleton {
@@ -272,13 +278,19 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrBruker)) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                mockSøknad(
+                    søknadId,
+                    BehovsmeldingStatus.VENTER_GODKJENNING,
+                    fnrBruker,
+                ),
+            ) shouldBe 1
         }
         testTransaction {
-            søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.GODKJENT) shouldBe 1
         }
         testTransaction {
-            søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
         }
         testTransaction {
             søknadStore.hentSøknaderForBruker(fnrBruker).shouldBeSingleton {
@@ -300,7 +312,7 @@ class SøknadStoreTest {
                     fnrInnsender = lagFødselsnummer(),
                     soknadId = søknadId,
                     soknad = jsonMapper.createObjectNode(),
-                    status = Status.VENTER_GODKJENNING,
+                    status = BehovsmeldingStatus.VENTER_GODKJENNING,
                     kommunenavn = null,
                     er_digital = true,
                     soknadGjelder = null,
@@ -328,8 +340,8 @@ class SøknadStoreTest {
         val søknadId2 = UUID.randomUUID()
 
         testTransaction { tx ->
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId1, Status.GODKJENT))
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId2, Status.GODKJENT_MED_FULLMAKT))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId1, BehovsmeldingStatus.GODKJENT))
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId2, BehovsmeldingStatus.GODKJENT_MED_FULLMAKT))
         }
         testTransaction { tx ->
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '2 day') WHERE SOKNADS_ID = '$søknadId1'")
@@ -370,7 +382,7 @@ class SøknadStoreTest {
                     fnrInnsender = lagFødselsnummer(),
                     soknadId = søknadId,
                     soknad = jsonMapper.createObjectNode(),
-                    status = Status.GODKJENT_MED_FULLMAKT,
+                    status = BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
                     kommunenavn = null,
                     er_digital = true,
                     soknadGjelder = null,
@@ -391,7 +403,7 @@ class SøknadStoreTest {
                 PapirSøknadData(
                     fnrBruker = lagFødselsnummer(),
                     soknadId = søknadId,
-                    status = Status.ENDELIG_JOURNALFØRT,
+                    status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
                     journalpostid = 1020,
                     navnBruker = "Fornavn Etternavn",
                 ),
@@ -408,7 +420,7 @@ class SøknadStoreTest {
                 PapirSøknadData(
                     fnrBruker = lagFødselsnummer(),
                     soknadId = søknadId,
-                    status = Status.ENDELIG_JOURNALFØRT,
+                    status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
                     journalpostid = 2040,
                     navnBruker = "Fornavn Etternavn",
                 ),

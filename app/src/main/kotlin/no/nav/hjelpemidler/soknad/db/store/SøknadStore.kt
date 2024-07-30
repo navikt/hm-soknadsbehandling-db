@@ -5,10 +5,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.enumOrNull
@@ -18,15 +20,14 @@ import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
+import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
@@ -34,30 +35,50 @@ import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.behovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.tilSøknad
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import java.math.BigInteger
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.Date
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations) : Store {
+    // fixme -> singleton
     private val slack = slack(engine = Apache.create())
 
-    fun søknadFinnes(søknadId: UUID): Boolean {
-        val uuid = tx.singleOrNull(
+    fun finnSøknad(søknadId: UUID): Søknad? {
+        return tx.singleOrNull(
             """
-                SELECT soknads_id
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
+                SELECT DISTINCT ON (soknad.soknads_id)
+                       soknad.soknads_id,
+                       soknad.created AS soknad_opprettet,
+                       soknad.updated AS soknad_endret,
+                       soknad.soknad_gjelder,
+                       soknad.fnr_innsender,
+                       soknad.fnr_bruker,
+                       soknad.navn_bruker,
+                       soknad.kommunenavn,
+                       soknad.journalpostid,
+                       soknad.oppgaveid,
+                       soknad.er_digital,
+                       COALESCE(
+                               soknad.data ->> 'behovsmeldingType',
+                               'SØKNAD'
+                       )              AS behovsmeldingstype,
+                       status.status  AS status,
+                       status.created AS status_endret
+                FROM v1_soknad AS soknad
+                         INNER JOIN v1_status AS status ON soknad.soknads_id = status.soknads_id
+                WHERE soknad.soknads_id = :soknadId
+                ORDER BY soknad.soknads_id, status.created DESC
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) { it.uuid("soknads_id") }
-        return uuid != null
+            Row::tilSøknad,
+        )
     }
 
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
@@ -111,12 +132,12 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             mapOf(
                 "soknadId" to søknadId,
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
                 ).toStringArray(),
             ),
         ) {
-            val status = it.enum<Status>("status")
+            val status = it.enum<BehovsmeldingStatus>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
@@ -159,17 +180,6 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         }
     }
 
-    fun hentSøknadOpprettetDato(søknadId: UUID): Date? {
-        return tx.singleOrNull(
-            """
-                SELECT created
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.sqlTimestamp("created") }
-    }
-
     fun hentSøknadData(søknadId: UUID): SøknadData? {
         val statement = Sql(
             """
@@ -199,24 +209,13 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
                 navnBruker = it.string("navn_bruker"),
                 fnrInnsender = it.stringOrNull("fnr_innsender"),
                 soknadId = it.uuid("soknads_id"),
-                status = Status.valueOf(it.string("status")),
+                status = it.enum("status"),
                 soknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
                 kommunenavn = it.stringOrNull("kommunenavn"),
                 er_digital = it.boolean("er_digital"),
                 soknadGjelder = it.stringOrNull("soknad_gjelder"),
             )
         }
-    }
-
-    fun hentFnrForSøknad(søknadId: UUID): String {
-        return tx.singleOrNull(
-            """
-                SELECT fnr_bruker
-                FROM v1_soknad
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.string("fnr_bruker") } ?: error("Fant ikke fnr for søknadId: $søknadId")
     }
 
     fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int {
@@ -243,7 +242,7 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    fun oppdaterStatus(søknadId: UUID, status: Status): Int {
+    fun oppdaterStatus(søknadId: UUID, status: BehovsmeldingStatus): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
             """
@@ -265,11 +264,11 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    fun slettSøknad(søknadId: UUID): Int = slettSøknad(søknadId, Status.SLETTET)
+    fun slettSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.SLETTET)
 
-    fun slettUtløptSøknad(søknadId: UUID): Int = slettSøknad(søknadId, Status.UTLØPT)
+    fun slettUtløptSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.UTLØPT)
 
-    private fun slettSøknad(søknadId: UUID, status: Status): Int {
+    private fun slettSøknad(søknadId: UUID, status: BehovsmeldingStatus): Int {
         if (checkIfLastStatusMatches(søknadId, status)) return 0
         tx.update(
             """
@@ -356,12 +355,12 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             mapOf(
                 "fnrBruker" to fnrBruker,
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
                 ).toStringArray(),
             ),
         ) {
-            val status = it.enum<Status>("status")
+            val status = it.enum<BehovsmeldingStatus>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
@@ -411,11 +410,11 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
 
         return tx.list(
             statement,
-            mapOf("status" to Status.VENTER_GODKJENNING),
+            mapOf("status" to BehovsmeldingStatus.VENTER_GODKJENNING),
         ) {
             UtgåttSøknad(
                 søknadId = it.uuid("soknads_id"),
-                status = it.enum<Status>("status"),
+                status = it.enum<BehovsmeldingStatus>("status"),
                 fnrBruker = it.string("fnr_bruker"),
             )
         }
@@ -453,19 +452,20 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    private fun checkIfLastStatusMatches(søknadId: UUID, status: Status): Boolean {
+    private fun checkIfLastStatusMatches(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+    ): Boolean {
         return tx.singleOrNull(
             """
                 SELECT status
                 FROM v1_status
-                WHERE id = (SELECT id
-                            FROM v1_status
-                            WHERE soknads_id = :soknadId
-                            ORDER BY created DESC
-                            LIMIT 1)
+                WHERE soknads_id = :soknadId
+                ORDER BY created DESC
+                LIMIT 1
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) { it.enumOrNull<Status>("status") } == status
+        ) { it.enumOrNull<BehovsmeldingStatus>("status") } == status
     }
 
     fun lagrePapirsøknad(soknadData: PapirSøknadData): Int {
@@ -554,24 +554,13 @@ class SøknadStore(private val tx: JdbcOperations) : Store {
             statement,
             mapOf(
                 "status" to enumSetOf(
-                    Status.GODKJENT_MED_FULLMAKT,
-                    Status.GODKJENT,
-                    Status.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
-                    Status.BRUKERPASSBYTTE_INNSENDT,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    BehovsmeldingStatus.GODKJENT,
+                    BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
+                    BehovsmeldingStatus.BRUKERPASSBYTTE_INNSENDT,
                 ).toStringArray(),
             ),
         ) { it.string("soknads_id") }
-    }
-
-    fun behovsmeldingTypeFor(søknadId: UUID): BehovsmeldingType? {
-        return tx.singleOrNull(
-            """
-                SELECT soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype
-                FROM v1_soknad AS soknad
-                WHERE soknad.soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.behovsmeldingType("behovsmeldingType") }
     }
 
     fun tellStatuser(): List<StatusCountRow> {

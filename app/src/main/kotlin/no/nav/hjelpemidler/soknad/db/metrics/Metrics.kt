@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,34 +36,37 @@ class Metrics(
         )
     }
 
-    suspend fun measureElapsedTimeBetweenStatusChanges(søknadId: UUID, status: Status) = withContext(Dispatchers.IO) {
+    suspend fun measureElapsedTimeBetweenStatusChanges(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+    ) = withContext(Dispatchers.IO) {
         launch {
             recordForStatus(
                 søknadId,
                 status,
                 TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT,
-                listOf(Status.VENTER_GODKJENNING),
-                listOf(Status.GODKJENT),
+                listOf(BehovsmeldingStatus.VENTER_GODKJENNING),
+                listOf(BehovsmeldingStatus.GODKJENT),
             )
             recordForStatus(
                 søknadId,
                 status,
                 TID_FRA_GODKJENT_TIL_JOURNALFORT,
-                listOf(Status.GODKJENT, Status.GODKJENT_MED_FULLMAKT),
-                listOf(Status.ENDELIG_JOURNALFØRT),
+                listOf(BehovsmeldingStatus.GODKJENT, BehovsmeldingStatus.GODKJENT_MED_FULLMAKT),
+                listOf(BehovsmeldingStatus.ENDELIG_JOURNALFØRT),
             )
             recordForStatus(
                 søknadId,
                 status,
                 TID_FRA_JOURNALFORT_TIL_VEDTAK,
-                listOf(Status.ENDELIG_JOURNALFØRT),
+                listOf(BehovsmeldingStatus.ENDELIG_JOURNALFØRT),
                 listOf(
-                    Status.VEDTAKSRESULTAT_ANNET,
-                    Status.VEDTAKSRESULTAT_AVSLÅTT,
-                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                    Status.VEDTAKSRESULTAT_INNVILGET,
-                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
-                    Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_ANNET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_AVSLÅTT,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                 ),
             )
             recordForStatus(
@@ -71,24 +74,24 @@ class Metrics(
                 status,
                 TID_FRA_VEDTAK_TIL_UTSENDING,
                 listOf(
-                    Status.VEDTAKSRESULTAT_ANNET,
-                    Status.VEDTAKSRESULTAT_AVSLÅTT,
-                    Status.VEDTAKSRESULTAT_DELVIS_INNVILGET,
-                    Status.VEDTAKSRESULTAT_INNVILGET,
-                    Status.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
-                    Status.VEDTAKSRESULTAT_HENLAGTBORTFALT,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_ANNET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_AVSLÅTT,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_DELVIS_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_MUNTLIG_INNVILGET,
+                    BehovsmeldingStatus.VEDTAKSRESULTAT_HENLAGTBORTFALT,
                 ),
-                listOf(Status.UTSENDING_STARTET),
+                listOf(BehovsmeldingStatus.UTSENDING_STARTET),
             )
         }
     }
 
     private suspend fun recordForStatus(
         søknadId: UUID,
-        status: Status,
+        status: BehovsmeldingStatus,
         metricFieldName: String,
-        validStartStatuses: List<Status>,
-        validEndStatuses: List<Status>,
+        validStartStatuses: List<BehovsmeldingStatus>,
+        validEndStatuses: List<BehovsmeldingStatus>,
     ) {
         try {
             if (status in validEndStatuses) {

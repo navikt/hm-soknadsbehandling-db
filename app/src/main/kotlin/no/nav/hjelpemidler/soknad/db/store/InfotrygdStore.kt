@@ -1,10 +1,13 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.soknad.db.domain.FagsakData
-import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
+import no.nav.hjelpemidler.soknad.db.sak.tilInfotrygdSak
 import java.time.LocalDate
 import java.util.UUID
 
@@ -12,19 +15,23 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class InfotrygdStore(private val tx: JdbcOperations) : Store {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
-    fun lagKnytningMellomFagsakOgSøknad(vedtaksresultatData: VedtaksresultatData): Int =
+    fun lagKnytningMellomSakOgSøknad(
+        søknadId: SøknadId,
+        sakId: InfotrygdSakId,
+        fnrBruker: String,
+    ): Int =
         tx.update(
             """
                 INSERT INTO v1_infotrygd_data (soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr)
-                VALUES (:soknadId, :fnrBruker, :trygdekontorNr, :saksblokk, :saksnr)
+                VALUES (:soknadId, :fnrBruker, :trygdekontornummer, :saksblokk, :saksnummer)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to vedtaksresultatData.søknadId,
-                "fnrBruker" to vedtaksresultatData.fnrBruker,
-                "trygdekontorNr" to vedtaksresultatData.trygdekontorNr,
-                "saksblokk" to vedtaksresultatData.saksblokk,
-                "saksnr" to vedtaksresultatData.saksnr,
+                "soknadId" to søknadId,
+                "fnrBruker" to fnrBruker,
+                "trygdekontornummer" to sakId.trygdekontornummer,
+                "saksblokk" to sakId.saksblokk,
+                "saksnummer" to sakId.saksnummer,
             ),
         ).actualRowCount
 
@@ -50,8 +57,28 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
         ),
     ).actualRowCount
 
+    fun finnSak(søknadId: SøknadId): InfotrygdSak? {
+        return tx.singleOrNull(
+            """
+                SELECT soknads_id,
+                       fnr_bruker,
+                       trygdekontornr,
+                       saksblokk,
+                       saksnr,
+                       vedtaksresultat,
+                       vedtaksdato,
+                       created,
+                       soknadstype
+                FROM v1_infotrygd_data
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+            Row::tilInfotrygdSak,
+        )
+    }
+
     // Brukt for å matche OEBS-data mot et Infotrygd-resultat
-    fun hentSøknadIdFraVedtaksresultat(
+    fun hentSøknadIdFraVedtaksresultatV1(
         fnrBruker: String,
         saksblokkOgSaksnr: String,
         vedtaksdato: LocalDate,
@@ -83,14 +110,22 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
         return uuids[0]
     }
 
-    // Brukt for å matche Oebs-data mot eit Infotrygd-resultat i alternativ flyt
+    // Brukt for å matche OEBS-data mot et Infotrygd-resultat i alternativ flyt
     fun hentSøknadIdFraVedtaksresultatV2(
         fnrBruker: String,
         saksblokkOgSaksnr: String,
-    ): List<SøknadIdFraVedtaksresultat> {
+    ): List<InfotrygdSak> {
         return tx.list(
             """
-                SELECT soknads_id, vedtaksdato
+                SELECT soknads_id,
+                       fnr_bruker,
+                       trygdekontornr,
+                       saksblokk,
+                       saksnr,
+                       vedtaksresultat,
+                       vedtaksdato,
+                       created,
+                       soknadstype
                 FROM v1_infotrygd_data
                 WHERE fnr_bruker = :fnrBruker
                   AND saksblokk = :saksblokk
@@ -101,67 +136,7 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
                 "saksblokk" to saksblokkOgSaksnr.first(),
                 "saksnr" to saksblokkOgSaksnr.takeLast(2),
             ),
-        ) {
-            SøknadIdFraVedtaksresultat(
-                it.uuid("soknads_id"),
-                it.localDateOrNull("vedtaksdato"),
-            )
-        }
-    }
-
-    data class SøknadIdFraVedtaksresultat(
-        val søknadId: UUID,
-        val vedtaksDato: LocalDate?,
-    )
-
-    fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatData? {
-        return tx.singleOrNull(
-            """
-                SELECT soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr, vedtaksresultat, vedtaksdato
-                FROM v1_infotrygd_data
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) {
-            VedtaksresultatData(
-                søknadId = it.uuid("soknads_id"),
-                fnrBruker = it.string("fnr_bruker"),
-                trygdekontorNr = it.string("trygdekontornr"),
-                saksblokk = it.string("saksblokk"),
-                saksnr = it.string("saksnr"),
-                vedtaksresultat = it.stringOrNull("vedtaksresultat"),
-                vedtaksdato = it.localDateOrNull("vedtaksdato"),
-            )
-        }
-    }
-
-    fun hentFagsakIdForSøknad(søknadId: UUID): FagsakData? {
-        return tx.singleOrNull(
-            """
-                SELECT soknads_id, trygdekontornr, saksblokk, saksnr
-                FROM v1_infotrygd_data
-                WHERE soknads_id = :soknadId
-                  AND trygdekontornr IS NOT NULL
-                  AND saksblokk IS NOT NULL
-                  AND saksnr IS NOT NULL
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) {
-            FagsakData(
-                søknadId = it.uuid("soknads_id"),
-                fagsakId = it.string("trygdekontornr") + it.string("saksblokk") + it.string("saksnr"),
-            )
-        }
-    }
-
-    fun hentTypeForSøknad(søknadId: UUID): String? {
-        return tx.singleOrNull(
-            """
-                SELECT soknadstype
-                FROM v1_infotrygd_data
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.stringOrNull("soknadstype") }
+            Row::tilInfotrygdSak,
+        )
     }
 }

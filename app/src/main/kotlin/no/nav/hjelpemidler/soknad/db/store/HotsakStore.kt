@@ -1,23 +1,26 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
-import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatHotsakData
+import no.nav.hjelpemidler.soknad.db.sak.tilHotsakSak
 import java.time.LocalDate
 import java.util.UUID
 
 class HotsakStore(private val tx: JdbcOperations) : Store {
-    fun lagKnytningMellomSakOgSøknad(hotsakTilknytningData: HotsakTilknytningData): Int =
+    fun lagKnytningMellomSakOgSøknad(søknadId: SøknadId, sakId: HotsakSakId): Int =
         tx.update(
             """
                 INSERT INTO v1_hotsak_data (soknads_id, saksnummer)
-                VALUES (:soknadId, :saksnummer)
+                VALUES (:soknadId, :sakId)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to hotsakTilknytningData.søknadId,
-                "saksnummer" to hotsakTilknytningData.saksnr,
+                "soknadId" to søknadId,
+                "sakId" to sakId.toString(),
             ),
         ).actualRowCount
 
@@ -39,52 +42,27 @@ class HotsakStore(private val tx: JdbcOperations) : Store {
         ),
     ).actualRowCount
 
-    fun hentVedtaksresultatForSøknad(søknadId: UUID): VedtaksresultatHotsakData? {
+    fun finnSak(søknadId: SøknadId): HotsakSak? {
         return tx.singleOrNull(
             """
-                SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato
+                SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato, created
                 FROM v1_hotsak_data
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) {
-            VedtaksresultatHotsakData(
-                søknadId = it.uuid("soknads_id"),
-                saksnr = it.string("saksnummer"),
-                vedtaksresultat = it.stringOrNull("vedtaksresultat"),
-                vedtaksdato = it.localDateOrNull("vedtaksdato"),
-            )
-        }
+            Row::tilHotsakSak,
+        )
     }
 
-    fun finnSøknadIdForSak(saksnummer: String): UUID? =
-        tx.singleOrNull(
+    fun finnSak(sakId: HotsakSakId): HotsakSak? {
+        return tx.singleOrNull(
             """
-                SELECT soknads_id
+                SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato, created
                 FROM v1_hotsak_data
-                WHERE saksnummer = :saksnummer
+                WHERE saksnummer = :sakId
             """.trimIndent(),
-            mapOf("saksnummer" to saksnummer),
-        ) { it.uuid("soknads_id") }
-
-    fun finnSaksnummerForSøknad(søknadId: UUID): String? =
-        tx.singleOrNull(
-            """
-                SELECT saksnummer
-                FROM v1_hotsak_data
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.string("saksnummer") }
-
-    fun harVedtakForSøknadId(søknadId: UUID): Boolean =
-        tx.singleOrNull(
-            """
-                SELECT 1
-                FROM v1_hotsak_data
-                WHERE soknads_id = :soknadId
-                  AND vedtaksresultat IS NOT NULL
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { true } ?: false
+            mapOf("sakId" to sakId.toString()),
+            Row::tilHotsakSak,
+        )
+    }
 }

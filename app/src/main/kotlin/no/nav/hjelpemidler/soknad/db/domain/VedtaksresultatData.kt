@@ -28,20 +28,4 @@ data class VedtaksresultatData(
             } else {
                 "$trygdekontorNr$saksblokk$saksnr"
             }
-
-    companion object {
-        fun getTrygdekontorNrFromFagsakId(fagsakId: String): String {
-            return fagsakId.take(4)
-        }
-
-        fun getSaksblokkFromFagsakId(fagsakId: String): String {
-            val saksblokkOgSaksnummer = fagsakId.takeLast(3)
-            return saksblokkOgSaksnummer.first().toString()
-        }
-
-        fun getSaksnrFromFagsakId(fagsakId: String): String {
-            val saksblokkOgSaksnummer = fagsakId.takeLast(3)
-            return saksblokkOgSaksnummer.takeLast(2)
-        }
-    }
 }

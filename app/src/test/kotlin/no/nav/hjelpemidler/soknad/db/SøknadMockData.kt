@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.test.readTree
@@ -11,7 +11,7 @@ import java.util.UUID
 
 fun mockSøknad(
     id: UUID,
-    status: Status = Status.VENTER_GODKJENNING,
+    status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
     fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
@@ -121,7 +121,7 @@ fun mockSøknad(
 
 fun mockSøknadMedRullestol(
     id: UUID,
-    status: Status = Status.VENTER_GODKJENNING,
+    status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
 ): SøknadData = SøknadData(
     fnrBruker = fnrBruker,

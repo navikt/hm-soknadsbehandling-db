@@ -10,9 +10,9 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
-import no.nav.hjelpemidler.soknad.db.domain.Status
 import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.lagOrdrelinje
@@ -61,9 +61,6 @@ class AzureADRoutesTest {
         client
             .post("/api/infotrygd/vedtaksresultat") { setBody(vedtaksresultat2) }
             .expect(HttpStatusCode.OK, 1)
-        client
-            .get("/api/infotrygd/søknadsType/$søknadId")
-            .expect(HttpStatusCode.OK, mapOf("søknadsType" to vedtaksresultat2.soknadsType))
         client
             .post("/api/soknad/fra-vedtaksresultat") {
                 setBody(
@@ -134,14 +131,14 @@ class AzureADRoutesTest {
         val søknad = lagreSøknad()
         val søknadId = søknad.soknadId
         client
-            .put("/api/soknad/status/$søknadId") { setBody(Status.GODKJENT_MED_FULLMAKT) }
+            .put("/api/soknad/status/$søknadId") { setBody(BehovsmeldingStatus.GODKJENT_MED_FULLMAKT) }
             .expect(HttpStatusCode.OK, 1)
         client
             .put("/api/soknad/statusV2") {
                 setBody(
                     StatusMedÅrsak(
                         søknadId = søknadId,
-                        status = Status.ENDELIG_JOURNALFØRT,
+                        status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
                         valgteÅrsaker = emptySet(),
                         begrunnelse = "begrunnelse",
                     ),

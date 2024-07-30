@@ -8,8 +8,8 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
@@ -61,7 +61,13 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrFormidler)) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                mockSøknad(
+                    søknadId,
+                    BehovsmeldingStatus.VENTER_GODKJENNING,
+                    fnrInnsender = fnrFormidler,
+                ),
+            ) shouldBe 1
             søknadStore.slettSøknad(søknadId) shouldBe 1
 
             søknadStoreInnsender
@@ -85,7 +91,7 @@ class SøknadStoreInnsenderTest {
                     fnrInnsender = fnrInnsender,
                     soknadId = søknadId,
                     soknad = jsonMapper.createObjectNode(),
-                    status = Status.SLETTET,
+                    status = BehovsmeldingStatus.SLETTET,
                     kommunenavn = null,
                     er_digital = true,
                     soknadGjelder = null,
@@ -112,8 +118,14 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.GODKJENT_MED_FULLMAKT, fnrInnsender = fnrFormidler)) shouldBe 1
-            søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                mockSøknad(
+                    søknadId,
+                    BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
+                    fnrInnsender = fnrFormidler,
+                ),
+            ) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
@@ -129,9 +141,15 @@ class SøknadStoreInnsenderTest {
         val fnrInnsender = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING, fnrInnsender = fnrInnsender)) shouldBe 1
-            søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
-            søknadStore.oppdaterStatus(søknadId, Status.ENDELIG_JOURNALFØRT) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                mockSøknad(
+                    søknadId,
+                    BehovsmeldingStatus.VENTER_GODKJENNING,
+                    fnrInnsender = fnrInnsender,
+                ),
+            ) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.GODKJENT) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.FORMIDLER)
@@ -183,9 +201,9 @@ class SøknadStoreInnsenderTest {
     fun `Metrikker er non-blocking`() = databaseTest {
         val søknadId = lagSøknadId()
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, Status.VENTER_GODKJENNING)) shouldBe 1
-            søknadStore.oppdaterStatus(søknadId, Status.GODKJENT) shouldBe 1
-            søknadStore.oppdaterStatus(søknadId, Status.VEDTAKSRESULTAT_ANNET) shouldBe 1
+            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, BehovsmeldingStatus.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.GODKJENT) shouldBe 1
+            søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.VEDTAKSRESULTAT_ANNET) shouldBe 1
         }
     }
 }

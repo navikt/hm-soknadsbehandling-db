@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.mockSøknad
 import java.util.UUID
 
@@ -16,7 +17,7 @@ fun lagPapirsøknad(
     PapirSøknadData(
         fnrBruker = fnrBruker,
         soknadId = søknadId,
-        status = Status.ENDELIG_JOURNALFØRT,
+        status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
         journalpostid = 1,
         navnBruker = "Fornavn Etternavn",
     )

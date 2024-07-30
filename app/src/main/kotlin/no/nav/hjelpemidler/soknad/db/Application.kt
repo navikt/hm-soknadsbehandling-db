@@ -67,7 +67,6 @@ fun Application.module() {
         route("/api") {
             authenticate(AzureAuthenticator.name) {
                 azureADRoutes(database, metrics)
-                kommuneApi(database)
             }
             authenticate(TokenXAuthenticator.name) {
                 tokenXRoutes(database, ordreService, rolleService)

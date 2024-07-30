@@ -3,6 +3,8 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hast
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
@@ -18,7 +20,7 @@ class SøknadForBruker private constructor(
     val journalpostId: String?,
     val datoOpprettet: Date,
     var datoOppdatert: Date,
-    val status: Status,
+    val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
@@ -38,7 +40,7 @@ class SøknadForBruker private constructor(
             datoOpprettet: Date,
             datoOppdatert: Date,
             søknad: JsonNode,
-            status: Status,
+            status: BehovsmeldingStatus,
             fullmakt: Boolean,
             kommunenavn: String?,
             fnrBruker: String,
@@ -85,7 +87,7 @@ class SøknadForBruker private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            status: Status,
+            status: BehovsmeldingStatus,
             fullmakt: Boolean,
             fnrBruker: String,
             er_digital: Boolean,

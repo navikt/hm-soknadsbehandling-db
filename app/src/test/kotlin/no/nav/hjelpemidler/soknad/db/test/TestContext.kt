@@ -2,6 +2,9 @@ package no.nav.hjelpemidler.soknad.db.test
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -9,8 +12,12 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
@@ -18,11 +25,11 @@ import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
+import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.time.Instant
-import java.util.UUID
 
 class TestContext(
     val client: HttpClient,
@@ -86,15 +93,48 @@ class TestContext(
         return søknad
     }
 
-    suspend fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String) {
+    suspend fun hentSøknad(søknadId: SøknadId): Søknad {
+        val response = client.get(Søknader.SøknadId(søknadId))
+        response shouldHaveStatus HttpStatusCode.OK
+        return response.body()
+    }
+
+    // fixme -> ny url
+    suspend fun oppdaterJournalpostId(
+        søknadId: SøknadId,
+        journalpostId: String,
+    ) {
         client.put("/api/soknad/journalpost-id/$søknadId") {
             setBody(mapOf("journalpostId" to journalpostId))
         } shouldHaveStatus HttpStatusCode.OK
     }
 
-    suspend fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: String) {
+    // fixme -> ny url
+    suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
         client.put("/api/soknad/oppgave-id/$søknadId") {
             setBody(mapOf("oppgaveId" to oppgaveId))
         } shouldHaveStatus HttpStatusCode.OK
+    }
+
+    suspend fun lagreSakstilknytning(
+        søknadId: SøknadId,
+        sakstilknytning: Sakstilknytning,
+    ) {
+        client
+            .post(Søknader.SøknadId.Sak(søknadId)) {
+                setBody(sakstilknytning)
+            }
+            .expect(HttpStatusCode.OK, 1)
+    }
+
+    suspend fun lagreVedtaksresultat(
+        søknadId: SøknadId,
+        vedtaksresultat: Vedtaksresultat,
+    ) {
+        client
+            .post(Søknader.SøknadId.Vedtaksresultat(søknadId)) {
+                setBody(vedtaksresultat)
+            }
+            .expect(HttpStatusCode.OK, 1)
     }
 }

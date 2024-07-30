@@ -1,6 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 import java.util.UUID
 
 /**
@@ -12,8 +16,10 @@ data class SøknadData(
     val fnrInnsender: String?,
     val soknadId: UUID,
     val soknad: JsonNode,
-    val status: Status,
+    val status: BehovsmeldingStatus,
     val kommunenavn: String?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
-)
+) : TilknyttetSøknad {
+    override val søknadId: SøknadId @JsonIgnore get() = soknadId
+}

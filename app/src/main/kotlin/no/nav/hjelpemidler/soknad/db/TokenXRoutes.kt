@@ -7,12 +7,14 @@ import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import no.nav.hjelpemidler.soknad.db.domain.Status
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
-import no.nav.hjelpemidler.soknad.db.resources.Søknader
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
+import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
+import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
@@ -26,6 +28,9 @@ fun Route.tokenXRoutes(
     rolleService: RolleService,
     tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
 ) {
+    // fixme -> singleton
+    val søknadService = SøknadService(transaction)
+
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
         val søknad = transaction { søknadStore.hentSøknad(it.søknadId) }
@@ -43,17 +48,13 @@ fun Route.tokenXRoutes(
                 // Fetch ordrelinjer belonging to søknad
                 søknad.ordrelinjer = ordreService.finnOrdreForSøknad(søknad.søknadId)
 
-                // Fetch fagsakId if it exists
-                val fagsakData1 = transaction { infotrygdStore.hentFagsakIdForSøknad(søknad.søknadId) }
-                if (fagsakData1 != null) {
-                    søknad.fagsakId = fagsakData1.fagsakId
-                } else {
-                    val fagsakData2 = transaction { hotsakStore.finnSaksnummerForSøknad(søknad.søknadId) }
-                    if (fagsakData2 != null) søknad.fagsakId = fagsakData2
+                val sak = søknadService.finnSak(søknad.søknadId)
+                if (sak != null) {
+                    søknad.fagsakId = sak.sakId.toString()
                 }
-
-                // Fetch søknadType for søknad
-                søknad.søknadType = transaction { infotrygdStore.hentTypeForSøknad(søknad.søknadId) }
+                if (sak is InfotrygdSak) {
+                    søknad.søknadType = sak.søknadstype
+                }
 
                 call.respond(søknad)
             }
@@ -122,7 +123,7 @@ fun Route.tokenXRoutes(
                 when {
                     søknad == null -> false
                     søknad.fnrBruker != fnr -> false
-                    else -> søknad.status == Status.VENTER_GODKJENNING
+                    else -> søknad.status == BehovsmeldingStatus.VENTER_GODKJENNING
                 },
             ),
         )
