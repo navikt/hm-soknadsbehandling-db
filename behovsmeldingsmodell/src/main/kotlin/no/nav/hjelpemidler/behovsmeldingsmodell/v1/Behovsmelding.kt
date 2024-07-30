@@ -1,7 +1,44 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell
+package no.nav.hjelpemidler.behovsmeldingsmodell.v1
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.hjelpemidler.behovsmeldingsmodell.AutomatiskGenerertTilbehør
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
+import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
+import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
+import no.nav.hjelpemidler.behovsmeldingsmodell.BytteÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
+import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
+import no.nav.hjelpemidler.behovsmeldingsmodell.HarPersonnavn
+import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt
+import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
+import no.nav.hjelpemidler.behovsmeldingsmodell.KanIkkeAvhjelpesMedEnklereÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.Kontaktperson
+import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
+import no.nav.hjelpemidler.behovsmeldingsmodell.MadrassValg
+import no.nav.hjelpemidler.behovsmeldingsmodell.Oppfølgingsansvarlig
+import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBehov
+import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBruksområde
+import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolLøftType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Organisasjon
+import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
+import no.nav.hjelpemidler.behovsmeldingsmodell.PlasseringType
+import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeBehov
+import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeForBarnBruk
+import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeOppgaverIDagligliv
+import no.nav.hjelpemidler.behovsmeldingsmodell.SidebetjeningspanelPosisjon
+import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.behovsmeldingsmodell.SitteputeValg
+import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
+import no.nav.hjelpemidler.behovsmeldingsmodell.lagPersonnavn
+import no.nav.hjelpemidler.behovsmeldingsmodell.lagVeiadresse
+import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import java.time.LocalDate
 import java.util.UUID
 
@@ -289,7 +326,7 @@ data class Hjelpemiddel(
     @JsonProperty("begrunnelsen") // hvorfor bestemt form?
     val begrunnelse: String? = null,
     @JsonProperty("kanIkkeTilsvarande") // nynorsk
-    val kanIkkeTilsvarende: String? = null,
+    val kanIkkeTilsvarende: Boolean? = null,
     val navn: String? = null,
     val produkt: HjelpemiddelProdukt? = null,
     val rullestolInfo: RullestolInfo? = null,
@@ -310,7 +347,21 @@ data class Hjelpemiddel(
     val diverseInfo: DiverseInfo? = null,
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: Set<Bruksarena> = emptySet(),
-)
+) {
+    val årsakForAntallEnum: ÅrsakForAntall? = when (årsakForAntall) {
+        "Behov i flere etasjer" -> ÅrsakForAntall.BEHOV_I_FLERE_ETASJER
+        "Behov i flere rom" -> ÅrsakForAntall.BEHOV_I_FLERE_ROM
+        "Behov både innendørs og utendørs" -> ÅrsakForAntall.BEHOV_INNENDØRS_OG_UTENDØRS
+        "Behov for pute til flere rullestoler eller sitteenheter" -> ÅrsakForAntall.BEHOV_FOR_FLERE_PUTER_FOR_RULLESTOL
+        "Behov for jevnlig vask eller vedlikehold" -> ÅrsakForAntall.BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD
+        "Bruker har to hjem" -> ÅrsakForAntall.BRUKER_HAR_TO_HJEM
+        "Annet behov" -> ÅrsakForAntall.ANNET_BEHOV
+        "PUTENE_SKAL_KOMBINERES_I_POSISJONERING" -> ÅrsakForAntall.PUTENE_SKAL_KOMBINERES_I_POSISJONERING
+        "BEHOV_HJEMME_OG_I_BARNEHAGE" -> ÅrsakForAntall.BEHOV_HJEMME_OG_I_BARNEHAGE
+        "PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK" -> ÅrsakForAntall.PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK
+        else -> null
+    }
+}
 
 data class Bytte(
     val erTilsvarende: Boolean,
@@ -415,7 +466,7 @@ data class ElektriskRullestolInfo(
 data class Kabin(
     val brukerOppfyllerKrav: Boolean,
     @JsonProperty("kanIkkeAvhjelpesMedEnklereArsak")
-    val kanIkkeAvhjelpesMedEnklereÅrsak: String?,
+    val kanIkkeAvhjelpesMedEnklereÅrsak: KanIkkeAvhjelpesMedEnklereÅrsak?,
     val kanIkkeAvhjelpesMedEnklereBegrunnelse: String?,
     @JsonProperty("arsakForBehovBegrunnelse")
     val årsakForBehovBegrunnelse: String?,

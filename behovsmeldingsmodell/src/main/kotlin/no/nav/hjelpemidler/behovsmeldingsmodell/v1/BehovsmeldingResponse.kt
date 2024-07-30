@@ -1,6 +1,7 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell
+package no.nav.hjelpemidler.behovsmeldingsmodell.v1
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import java.util.UUID
 
 data class BehovsmeldingResponse(
