@@ -7,6 +7,6 @@ class Saker {
     @Resource("/{sakId}")
     class SakId(val sakId: String, val parent: Saker = Saker()) {
         @Resource("/soknad")
-        class Søknad(val parent: SakId)
+        class Søknad(val inkluderData: Boolean = false, val parent: SakId)
     }
 }

@@ -30,7 +30,7 @@ fun Route.sakApi(
         val sakId = HotsakSakId(it.parent.sakId)
         val søknad = transaction {
             val sak = hotsakStore.finnSak(sakId) ?: return@transaction null
-            søknadStore.finnSøknad(sak.søknadId)
+            søknadStore.finnSøknad(sak.søknadId, it.inkluderData)
         } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke søknad for sakId: $sakId")
         call.respond(søknad)
     }

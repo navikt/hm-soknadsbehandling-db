@@ -29,6 +29,7 @@ class Søknader {
     @Resource("/{soknadId}")
     class SøknadId(
         @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
+        val inkluderData: Boolean = false,
         val parent: Søknader = Søknader(),
     ) {
         @Resource("/journalpost")

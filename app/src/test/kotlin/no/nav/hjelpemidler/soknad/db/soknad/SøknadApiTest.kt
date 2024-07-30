@@ -14,7 +14,7 @@ class SøknadApiTest {
     @Test
     fun `Skal hente søknad`() = testApplication {
         val søknadId = lagreSøknad().soknadId
-        val søknad = hentSøknad(søknadId)
+        val søknad = hentSøknad(søknadId, true)
         søknad.søknadId shouldBe søknadId
     }
 

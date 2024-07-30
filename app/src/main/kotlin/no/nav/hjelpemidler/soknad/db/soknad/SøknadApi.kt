@@ -25,7 +25,7 @@ fun Route.søknadApi(
 
     get<Søknader.SøknadId> {
         val søknad = transaction {
-            søknadStore.finnSøknad(it.søknadId)
+            søknadStore.finnSøknad(it.søknadId, it.inkluderData)
         } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke søknad med søknadId: ${it.søknadId}")
         call.respond(HttpStatusCode.OK, søknad)
     }

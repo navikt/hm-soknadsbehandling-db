@@ -93,8 +93,8 @@ class TestContext(
         return søknad
     }
 
-    suspend fun hentSøknad(søknadId: SøknadId): Søknad {
-        val response = client.get(Søknader.SøknadId(søknadId))
+    suspend fun hentSøknad(søknadId: SøknadId, inkluderData: Boolean = false): Søknad {
+        val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body()
     }

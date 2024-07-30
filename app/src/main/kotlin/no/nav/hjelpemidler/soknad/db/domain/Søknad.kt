@@ -1,11 +1,14 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.NullNode
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
+import no.nav.hjelpemidler.database.json
 import java.time.Instant
 
 data class Søknad(
@@ -23,9 +26,10 @@ data class Søknad(
     val behovsmeldingstype: BehovsmeldingType,
     val status: BehovsmeldingStatus,
     val statusEndret: Instant,
+    val data: JsonNode,
 ) : TilknyttetSøknad
 
-fun Row.tilSøknad(): Søknad {
+fun Row.tilSøknad(inkluderData: Boolean = false): Søknad {
     return Søknad(
         søknadId = tilSøknadId(),
         søknadOpprettet = instant("soknad_opprettet"),
@@ -41,5 +45,6 @@ fun Row.tilSøknad(): Søknad {
         behovsmeldingstype = enum<BehovsmeldingType>("behovsmeldingstype"),
         status = enum<BehovsmeldingStatus>("status"),
         statusEndret = instant("status_endret"),
+        data = if (inkluderData) json<JsonNode>("data") else NullNode.getInstance(),
     )
 }

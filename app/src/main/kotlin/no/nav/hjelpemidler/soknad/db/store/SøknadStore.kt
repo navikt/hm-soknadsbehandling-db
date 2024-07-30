@@ -9,7 +9,6 @@ import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
-import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.enumOrNull
@@ -46,7 +45,7 @@ import java.util.UUID
 private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
-    fun finnSøknad(søknadId: UUID): Søknad? {
+    fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): Søknad? {
         return tx.singleOrNull(
             """
                 SELECT DISTINCT ON (soknad.soknads_id)
@@ -61,6 +60,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.journalpostid,
                        soknad.oppgaveid,
                        soknad.er_digital,
+                       ${if (inkluderData) "soknad.data," else ""}
                        COALESCE(
                                soknad.data ->> 'behovsmeldingType',
                                'SØKNAD'
@@ -73,8 +73,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ORDER BY soknad.soknads_id, status.created DESC
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-            Row::tilSøknad,
-        )
+        ) { it.tilSøknad(inkluderData) }
     }
 
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
