@@ -1,6 +1,7 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell
+package no.nav.hjelpemidler.behovsmeldingsmodell.v1
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import java.time.LocalDate
 import java.util.UUID
 

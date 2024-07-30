@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.behovsmeldingsmodell
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.test.jsonMapper
 import no.nav.hjelpemidler.behovsmeldingsmodell.test.readResource
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.BehovsmeldingResponse
 import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.test.Test
 
