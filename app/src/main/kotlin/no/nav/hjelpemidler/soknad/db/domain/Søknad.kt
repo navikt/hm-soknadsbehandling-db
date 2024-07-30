@@ -8,7 +8,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.json
+import no.nav.hjelpemidler.database.jsonOrNull
 import java.time.Instant
 
 data class Søknad(
@@ -29,7 +29,7 @@ data class Søknad(
     val data: JsonNode,
 ) : TilknyttetSøknad
 
-fun Row.tilSøknad(inkluderData: Boolean = false): Søknad {
+fun Row.tilSøknad(): Søknad {
     return Søknad(
         søknadId = tilSøknadId(),
         søknadOpprettet = instant("soknad_opprettet"),
@@ -45,6 +45,6 @@ fun Row.tilSøknad(inkluderData: Boolean = false): Søknad {
         behovsmeldingstype = enum<BehovsmeldingType>("behovsmeldingstype"),
         status = enum<BehovsmeldingStatus>("status"),
         statusEndret = instant("status_endret"),
-        data = if (inkluderData) json<JsonNode>("data") else NullNode.getInstance(),
+        data = jsonOrNull<JsonNode>("data") ?: NullNode.getInstance(),
     )
 }

@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.enumOrNull
@@ -60,7 +61,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.journalpostid,
                        soknad.oppgaveid,
                        soknad.er_digital,
-                       ${if (inkluderData) "soknad.data," else ""}
+                       ${if (inkluderData) "soknad.data," else "NULL AS data,"}
                        COALESCE(
                                soknad.data ->> 'behovsmeldingType',
                                'SØKNAD'
@@ -73,7 +74,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ORDER BY soknad.soknads_id, status.created DESC
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
-        ) { it.tilSøknad(inkluderData) }
+            Row::tilSøknad,
+        )
     }
 
     fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
