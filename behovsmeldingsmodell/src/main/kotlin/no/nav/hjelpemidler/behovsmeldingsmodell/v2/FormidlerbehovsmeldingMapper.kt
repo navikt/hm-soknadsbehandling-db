@@ -215,7 +215,7 @@ private fun trykksårforebygging(hm: Hjelpemiddel): List<Opplysning> {
 }
 
 private fun begrunnelseLavereRangeringEllerIkkeTilsvarende(hm: Hjelpemiddel): List<Opplysning> {
-    if (hm.begrunnelse == null) {
+    if (hm.begrunnelse.isNullOrEmpty()) {
         return emptyList()
     }
     val label = if (hm.kanIkkeTilsvarende == true) {
