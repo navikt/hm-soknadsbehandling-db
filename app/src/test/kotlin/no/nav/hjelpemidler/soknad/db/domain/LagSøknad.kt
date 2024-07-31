@@ -8,16 +8,17 @@ fun lagSøknadId(): UUID = UUID.randomUUID()
 
 fun lagSøknad(
     søknadId: UUID = lagSøknadId(),
-): SøknadData = mockSøknad(søknadId)
+    status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
+): SøknadData = mockSøknad(søknadId, status)
 
 fun lagPapirsøknad(
     søknadId: UUID = lagSøknadId(),
     fnrBruker: String = "12345678910",
 ): PapirSøknadData =
     PapirSøknadData(
-        fnrBruker = fnrBruker,
-        soknadId = søknadId,
+        søknadId = søknadId,
+        journalpostId = "1",
         status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-        journalpostid = 1,
+        fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
     )

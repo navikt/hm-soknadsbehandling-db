@@ -9,6 +9,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.ServiceContext
@@ -31,20 +32,20 @@ fun Route.søknadApi(
     }
 
     put<Søknader.SøknadId.Journalpost> {
-        data class Request(val journalpostId: String)
+        data class Journalpost(val journalpostId: String)
 
         val søknadId = it.parent.søknadId
-        val journalpostId = call.receive<Request>().journalpostId
+        val journalpostId = call.receive<Journalpost>().journalpostId
         logg.info { "Knytter journalpostId: $journalpostId til søknadId: $søknadId" }
         val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
         call.respond(HttpStatusCode.OK, rowsUpdated)
     }
 
     put<Søknader.SøknadId.Oppgave> {
-        data class Request(val oppgaveId: String)
+        data class Oppgave(val oppgaveId: String)
 
         val søknadId = it.parent.søknadId
-        val oppgaveId = call.receive<Request>().oppgaveId
+        val oppgaveId = call.receive<Oppgave>().oppgaveId
         logg.info { "Knytter oppgaveId: $oppgaveId til søknadId: $søknadId" }
         val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
         call.respond(HttpStatusCode.OK, rowsUpdated)
@@ -63,6 +64,27 @@ fun Route.søknadApi(
         val sakstilknytning = call.receive<Sakstilknytning>()
         val rowsUpdated = søknadService.lagreSakstilknytning(it.parent.søknadId, sakstilknytning)
         call.respond(HttpStatusCode.OK, rowsUpdated)
+    }
+
+    put<Søknader.SøknadId.Status> {
+        data class Statusendring(
+            val status: BehovsmeldingStatus,
+            val valgteÅrsaker: Set<String>?,
+            val begrunnelse: String?,
+        )
+
+        val søknadId = it.parent.søknadId
+        val statusendring = call.receive<Statusendring>()
+        val rowsUpdated = transaction {
+            søknadStore.oppdaterStatus(
+                søknadId,
+                statusendring.status,
+                statusendring.valgteÅrsaker,
+                statusendring.begrunnelse,
+            )
+        }
+        call.respond(HttpStatusCode.OK, rowsUpdated)
+        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, statusendring.status)
     }
 
     post<Søknader.SøknadId.Vedtaksresultat> {

@@ -12,7 +12,6 @@ import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.enumOrNull
 import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.pgJsonbOf
@@ -24,7 +23,6 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
-import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
@@ -49,10 +47,9 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
     fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): Søknad? {
         return tx.singleOrNull(
             """
-                SELECT DISTINCT ON (soknad.soknads_id)
-                       soknad.soknads_id,
-                       soknad.created AS soknad_opprettet,
-                       soknad.updated AS soknad_endret,
+                SELECT soknad.soknads_id,
+                       soknad.created           AS soknad_opprettet,
+                       soknad.updated           AS soknad_endret,
                        soknad.soknad_gjelder,
                        soknad.fnr_innsender,
                        soknad.fnr_bruker,
@@ -65,13 +62,13 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        COALESCE(
                                soknad.data ->> 'behovsmeldingType',
                                'SØKNAD'
-                       )              AS behovsmeldingstype,
-                       status.status  AS status,
-                       status.created AS status_endret
+                       )                        AS behovsmeldingstype,
+                       gjeldende_status.status  AS status,
+                       gjeldende_status.created AS status_endret
                 FROM v1_soknad AS soknad
-                         INNER JOIN v1_status AS status ON soknad.soknads_id = status.soknads_id
+                         INNER JOIN v1_gjeldende_status AS gjeldende_status
+                                    ON soknad.soknads_id = gjeldende_status.soknads_id
                 WHERE soknad.soknads_id = :soknadId
-                ORDER BY soknad.soknads_id, status.created DESC
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
             Row::tilSøknad,
@@ -177,115 +174,72 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
     }
 
+    @Deprecated("Bruk finnSøknad()", ReplaceWith("finnSøknad(søknadId, true)"))
     fun hentSøknadData(søknadId: UUID): SøknadData? {
-        val statement = Sql(
-            """
-                SELECT soknad.soknads_id,
-                       soknad.fnr_bruker,
-                       soknad.navn_bruker,
-                       soknad.fnr_innsender,
-                       soknad.data,
-                       soknad.kommunenavn,
-                       soknad.er_digital,
-                       soknad.soknad_gjelder,
-                       status.status
-                FROM v1_soknad AS soknad
-                         LEFT JOIN v1_status AS status
-                                   ON status.id =
-                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
-                WHERE soknad.soknads_id = :soknadId
-            """.trimIndent(),
-        )
+        return finnSøknad(søknadId, true)?.let(::SøknadData)
+    }
 
-        return tx.singleOrNull(
-            statement,
-            mapOf("soknadId" to søknadId),
-        ) {
-            SøknadData(
-                fnrBruker = it.string("fnr_bruker"),
-                navnBruker = it.string("navn_bruker"),
-                fnrInnsender = it.stringOrNull("fnr_innsender"),
-                soknadId = it.uuid("soknads_id"),
-                status = it.enum("status"),
-                soknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
-                kommunenavn = it.stringOrNull("kommunenavn"),
-                er_digital = it.boolean("er_digital"),
-                soknadGjelder = it.stringOrNull("soknad_gjelder"),
+    fun oppdaterStatus(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+        valgteÅrsaker: Set<String>? = null,
+        begrunnelse: String? = null,
+    ): Int {
+        return lagreStatus(søknadId, status, valgteÅrsaker, begrunnelse) {
+            tx.update(
+                """
+                    UPDATE v1_soknad
+                    SET updated = NOW()
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
             )
         }
     }
 
-    fun oppdaterStatusMedÅrsak(statusMedÅrsak: StatusMedÅrsak): Int {
-        if (checkIfLastStatusMatches(statusMedÅrsak.søknadId, statusMedÅrsak.status)) return 0
-        tx.update(
+    private fun lagreStatus(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+        valgteÅrsaker: Set<String>? = null,
+        begrunnelse: String? = null,
+        onInsert: (Int) -> Unit = {},
+    ): Int {
+        val rowsInserted = tx.update(
             """
                 INSERT INTO v1_status (soknads_id, status, begrunnelse, arsaker)
-                VALUES (:soknadId, :status, :begrunnelse, :arsaker)
-            """.trimIndent(),
-            mapOf(
-                "soknadId" to statusMedÅrsak.søknadId,
-                "status" to statusMedÅrsak.status,
-                "begrunnelse" to statusMedÅrsak.begrunnelse,
-                "arsaker" to statusMedÅrsak.valgteÅrsaker?.let { pgJsonbOf(it) },
-            ),
-        )
-        return tx.update(
-            """
-                UPDATE v1_soknad
-                SET updated = NOW()
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to statusMedÅrsak.søknadId),
-        ).actualRowCount
-    }
-
-    fun oppdaterStatus(søknadId: UUID, status: BehovsmeldingStatus): Int {
-        if (checkIfLastStatusMatches(søknadId, status)) return 0
-        tx.update(
-            """
-                INSERT INTO v1_status (soknads_id, status)
-                VALUES (:soknadId, :status)
+                WITH t AS (SELECT :soknadId::uuid            AS soknads_id,
+                                  :status                    AS status,
+                                  :begrunnelse::VARCHAR(500) AS begrunnelse,
+                                  :arsaker::jsonb            AS arsaker)
+                SELECT t.soknads_id, t.status, t.begrunnelse, t.arsaker
+                FROM t LEFT JOIN v1_gjeldende_status AS s ON s.soknads_id = t.soknads_id
+                WHERE t.status IS DISTINCT FROM s.status
             """.trimIndent(),
             mapOf(
                 "soknadId" to søknadId,
                 "status" to status,
+                "begrunnelse" to begrunnelse,
+                "arsaker" to valgteÅrsaker?.let { pgJsonbOf(it) },
             ),
-        )
-        return tx.update(
-            """
-                UPDATE v1_soknad
-                SET updated = NOW()
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
         ).actualRowCount
+        if (rowsInserted > 0) onInsert(rowsInserted)
+        return rowsInserted
     }
 
     fun slettSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.SLETTET)
-
     fun slettUtløptSøknad(søknadId: UUID): Int = slettSøknad(søknadId, BehovsmeldingStatus.UTLØPT)
-
     private fun slettSøknad(søknadId: UUID, status: BehovsmeldingStatus): Int {
-        if (checkIfLastStatusMatches(søknadId, status)) return 0
-        tx.update(
-            """
-                INSERT INTO v1_status (soknads_id, status)
-                VALUES (:soknadId, :status)
-            """.trimIndent(),
-            mapOf(
-                "soknadId" to søknadId,
-                "status" to status,
-            ),
-        )
-        return tx.update(
-            """
-                UPDATE v1_soknad
-                SET updated = NOW(),
-                    data    = NULL
-                WHERE soknads_id = :soknadId
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ).actualRowCount
+        return lagreStatus(søknadId, status) {
+            tx.update(
+                """
+                    UPDATE v1_soknad
+                    SET updated = NOW(),
+                        data    = NULL
+                    WHERE soknads_id = :soknadId
+                """.trimIndent(),
+                mapOf("soknadId" to søknadId),
+            )
+        }
     }
 
     fun oppdaterJournalpostId(søknadId: UUID, journalpostId: String): Int {
@@ -297,7 +251,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
             mapOf(
-                "journalpostId" to BigInteger(journalpostId),
+                "journalpostId" to journalpostId.toBigInteger(),
                 "soknadId" to søknadId,
             ),
         ).actualRowCount
@@ -417,19 +371,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
     }
 
-    fun lagreBehovsmelding(søknadData: SøknadData): Int {
-        if (!checkIfLastStatusMatches(søknadData.soknadId, søknadData.status)) {
-            tx.update(
-                """
-                    INSERT INTO v1_status (soknads_id, status)
-                    VALUES (:soknadId, :status)
-                """.trimIndent(),
-                mapOf(
-                    "soknadId" to søknadData.soknadId,
-                    "status" to søknadData.status,
-                ),
-            )
-        }
+    fun lagreBehovsmelding(søknad: SøknadData): Int {
+        lagreStatus(søknad.søknadId, søknad.status)
         return tx.update(
             """
                 INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital,
@@ -438,46 +381,19 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to søknadData.soknadId,
-                "fnrBruker" to søknadData.fnrBruker,
-                "navnBruker" to søknadData.navnBruker,
-                "fnrInnsender" to søknadData.fnrInnsender,
-                "data" to pgJsonbOf(søknadData.soknad),
-                "kommunenavn" to søknadData.kommunenavn,
-                "soknadGjelder" to (søknadData.soknadGjelder ?: "Søknad om hjelpemidler"),
+                "soknadId" to søknad.soknadId,
+                "fnrBruker" to søknad.fnrBruker,
+                "navnBruker" to søknad.navnBruker,
+                "fnrInnsender" to søknad.fnrInnsender,
+                "data" to pgJsonbOf(søknad.soknad),
+                "kommunenavn" to søknad.kommunenavn,
+                "soknadGjelder" to (søknad.soknadGjelder ?: "Søknad om hjelpemidler"),
             ),
         ).actualRowCount
     }
 
-    private fun checkIfLastStatusMatches(
-        søknadId: UUID,
-        status: BehovsmeldingStatus,
-    ): Boolean {
-        return tx.singleOrNull(
-            """
-                SELECT status
-                FROM v1_status
-                WHERE soknads_id = :soknadId
-                ORDER BY created DESC
-                LIMIT 1
-            """.trimIndent(),
-            mapOf("soknadId" to søknadId),
-        ) { it.enumOrNull<BehovsmeldingStatus>("status") } == status
-    }
-
-    fun lagrePapirsøknad(soknadData: PapirSøknadData): Int {
-        if (!checkIfLastStatusMatches(soknadData.soknadId, soknadData.status)) {
-            tx.update(
-                """
-                    INSERT INTO v1_status (soknads_id, status)
-                    VALUES (:soknadId, :status)
-                """.trimIndent(),
-                mapOf(
-                    "soknadId" to soknadData.soknadId,
-                    "status" to soknadData.status,
-                ),
-            )
-        }
+    fun lagrePapirsøknad(søknad: PapirSøknadData): Int {
+        lagreStatus(søknad.søknadId, søknad.status)
         return tx.update(
             """
                 INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpostid, navn_bruker)
@@ -485,10 +401,10 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to soknadData.soknadId,
-                "fnrBruker" to soknadData.fnrBruker,
-                "journalpostId" to soknadData.journalpostid,
-                "navnBruker" to soknadData.navnBruker,
+                "soknadId" to søknad.søknadId,
+                "fnrBruker" to søknad.fnrBruker,
+                "journalpostId" to søknad.journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
+                "navnBruker" to søknad.navnBruker,
             ),
         ).actualRowCount
     }
@@ -510,17 +426,17 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
 
         // Filter out products with no accessories (ca. 2/3 of the cases)
-        return søknader.map { soknad ->
+        return søknader.map { søknad ->
             ForslagsmotorTilbehørHjelpemidler(
                 soknad = ForslagsmotorTilbehørSøknad(
-                    id = soknad.soknad.id,
+                    id = søknad.soknad.id,
                     hjelpemidler = ForslagsmotorTilbehørHjelpemiddelListe(
-                        hjelpemiddelListe = soknad.soknad.hjelpemidler.hjelpemiddelListe.filter {
+                        hjelpemiddelListe = søknad.soknad.hjelpemidler.hjelpemiddelListe.filter {
                             it.tilbehorListe?.isNotEmpty() ?: false
                         },
                     ),
                 ),
-                created = soknad.created,
+                created = søknad.created,
             )
         }
     }
@@ -543,7 +459,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                                     ON soknad.soknads_id = soknader_med_siste_status_godkjent.soknads_id
                 WHERE soknad.oppgaveid IS NULL
                   AND soknad.created < NOW() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
-                  AND soknad.created > NOW() - INTERVAL '90 DAYS' -- OPPGAVEID kolonnen ble lagt til 2021-04-12. Alt før dette har OPPGAVEID == NULL
+                  AND soknad.created > NOW() - INTERVAL '90 DAYS' -- oppgaveid-kolonnen ble lagt til 2021-04-12. Alt før dette har oppgaveid = NULL
             """.trimIndent(),
         )
 

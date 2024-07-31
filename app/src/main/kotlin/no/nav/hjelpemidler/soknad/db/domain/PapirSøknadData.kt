@@ -1,12 +1,15 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
-import java.util.UUID
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 
 data class PapirSøknadData(
-    val fnrBruker: String,
-    val soknadId: UUID,
+    override val søknadId: SøknadId,
+    @JsonAlias("journalpostid")
+    val journalpostId: String,
     val status: BehovsmeldingStatus,
-    val journalpostid: Int,
+    val fnrBruker: String,
     val navnBruker: String,
-)
+) : TilknyttetSøknad

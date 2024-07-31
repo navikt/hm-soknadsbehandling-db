@@ -67,7 +67,7 @@ fun Route.azureADRoutes(
 
     post("/soknad/papir") {
         val søknad = call.receive<PapirSøknadData>()
-        logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.soknadId}" }
+        logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.søknadId}" }
         val rowsUpdated = transaction { søknadStore.lagrePapirsøknad(søknad) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
@@ -123,17 +123,6 @@ fun Route.azureADRoutes(
     }
 
     // fixme -> slettes
-    post("/soknad/hotsak/har-vedtak/fra-søknadid") {
-        data class Request(val søknadId: UUID)
-        data class Response(val harVedtak: Boolean)
-
-        val søknadId = call.receive<Request>().søknadId
-        val harVedtak = transaction { hotsakStore.finnSak(søknadId) }?.vedtak != null
-        logg.info { "Sjekker om søknad med søknadId: $søknadId har vedtak i Hotsak, harVedtak: $harVedtak" }
-        call.respond(Response(harVedtak))
-    }
-
-    // fixme -> slettes
     post("/hotsak/vedtaksresultat") {
         val vedtaksresultat = call.receive<VedtaksresultatDto>()
         logg.info { "Lagrer vedtaksresultat fra Hotsak, søknadId: ${vedtaksresultat.søknadId}" }
@@ -147,6 +136,7 @@ fun Route.azureADRoutes(
         call.respond(rowsUpdated)
     }
 
+    // fixme -> slettes
     delete("/soknad/bruker") {
         val søknadId = call.receive<UUID>()
         logg.info { "Sletter søknad med søknadId: $søknadId" }
@@ -154,6 +144,7 @@ fun Route.azureADRoutes(
         call.respond(rowsDeleted)
     }
 
+    // fixme -> slettes
     delete("/soknad/utlopt/bruker") {
         val søknadId = call.receive<UUID>()
         logg.info { "Sletter utløpt søknad med søknadId: $søknadId" }
@@ -161,6 +152,7 @@ fun Route.azureADRoutes(
         call.respond(rowsDeleted)
     }
 
+    // fixme -> slettes
     put("/soknad/status/{soknadId}") {
         val søknadId = call.søknadId
         val nyStatus = call.receive<BehovsmeldingStatus>()
@@ -170,14 +162,23 @@ fun Route.azureADRoutes(
         serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, nyStatus)
     }
 
+    // fixme -> slettes
     put("/soknad/statusV2") {
         val statusMedÅrsak = call.receive<StatusMedÅrsak>()
         logg.info { "Oppdaterer status på søknad med søknadId: ${statusMedÅrsak.søknadId}, nyStatus: ${statusMedÅrsak.status} (v2)" }
-        val rowsUpdated = transaction { søknadStore.oppdaterStatusMedÅrsak(statusMedÅrsak) }
+        val rowsUpdated = transaction {
+            søknadStore.oppdaterStatus(
+                statusMedÅrsak.søknadId,
+                statusMedÅrsak.status,
+                statusMedÅrsak.valgteÅrsaker,
+                statusMedÅrsak.begrunnelse,
+            )
+        }
         call.respond(rowsUpdated)
         serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
     }
 
+    // fixme -> slettes
     get("/soknad/bruker/finnes/{soknadId}") {
         val søknadId = call.søknadId
         val søknadFinnes = transaction { søknadStore.finnSøknad(søknadId) } != null
@@ -201,6 +202,7 @@ fun Route.azureADRoutes(
         call.respond("fnrOgJournalpostIdFinnes" to fnrOgJournalpostIdFinnes)
     }
 
+    // fixme -> slettes
     get("/soknadsdata/bruker/{soknadId}") {
         val søknadId = call.søknadId
         val søknad = transaction { søknadStore.hentSøknadData(søknadId) }

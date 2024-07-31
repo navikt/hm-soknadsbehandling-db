@@ -56,5 +56,10 @@ class Søknader {
         class Sak(val parent: SøknadId) {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
         }
+
+        @Resource("/status")
+        class Status(val parent: SøknadId) {
+            constructor(søknadId: UUID) : this(SøknadId(søknadId))
+        }
     }
 }

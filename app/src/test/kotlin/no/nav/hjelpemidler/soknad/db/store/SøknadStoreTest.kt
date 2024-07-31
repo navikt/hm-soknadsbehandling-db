@@ -5,6 +5,7 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.domain.BruksarenaBruker
@@ -14,13 +15,14 @@ import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.mockSøknad
 import no.nav.hjelpemidler.soknad.db.mockSøknadMedRullestol
 import no.nav.hjelpemidler.soknad.db.test.readTree
-import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -249,6 +251,23 @@ class SøknadStoreTest {
     }
 
     @Test
+    fun `Søknaden blir ikke oppdatert til samme status igjen`() = databaseTest {
+        val søknadId = UUID.randomUUID()
+        val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
+        testTransaction { søknadStore.lagreBehovsmelding(lagSøknad(søknadId, status1)) } shouldBe 1
+
+        val status2 = BehovsmeldingStatus.GODKJENT
+        testTransaction { søknadStore.oppdaterStatus(søknadId, status2) } shouldBe 1
+        testTransaction { søknadStore.finnSøknad(søknadId) }.shouldNotBeNull { status shouldBe status2 }
+        testTransaction { søknadStore.oppdaterStatus(søknadId, status2) } shouldBe 0
+        testTransaction { søknadStore.finnSøknad(søknadId) }.shouldNotBeNull { status shouldBe status2 }
+
+        val status3 = BehovsmeldingStatus.ENDELIG_JOURNALFØRT
+        testTransaction { søknadStore.oppdaterStatus(søknadId, status3) } shouldBe 1
+        testTransaction { søknadStore.finnSøknad(søknadId) }.shouldNotBeNull { status shouldBe status3 }
+    }
+
+    @Test
     fun `Fullmakt for søknad innsendt av formidler`() = databaseTest {
         val søknadId = UUID.randomUUID()
         val fnrBruker = lagFødselsnummer()
@@ -401,10 +420,10 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.lagrePapirsøknad(
                 PapirSøknadData(
-                    fnrBruker = lagFødselsnummer(),
-                    soknadId = søknadId,
+                    søknadId = søknadId,
+                    journalpostId = "1020",
                     status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-                    journalpostid = 1020,
+                    fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                 ),
             ) shouldBe 1
@@ -418,10 +437,10 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.lagrePapirsøknad(
                 PapirSøknadData(
-                    fnrBruker = lagFødselsnummer(),
-                    soknadId = søknadId,
+                    søknadId = søknadId,
+                    journalpostId = "2040",
                     status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-                    journalpostid = 2040,
+                    fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                 ),
             )

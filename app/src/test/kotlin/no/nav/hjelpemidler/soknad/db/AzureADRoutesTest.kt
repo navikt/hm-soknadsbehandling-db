@@ -103,9 +103,6 @@ class AzureADRoutesTest {
         client
             .post("/api/hotsak/vedtaksresultat") { setBody(vedtaksresultat) }
             .expect(HttpStatusCode.OK, 1)
-        client
-            .post("/api/soknad/hotsak/har-vedtak/fra-søknadid") { setBody(mapOf("søknadId" to søknadId)) }
-            .expect(HttpStatusCode.OK, mapOf("harVedtak" to true))
     }
 
     @Test
