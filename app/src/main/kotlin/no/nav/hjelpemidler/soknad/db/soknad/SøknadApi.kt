@@ -75,6 +75,9 @@ fun Route.søknadApi(
 
         val søknadId = it.parent.søknadId
         val statusendring = call.receive<Statusendring>()
+
+        logg.info { "Oppdaterer status på søknad, søknadId: $søknadId, status: ${statusendring.status}" }
+
         val rowsUpdated = transaction {
             søknadStore.oppdaterStatus(
                 søknadId,
