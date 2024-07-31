@@ -30,7 +30,7 @@ data class HjelpemiddelProdukt(
     @JsonProperty("techdataAsText")
     var technicalDataAsText: String?,
     @JsonProperty("paakrevdGodkjenningskurs")
-    var påkrevdGodkjenningskurs: PåkrevdGodkjenningskurs?,
+    val påkrevdGodkjenningskurs: PåkrevdGodkjenningskurs?,
 ) {
     data class TechnicalDatum(
         @JsonProperty("techlabeldk")
@@ -42,7 +42,7 @@ data class HjelpemiddelProdukt(
     )
 
     data class PåkrevdGodkjenningskurs(
-        val kursId: String?,
+        val kursId: Int?,
         val tittel: String?,
         val isokode: String?,
         @JsonProperty("formidlersGjennomforing")
@@ -52,5 +52,12 @@ data class HjelpemiddelProdukt(
     enum class FormidlersGjennomføringAvKurs {
         GODKJENNINGSKURS_DB,
         VALGT_AV_FORMIDLER,
+    }
+
+    enum class KursId(val id: Int) {
+        ELEKTRISK_RULLESTOL(1),
+        PERSONLØFTER_OG_SEIL(2),
+        ELEKTRISK_SENG(3),
+        BESTILLERKURS(4),
     }
 }
