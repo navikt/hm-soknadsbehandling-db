@@ -3,7 +3,6 @@ package no.nav.hjelpemidler.soknad.db
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.maps.shouldContain
-import io.kotest.matchers.shouldBe
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -11,30 +10,23 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
-import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
-import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.domain.lagOrdrelinje
 import no.nav.hjelpemidler.soknad.db.domain.lagPapirsøknad
 import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
-import no.nav.hjelpemidler.soknad.db.domain.lagVedtaksresultat1
-import no.nav.hjelpemidler.soknad.db.domain.lagVedtaksresultat2
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import kotlin.test.Test
 
 class AzureADRoutesTest {
-    @Test
-    fun `Skal hente fnr for søknad`() = testApplication {
-        val søknad = lagreSøknad()
-        client
-            .get("/api/soknad/fnr/${søknad.soknadId}")
-            .expect(HttpStatusCode.OK, søknad.fnrBruker)
-    }
-
     @Test
     fun `Skal lagre ordre`() = testApplication {
         val søknad = lagreSøknad()
@@ -53,31 +45,18 @@ class AzureADRoutesTest {
     @Test
     fun `Skal lagre vedtaksresultat fra Infotrygd`() = testApplication {
         val søknadId = lagSøknadId()
-        val vedtaksresultat1 = lagVedtaksresultat1(søknadId)
-        val vedtaksresultat2 = lagVedtaksresultat2(søknadId)
-        client
-            .post("/api/infotrygd/fagsak") { setBody(vedtaksresultat1) }
-            .expect(HttpStatusCode.Created, 1)
-        client
-            .post("/api/infotrygd/vedtaksresultat") { setBody(vedtaksresultat2) }
-            .expect(HttpStatusCode.OK, 1)
-        client
-            .post("/api/soknad/fra-vedtaksresultat") {
-                setBody(
-                    SøknadFraVedtaksresultatDtoV1(
-                        fnrBruker = vedtaksresultat1.fnrBruker,
-                        saksblokkOgSaksnr = vedtaksresultat1.saksblokkOgSaksnr!!,
-                        vedtaksdato = vedtaksresultat2.vedtaksdato,
-                    ),
-                )
-            }
-            .expect(HttpStatusCode.OK, mapOf("soknadId" to søknadId.toString()))
+        val sakstilknytning = Sakstilknytning.Infotrygd(InfotrygdSakId("9999A01"), lagFødselsnummer())
+        val vedtaksresultat = Vedtaksresultat.Infotrygd("I", LocalDate.now(), "HJDAANS")
+
+        lagreSakstilknytning(søknadId, sakstilknytning)
+        lagreVedtaksresultat(søknadId, vedtaksresultat)
+
         client
             .post("/api/soknad/fra-vedtaksresultat-v2") {
                 setBody(
-                    SøknadFraVedtaksresultatDtoV2(
-                        fnrBruker = vedtaksresultat1.fnrBruker,
-                        saksblokkOgSaksnr = vedtaksresultat1.saksblokkOgSaksnr!!,
+                    mapOf(
+                        "fnrBruker" to sakstilknytning.fnrBruker,
+                        "saksblokkOgSaksnr" to sakstilknytning.sakId.toString().takeLast(3),
                     ),
                 )
             }
@@ -91,18 +70,9 @@ class AzureADRoutesTest {
     @Test
     fun `Skal lagre knytning mellom søknad og sak fra Hotsak`() = testApplication {
         val søknad = lagreSøknad()
-        val saksnummer = "1020"
         val søknadId = søknad.soknadId
-        val vedtaksresultat = lagVedtaksresultat2(søknadId)
-        client
-            .post("/api/hotsak/sak") { setBody(HotsakTilknytningData(søknadId, saksnummer)) }
-            .expect(HttpStatusCode.Created, 1)
-        client
-            .post("/api/soknad/hotsak/fra-saknummer") { setBody(mapOf("saksnummer" to saksnummer)) }
-            .expect(HttpStatusCode.OK, mapOf("soknadId" to søknadId.toString()))
-        client
-            .post("/api/hotsak/vedtaksresultat") { setBody(vedtaksresultat) }
-            .expect(HttpStatusCode.OK, 1)
+        lagreSakstilknytning(søknadId, Sakstilknytning.Hotsak(HotsakSakId("1020")))
+        lagreVedtaksresultat(søknadId, Vedtaksresultat.Hotsak("I", LocalDate.now()))
     }
 
     @Test
@@ -128,31 +98,16 @@ class AzureADRoutesTest {
         val søknad = lagreSøknad()
         val søknadId = søknad.soknadId
         client
-            .put("/api/soknad/status/$søknadId") { setBody(BehovsmeldingStatus.GODKJENT_MED_FULLMAKT) }
-            .expect(HttpStatusCode.OK, 1)
-        client
-            .put("/api/soknad/statusV2") {
+            .put("/api/soknad/$søknadId/status") {
                 setBody(
-                    StatusMedÅrsak(
-                        søknadId = søknadId,
+                    Statusendring(
                         status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-                        valgteÅrsaker = emptySet(),
+                        valgteÅrsaker = setOf("årsak"),
                         begrunnelse = "begrunnelse",
                     ),
                 )
             }
             .expect(HttpStatusCode.OK, 1)
-    }
-
-    @Test
-    fun `Skal sjekke om søknad finnes`() = testApplication {
-        val søknad = lagreSøknad()
-        client
-            .get("/api/soknad/bruker/finnes/${søknad.soknadId}")
-            .expect(HttpStatusCode.OK, "soknadFinnes" to true)
-        client
-            .get("/api/soknad/bruker/finnes/${lagSøknadId()}")
-            .expect(HttpStatusCode.OK, "soknadFinnes" to false)
     }
 
     @Test
@@ -168,24 +123,6 @@ class AzureADRoutesTest {
         client
             .post("/api/infotrygd/fnr-jounralpost") { setBody(dto) }
             .expect(HttpStatusCode.OK, "fnrOgJournalpostIdFinnes" to true)
-    }
-
-    @Test
-    fun `Skal hente søknadsdata`() = testApplication {
-        val søknad = lagreSøknad()
-        client.get("/api/soknadsdata/bruker/${søknad.soknadId}")
-            .expect<Map<String, Any?>>(HttpStatusCode.OK) {
-                it.shouldContain("soknadId", søknad.soknadId.toString())
-            }
-    }
-
-    @Test
-    fun `Hent opprettet dato for søknad`() = testApplication {
-        val søknad = lagreSøknad()
-        client.get("/api/soknad/opprettet-dato/${søknad.soknadId}")
-            .expect<OffsetDateTime>(HttpStatusCode.OK) {
-                it.toLocalDate() shouldBe LocalDate.now()
-            }
     }
 
     @Test
@@ -209,15 +146,6 @@ class AzureADRoutesTest {
         val søknad = lagreSøknad()
         client.get("/api/soknad/ordre/har-ordre/${søknad.soknadId}")
             .expect(HttpStatusCode.OK, HarOrdre(harOrdreAvTypeHjelpemidler = false, harOrdreAvTypeDel = false))
-    }
-
-    @Test
-    fun `Skal hente behovsmeldingstype for søknad`() = testApplication {
-        val søknad = lagreSøknad()
-        client.get("/api/soknad/behovsmeldingType/${søknad.soknadId}")
-            .expect<Map<String, Any?>>(HttpStatusCode.OK) {
-                it.shouldContain("behovsmeldingType", "SØKNAD")
-            }
     }
 
     @Test

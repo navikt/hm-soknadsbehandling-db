@@ -77,39 +77,6 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
         )
     }
 
-    // Brukt for å matche OEBS-data mot et Infotrygd-resultat
-    fun hentSøknadIdFraVedtaksresultatV1(
-        fnrBruker: String,
-        saksblokkOgSaksnr: String,
-        vedtaksdato: LocalDate,
-    ): UUID? {
-        val uuids: List<UUID> = tx.list(
-            """
-                SELECT soknads_id
-                FROM v1_infotrygd_data
-                WHERE fnr_bruker = :fnrBruker
-                  AND saksblokk = :saksblokk
-                  AND saksnr = :saksnr
-                  AND vedtaksdato = :vedtaksdato
-            """.trimIndent(),
-            mapOf(
-                "fnrBruker" to fnrBruker,
-                "saksblokk" to saksblokkOgSaksnr.first(),
-                "saksnr" to saksblokkOgSaksnr.takeLast(2),
-                "vedtaksdato" to vedtaksdato,
-            ),
-        ) { it.uuid("soknads_id") }
-        if (uuids.count() != 1) {
-            if (uuids.count() > 1) {
-                sikkerlogg.info { "Fant flere søknader med matchende fnr, saksnr og vedtaksdato, saksblokkOgSaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato, antall: ${uuids.count()}, ids: [$uuids]" }
-            } else {
-                sikkerlogg.info { "Kan ikke knytte ordrelinje til søknad. saksblokkOgSaksnr: $saksblokkOgSaksnr, vedtaksdato: $vedtaksdato" }
-            }
-            return null
-        }
-        return uuids[0]
-    }
-
     // Brukt for å matche OEBS-data mot et Infotrygd-resultat i alternativ flyt
     fun hentSøknadIdFraVedtaksresultatV2(
         fnrBruker: String,

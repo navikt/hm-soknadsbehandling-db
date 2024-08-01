@@ -99,19 +99,17 @@ class TestContext(
         return response.body<Søknad?>()
     }
 
-    // fixme -> ny url
     suspend fun oppdaterJournalpostId(
         søknadId: SøknadId,
         journalpostId: String,
     ) {
-        client.put("/api/soknad/journalpost-id/$søknadId") {
+        client.put("/api/soknad/$søknadId/journalpost") {
             setBody(mapOf("journalpostId" to journalpostId))
         } shouldHaveStatus HttpStatusCode.OK
     }
 
-    // fixme -> ny url
     suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
-        client.put("/api/soknad/oppgave-id/$søknadId") {
+        client.put("/api/soknad/$søknadId/oppgave") {
             setBody(mapOf("oppgaveId" to oppgaveId))
         } shouldHaveStatus HttpStatusCode.OK
     }

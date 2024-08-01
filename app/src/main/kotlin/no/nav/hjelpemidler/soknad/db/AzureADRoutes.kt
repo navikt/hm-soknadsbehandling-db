@@ -11,22 +11,12 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
-import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
-import no.nav.hjelpemidler.soknad.db.domain.HotsakTilknytningData
 import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.StatusMedÅrsak
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
-import no.nav.hjelpemidler.soknad.db.domain.VedtaksresultatData
-import no.nav.hjelpemidler.soknad.db.exception.feilmelding
-import no.nav.hjelpemidler.soknad.db.ktor.redirectInternally
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.sak.sakApi
-import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.søknadApi
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
@@ -42,15 +32,7 @@ fun Route.azureADRoutes(
     sakApi(transaction)
     kommuneApi(transaction)
 
-    // fixme -> slettes
-    get("/soknad/fnr/{soknadId}") {
-        val søknadId = call.søknadId
-        val søknad = transaction {
-            søknadStore.finnSøknad(søknadId)
-        } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke fnr for søknadId: $søknadId")
-        call.respond(søknad.fnrBruker)
-    }
-
+    // fixme -> vurder felles endepunkt for lagring av behovsmeldinger av alle slag
     post("/soknad/bruker") {
         val søknad = call.receive<SøknadData>()
         logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
@@ -58,13 +40,7 @@ fun Route.azureADRoutes(
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
-    post("/ordre") {
-        val ordrelinje = call.receive<OrdrelinjeData>()
-        logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
-        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje) }
-        call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
+    // fixme -> vurder felles endepunkt for lagring av behovsmeldinger av alle slag
     post("/soknad/papir") {
         val søknad = call.receive<PapirSøknadData>()
         logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.søknadId}" }
@@ -72,46 +48,15 @@ fun Route.azureADRoutes(
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
-    // fixme -> slettes
-    post("/infotrygd/fagsak") {
-        val knytning = call.receive<VedtaksresultatData>()
-        logg.info { "Knytter fagsakId: ${knytning.fagsakId} til søknadId: ${knytning.søknadId}" }
-        val rowsUpdated = transaction {
-            infotrygdStore.lagKnytningMellomSakOgSøknad(
-                knytning.søknadId,
-                InfotrygdSakId(knytning.fagsakId!!), // fixme
-                knytning.fnrBruker,
-            )
-        }
+    // fixme -> slettes, bytt til POST /soknad/{soknadId}/ordre
+    post("/ordre") {
+        val ordrelinje = call.receive<OrdrelinjeData>()
+        logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
+        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
-    // fixme -> slettes
-    post("/hotsak/sak") {
-        val knytning = call.receive<HotsakTilknytningData>()
-        logg.info { "Knytter saksnummer: ${knytning.saksnr} til søknadId: ${knytning.søknadId}" }
-        val rowsUpdated = transaction {
-            hotsakStore.lagKnytningMellomSakOgSøknad(knytning.søknadId, HotsakSakId(knytning.saksnr))
-        }
-        call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
-    // fixme -> slettes
-    post("/infotrygd/vedtaksresultat") {
-        val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Infotrygd, søknadId: ${vedtaksresultat.søknadId}" }
-        val rowsUpdated = transaction {
-            infotrygdStore.lagreVedtaksresultat(
-                vedtaksresultat.søknadId,
-                vedtaksresultat.vedtaksresultat,
-                vedtaksresultat.vedtaksdato,
-                vedtaksresultat.soknadsType,
-            )
-        }
-        call.respond(rowsUpdated)
-    }
-
-    // fixme -> slettes
+    // fixme -> slettes, brukes fremdeles i hm-kommune-api, bytt til GET /sak/{sakId}
     post("/soknad/hotsak/fra-saknummer") {
         data class Request(@JsonAlias("saksnummer") val sakId: HotsakSakId)
         data class Response(val soknadId: UUID?)
@@ -122,21 +67,7 @@ fun Route.azureADRoutes(
         call.respond(Response(søknadId))
     }
 
-    // fixme -> slettes
-    post("/hotsak/vedtaksresultat") {
-        val vedtaksresultat = call.receive<VedtaksresultatDto>()
-        logg.info { "Lagrer vedtaksresultat fra Hotsak, søknadId: ${vedtaksresultat.søknadId}" }
-        val rowsUpdated = transaction {
-            hotsakStore.lagreVedtaksresultat(
-                vedtaksresultat.søknadId,
-                vedtaksresultat.vedtaksresultat,
-                vedtaksresultat.vedtaksdato,
-            )
-        }
-        call.respond(rowsUpdated)
-    }
-
-    // fixme -> slettes
+    // fixme -> slettes, bytt til DELETE /soknad/{soknadId}
     delete("/soknad/bruker") {
         val søknadId = call.receive<UUID>()
         logg.info { "Sletter søknad med søknadId: $søknadId" }
@@ -144,7 +75,7 @@ fun Route.azureADRoutes(
         call.respond(rowsDeleted)
     }
 
-    // fixme -> slettes
+    // fixme -> slettes, bytt til DELETE /soknad/{soknadId}?status=UTLØPT
     delete("/soknad/utlopt/bruker") {
         val søknadId = call.receive<UUID>()
         logg.info { "Sletter utløpt søknad med søknadId: $søknadId" }
@@ -152,40 +83,7 @@ fun Route.azureADRoutes(
         call.respond(rowsDeleted)
     }
 
-    // fixme -> slettes
-    put("/soknad/status/{soknadId}") {
-        val søknadId = call.søknadId
-        val nyStatus = call.receive<BehovsmeldingStatus>()
-        logg.info { "Oppdaterer status på søknad med søknadId: $søknadId, nyStatus: $nyStatus" }
-        val rowsUpdated = transaction { søknadStore.oppdaterStatus(søknadId, nyStatus) }
-        call.respond(rowsUpdated)
-        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, nyStatus)
-    }
-
-    // fixme -> slettes
-    put("/soknad/statusV2") {
-        val statusMedÅrsak = call.receive<StatusMedÅrsak>()
-        logg.info { "Oppdaterer status på søknad med søknadId: ${statusMedÅrsak.søknadId}, nyStatus: ${statusMedÅrsak.status} (v2)" }
-        val rowsUpdated = transaction {
-            søknadStore.oppdaterStatus(
-                statusMedÅrsak.søknadId,
-                statusMedÅrsak.status,
-                statusMedÅrsak.valgteÅrsaker,
-                statusMedÅrsak.begrunnelse,
-            )
-        }
-        call.respond(rowsUpdated)
-        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(statusMedÅrsak.søknadId, statusMedÅrsak.status)
-    }
-
-    // fixme -> slettes
-    get("/soknad/bruker/finnes/{soknadId}") {
-        val søknadId = call.søknadId
-        val søknadFinnes = transaction { søknadStore.finnSøknad(søknadId) } != null
-        call.respond("soknadFinnes" to søknadFinnes)
-    }
-
-    // NB! Skrivefeil i denne.
+    // fixme -> slettes, burde kunne orkestreres i backend
     post("/infotrygd/fnr-jounralpost") {
         data class Request(
             val fnrBruker: String,
@@ -202,72 +100,33 @@ fun Route.azureADRoutes(
         call.respond("fnrOgJournalpostIdFinnes" to fnrOgJournalpostIdFinnes)
     }
 
-    // fixme -> slettes
-    get("/soknadsdata/bruker/{soknadId}") {
-        val søknadId = call.søknadId
-        val søknad = transaction { søknadStore.hentSøknadData(søknadId) }
-        when (søknad) {
-            null -> call.feilmelding(HttpStatusCode.NotFound)
-            else -> call.respond(søknad)
-        }
-    }
-
-    post("/soknad/fra-vedtaksresultat") {
-        val dto = call.receive<SøknadFraVedtaksresultatDtoV1>()
-        val søknadId = transaction {
-            infotrygdStore.hentSøknadIdFraVedtaksresultatV1(
-                dto.fnrBruker,
-                dto.saksblokkOgSaksnr,
-                dto.vedtaksdato,
-            )
-        }
-
-        data class Response(val soknadId: UUID?)
-        call.respond(Response(søknadId))
-    }
-
+    // fixme -> finn et bedre pattern
     post("/soknad/fra-vedtaksresultat-v2") {
-        val dto = call.receive<SøknadFraVedtaksresultatDtoV2>()
+        data class Request(
+            val fnrBruker: String,
+            val saksblokkOgSaksnr: String,
+        )
 
         data class Response(
             val søknadId: UUID,
             val vedtaksDato: LocalDate?,
         )
 
+        val request = call.receive<Request>()
         val resultater = transaction {
             infotrygdStore.hentSøknadIdFraVedtaksresultatV2(
-                dto.fnrBruker,
-                dto.saksblokkOgSaksnr,
+                request.fnrBruker,
+                request.saksblokkOgSaksnr,
             )
         }.map { Response(it.søknadId, it.vedtak?.vedtaksdato) }
 
         call.respond(resultater)
     }
 
-    // fixme -> slettes
-    get("/soknad/opprettet-dato/{soknadId}") {
-        val søknadId = call.søknadId
-        val opprettetDato = transaction { søknadStore.finnSøknad(søknadId) }?.søknadOpprettet
-        when (opprettetDato) {
-            null -> call.feilmelding(HttpStatusCode.NotFound)
-            else -> call.respond(opprettetDato)
-        }
-    }
-
     get("/soknad/utgaatt/{dager}") {
         val dager = call.parameters["dager"]?.toInt() ?: throw BadRequestException("Parameter 'dager' var ugyldig")
         val søknader = transaction { søknadStore.hentSøknaderTilGodkjenningEldreEnn(dager) }
         call.respond(søknader)
-    }
-
-    // fixme -> slettes
-    put("/soknad/journalpost-id/{soknadId}") {
-        call.redirectInternally(Søknader.SøknadId.Journalpost(Søknader.SøknadId(call.søknadId)))
-    }
-
-    // fixme -> slettes
-    put("/soknad/oppgave-id/{soknadId}") {
-        call.redirectInternally(Søknader.SøknadId.Oppgave(Søknader.SøknadId(call.søknadId)))
     }
 
     get("/soknad/ordre/ordrelinje-siste-doegn/{soknadId}") {
@@ -280,20 +139,6 @@ fun Route.azureADRoutes(
         val søknadId = call.søknadId
         val result = transaction { ordreStore.harOrdre(søknadId) }
         call.respond(result)
-    }
-
-    // fixme -> slettes
-    get("/soknad/behovsmeldingType/{soknadId}") {
-        val søknadId = call.søknadId
-        val behovsmeldingType = transaction { søknadStore.finnSøknad(søknadId) }?.behovsmeldingstype
-        logg.info {
-            when (behovsmeldingType) {
-                null -> "Kunne ikke finne behovsmeldingType for søknadId: $søknadId"
-                else -> "Fant behovsmeldingType: $behovsmeldingType for søknadId: $søknadId"
-            }
-        }
-        data class Result(val behovsmeldingType: BehovsmeldingType?)
-        call.respond(Result(behovsmeldingType))
     }
 
     get("/forslagsmotor/tilbehoer/datasett") {

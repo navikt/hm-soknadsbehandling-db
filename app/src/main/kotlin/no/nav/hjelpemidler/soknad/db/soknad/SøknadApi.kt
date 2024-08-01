@@ -10,7 +10,7 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.ServiceContext
@@ -70,12 +70,6 @@ fun Route.søknadApi(
     }
 
     put<Søknader.SøknadId.Status> {
-        data class Statusendring(
-            val status: BehovsmeldingStatus,
-            val valgteÅrsaker: Set<String>?,
-            val begrunnelse: String?,
-        )
-
         val søknadId = it.parent.søknadId
         val statusendring = call.receive<Statusendring>()
 
