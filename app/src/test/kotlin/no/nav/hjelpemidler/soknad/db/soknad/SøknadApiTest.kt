@@ -1,28 +1,37 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.should
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.plugins.resources.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.testApplication
+import java.util.UUID
 import kotlin.test.Test
 
 class SøknadApiTest {
     @Test
     fun `Skal hente søknad`() = testApplication {
         val søknadId = lagreSøknad().soknadId
-        val søknad = hentSøknad(søknadId, true)
-        søknad.søknadId shouldBe søknadId
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+        }
+    }
+
+    @Test
+    fun `Skal hente søknad som ikke finnes`() = testApplication {
+        val søknadId = UUID.randomUUID()
+        val søknad = finnSøknad(søknadId, true)
+        søknad shouldBe null
     }
 
     @Test
     fun `Skal oppdatere journalpostId`() = testApplication {
         val søknadId = lagreSøknad().soknadId
-        hentSøknad(søknadId).should {
-            it.journalpostId.shouldBeNull()
+        finnSøknad(søknadId).shouldNotBeNull {
+            journalpostId.shouldBeNull()
         }
         val journalpostId = "102030"
         client
@@ -30,16 +39,16 @@ class SøknadApiTest {
                 setBody(mapOf("journalpostId" to journalpostId))
             }
             .expect(HttpStatusCode.OK, 1)
-        hentSøknad(søknadId).should {
-            it.journalpostId shouldBe journalpostId
+        finnSøknad(søknadId).shouldNotBeNull {
+            journalpostId shouldBe journalpostId
         }
     }
 
     @Test
     fun `Skal oppdatere oppgaveId`() = testApplication {
         val søknadId = lagreSøknad().soknadId
-        hentSøknad(søknadId).should {
-            it.oppgaveId.shouldBeNull()
+        finnSøknad(søknadId).shouldNotBeNull {
+            oppgaveId.shouldBeNull()
         }
         val oppgaveId = "302010"
         client
@@ -47,8 +56,8 @@ class SøknadApiTest {
                 setBody(mapOf("oppgaveId" to oppgaveId))
             }
             .expect(HttpStatusCode.OK, 1)
-        hentSøknad(søknadId).should {
-            it.oppgaveId shouldBe oppgaveId
+        finnSøknad(søknadId).shouldNotBeNull {
+            oppgaveId shouldBe oppgaveId
         }
     }
 }

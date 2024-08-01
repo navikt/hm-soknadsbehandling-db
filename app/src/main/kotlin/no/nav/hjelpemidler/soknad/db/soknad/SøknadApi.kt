@@ -8,6 +8,7 @@ import io.ktor.server.resources.get
 import io.ktor.server.resources.post
 import io.ktor.server.resources.put
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
@@ -25,10 +26,12 @@ fun Route.søknadApi(
     val søknadService = serviceContext.søknadService
 
     get<Søknader.SøknadId> {
-        val søknad = transaction {
-            søknadStore.finnSøknad(it.søknadId, it.inkluderData)
-        } ?: return@get call.feilmelding(HttpStatusCode.NotFound, "Fant ikke søknad med søknadId: ${it.søknadId}")
-        call.respond(HttpStatusCode.OK, søknad)
+        val søknadId = it.søknadId
+        val søknad = transaction { søknadStore.finnSøknad(søknadId, it.inkluderData) }
+        if (søknad == null) {
+            logg.info { "Fant ikke søknad med søknadId: $søknadId" }
+        }
+        call.respondNullable(HttpStatusCode.OK, søknad)
     }
 
     put<Søknader.SøknadId.Journalpost> {

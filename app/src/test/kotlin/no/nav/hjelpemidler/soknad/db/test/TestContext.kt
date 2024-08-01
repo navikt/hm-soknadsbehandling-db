@@ -93,10 +93,10 @@ class TestContext(
         return søknad
     }
 
-    suspend fun hentSøknad(søknadId: SøknadId, inkluderData: Boolean = false): Søknad {
+    suspend fun finnSøknad(søknadId: SøknadId, inkluderData: Boolean = false): Søknad? {
         val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
-        return response.body()
+        return response.body<Søknad?>()
     }
 
     // fixme -> ny url
