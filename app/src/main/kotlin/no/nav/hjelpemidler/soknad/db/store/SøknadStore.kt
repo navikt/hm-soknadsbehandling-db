@@ -22,8 +22,6 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelLi
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.StatusCountRow
-import no.nav.hjelpemidler.soknad.db.domain.StatusRow
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
@@ -32,6 +30,7 @@ import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.jsonMapper
+import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import java.math.BigInteger
 import java.time.DayOfWeek
 import java.time.Instant
@@ -474,44 +473,33 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         ) { it.string("soknads_id") }
     }
 
-    fun tellStatuser(): List<StatusCountRow> {
-        return tx.list(
-            """
-                WITH siste_status AS (SELECT soknads_id, status
-                                      FROM (SELECT soknads_id,
-                                                   status,
-                                                   RANK() OVER (PARTITION BY soknads_id ORDER BY created DESC) AS rangering
-                                            FROM v1_status) t
-                                      WHERE rangering = 1)
-                
-                SELECT status,
-                       COUNT(soknads_id) AS count
-                FROM siste_status
-                GROUP BY status
-            """.trimIndent(),
-        ) {
-            StatusCountRow(
-                it.enum("status"),
-                it.int("count"),
-            )
-        }
+    fun tellStatuser(): Map<BehovsmeldingStatus, Int> {
+        return tx
+            .list(
+                """
+                    SELECT status, COUNT(1) AS antall
+                    FROM v1_gjeldende_status
+                    GROUP BY 1
+                """.trimIndent(),
+            ) { it.enum<BehovsmeldingStatus>("status") to it.int("antall") }
+            .toMap()
     }
 
-    fun hentStatuser(søknadId: UUID): List<StatusRow> {
+    fun hentStatuser(søknadId: UUID): List<StatusTemporal> {
         return tx.list(
             """
-                SELECT status, v1_status.created AS created, er_digital
-                FROM v1_status
-                         JOIN v1_soknad ON v1_status.soknads_id = v1_soknad.soknads_id
-                WHERE v1_status.soknads_id = :soknadId
+                SELECT status.status, status.created, soknad.er_digital
+                FROM v1_status AS status
+                         INNER JOIN v1_soknad AS soknad ON status.soknads_id = soknad.soknads_id
+                WHERE soknad.soknads_id = :soknadId
                 ORDER BY created DESC
-            """.trimIndent(), // ORDER is just a preventative measure
+            """.trimIndent(), // ORDER BY is just a preventative measure
             mapOf("soknadId" to søknadId),
         ) {
-            StatusRow(
-                it.enum("status"),
-                it.sqlTimestamp("created"),
-                it.boolean("er_digital"),
+            StatusTemporal(
+                status = it.enum("status"),
+                opprettet = it.instant("created"),
+                digital = it.boolean("er_digital"),
             )
         }
     }

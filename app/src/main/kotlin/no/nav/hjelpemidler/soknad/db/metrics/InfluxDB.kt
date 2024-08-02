@@ -4,6 +4,7 @@ import com.influxdb.client.InfluxDBClientFactory
 import com.influxdb.client.domain.WritePrecision
 import com.influxdb.client.write.Point
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.configuration.InfluxDBEnvironmentVariable
 import no.nav.hjelpemidler.configuration.NaisEnvironmentVariable
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
@@ -39,8 +40,8 @@ class InfluxDB {
         writeEvent(metricFieldName, mapOf("elapsed_ms" to tid), emptyMap())
     }
 
-    fun registerStatusCounts(metricFieldName: String, statusCounts: Map<String, Any>) {
-        writeEvent(metricFieldName, statusCounts, emptyMap())
+    fun registerStatusCounts(metricFieldName: String, antallByStatus: Map<BehovsmeldingStatus, Int>) {
+        writeEvent(metricFieldName, antallByStatus.mapKeys { it.key.toString() }, emptyMap())
     }
 
     companion object {

@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Timer
 import java.util.UUID
@@ -98,18 +99,18 @@ class Metrics(
                 val result = transaction { søknadStore.hentStatuser(søknadId) }
 
                 // todo -> if multiple statuses converged to a single common status this would not be necessary
-                val foundEndStatuses = result.filter { statusRow -> statusRow.STATUS in validEndStatuses }
+                val foundEndStatuses = result.filter { statusRow -> statusRow.status in validEndStatuses }
                 if (foundEndStatuses.isEmpty()) return
-                val foundStartStatuses = result.filter { statusRow -> statusRow.STATUS in validStartStatuses }
+                val foundStartStatuses = result.filter { statusRow -> statusRow.status in validStartStatuses }
                 if (foundStartStatuses.isEmpty()) return
 
-                val earliestEndStatus = foundEndStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
-                val earliestStartStatus = foundStartStatuses.minByOrNull { statusRow -> statusRow.CREATED } ?: return
+                val earliestEndStatus = foundEndStatuses.minByOrNull { statusRow -> statusRow.opprettet } ?: return
+                val earliestStartStatus = foundStartStatuses.minByOrNull { statusRow -> statusRow.opprettet } ?: return
 
-                val timeDifference = earliestEndStatus.CREATED.time - earliestStartStatus.CREATED.time
+                val timeDifference = ChronoUnit.MILLIS.between(earliestStartStatus, earliestEndStatus)
 
                 val finalMetricFieldName =
-                    if (foundEndStatuses[0].ER_DIGITAL) {
+                    if (foundEndStatuses[0].digital) {
                         metricFieldName
                     } else {
                         metricFieldName.plus("-papir")
@@ -124,14 +125,9 @@ class Metrics(
 
     private suspend fun countApplicationsByStatus() {
         try {
-            val result = transaction { søknadStore.tellStatuser() }
-
-            val metricsToSend = result.associate { statusRow ->
-                statusRow.STATUS.toString() to statusRow.COUNT.toInt()
-            }
-
-            if (metricsToSend.isNotEmpty()) {
-                influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, metricsToSend)
+            val antallByStatus = transaction { søknadStore.tellStatuser() }
+            if (antallByStatus.isNotEmpty()) {
+                influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, antallByStatus)
             }
         } catch (e: Exception) {
             logg.error(e) { "Feil ved sending antall per status metrikker." }
