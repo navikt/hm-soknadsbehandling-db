@@ -10,7 +10,6 @@ import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
-import no.nav.hjelpemidler.soknad.db.domain.tilBehovsmeldingType
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.LocalDateTime
 import java.util.Date

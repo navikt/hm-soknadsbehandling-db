@@ -3,11 +3,12 @@ package no.nav.hjelpemidler.soknad.db.domain
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import java.util.Date
 import java.util.UUID
 
 class SøknadMedStatus private constructor(
-    val soknadId: UUID,
+    val soknadId: SøknadId,
     val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
     val datoOpprettet: Date,

@@ -6,7 +6,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.soknad.db.sak.tilHotsakSak
 import java.time.LocalDate
 import java.util.UUID
 

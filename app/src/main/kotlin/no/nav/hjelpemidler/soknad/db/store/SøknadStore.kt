@@ -31,8 +31,6 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
-import no.nav.hjelpemidler.soknad.db.domain.tilBehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.tilSøknad
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import java.math.BigInteger
 import java.time.DayOfWeek

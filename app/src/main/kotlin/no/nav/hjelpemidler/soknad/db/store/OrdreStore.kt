@@ -1,25 +1,25 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
-import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
-import java.util.UUID
 
 class OrdreStore(private val tx: JdbcOperations) : Store {
-    fun lagre(ordrelinje: OrdrelinjeData): Int {
+    fun lagre(søknadId: SøknadId, ordrelinje: Ordrelinje): Int {
         return tx.update(
             """
                 INSERT INTO v1_oebs_data (soknads_id, oebs_id, fnr_bruker, serviceforespoersel, ordrenr, ordrelinje, delordrelinje,
                                           artikkelnr, antall, enhet, produktgruppe, produktgruppenr, hjelpemiddeltype, data)
                 VALUES (:soknadId, :oebsId, :fnrBruker, :serviceforesporsel, :ordrenr, :ordrelinje, :delordrelinje,
-                        :artikkelnr, :antall, :enhet, :produktgruppe, :produktgruppeNr, :hjelpemiddeltype, :data)
+                        :artikkelnr, :antall, :enhet, :produktgruppe, :produktgruppenr, :hjelpemiddeltype, :data)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to ordrelinje.søknadId,
+                "soknadId" to søknadId,
                 "oebsId" to ordrelinje.oebsId,
                 "fnrBruker" to ordrelinje.fnrBruker,
                 "serviceforesporsel" to ordrelinje.serviceforespørsel,
@@ -30,14 +30,14 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
                 "antall" to ordrelinje.antall,
                 "enhet" to ordrelinje.enhet,
                 "produktgruppe" to ordrelinje.produktgruppe,
-                "produktgruppeNr" to ordrelinje.produktgruppeNr,
+                "produktgruppenr" to ordrelinje.produktgruppenr,
                 "hjelpemiddeltype" to ordrelinje.hjelpemiddeltype,
                 "data" to pgJsonbOf(ordrelinje.data),
             ),
         ).actualRowCount
     }
 
-    fun ordreSisteDøgn(søknadId: UUID): HarOrdre {
+    fun ordreSisteDøgn(søknadId: SøknadId): HarOrdre {
         val result = tx.list(
             """
                 SELECT hjelpemiddeltype
@@ -54,7 +54,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         )
     }
 
-    fun harOrdre(søknadId: UUID): HarOrdre {
+    fun harOrdre(søknadId: SøknadId): HarOrdre {
         val result = tx.list(
             """
                 SELECT hjelpemiddeltype
@@ -70,7 +70,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         )
     }
 
-    fun finnOrdreForSøknad(søknadId: UUID): List<SøknadForBrukerOrdrelinje> {
+    fun finnOrdreForSøknad(søknadId: SøknadId): List<SøknadForBrukerOrdrelinje> {
         return tx.list(
             """
                 SELECT artikkelnr,

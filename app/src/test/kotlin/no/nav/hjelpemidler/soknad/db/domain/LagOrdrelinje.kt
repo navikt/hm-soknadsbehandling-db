@@ -1,11 +1,11 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
-import no.nav.hjelpemidler.soknad.db.jsonMapper
+import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 
-fun lagOrdrelinje(søknad: SøknadData): OrdrelinjeData =
+fun lagOrdrelinje(søknad: SøknadData): Ordrelinje =
     lagOrdrelinje().copy(søknadId = søknad.soknadId, fnrBruker = søknad.fnrBruker)
 
-fun lagOrdrelinje(): OrdrelinjeData = OrdrelinjeData(
+fun lagOrdrelinje(): Ordrelinje = Ordrelinje(
     søknadId = lagSøknadId(),
     oebsId = 1000,
     fnrBruker = lagFødselsnummer(),
@@ -17,7 +17,7 @@ fun lagOrdrelinje(): OrdrelinjeData = OrdrelinjeData(
     antall = 1.0,
     enhet = "STK",
     produktgruppe = "produktgruppe",
-    produktgruppeNr = "654321",
+    produktgruppenr = "654321",
     hjelpemiddeltype = "hjelpemiddeltype",
-    data = jsonMapper.createObjectNode(),
+    data = emptyMap(),
 )

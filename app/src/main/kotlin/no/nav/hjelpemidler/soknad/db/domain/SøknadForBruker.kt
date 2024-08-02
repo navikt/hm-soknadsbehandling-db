@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hast
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.jsonMapper
@@ -15,7 +17,7 @@ import java.util.Date
 import java.util.UUID
 
 class SøknadForBruker private constructor(
-    val søknadId: UUID,
+    val søknadId: SøknadId,
     val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
     val datoOpprettet: Date,
@@ -24,7 +26,7 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val søknadsdata: Søknadsdata?,
-    val brukerpassbyttedata: BrukerpassbytteData?,
+    val brukerpassbyttedata: Brukerpassbytte?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -70,7 +72,7 @@ class SøknadForBruker private constructor(
                 },
                 brukerpassbyttedata = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<BrukerpassbytteData>(søknad["brukerpassbytte"])
+                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(søknad["brukerpassbytte"])
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,

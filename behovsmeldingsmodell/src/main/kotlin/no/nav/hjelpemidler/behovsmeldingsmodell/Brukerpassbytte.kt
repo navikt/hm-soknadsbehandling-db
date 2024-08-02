@@ -20,7 +20,7 @@ data class Brukerpassbytte(
         val artnr: String, // er dette hmsnr?
         val navn: String,
         val kategori: String,
-        val kategorinummer: String, // hva slags nummer er dette, isokode?
+        val kategorinummer: String?, // hva slags nummer er dette, isokode?
     )
 
     enum class Bytteårsak {

@@ -11,10 +11,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
+import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.ServiceContext
-import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
 private val logg = KotlinLogging.logger {}
@@ -54,13 +54,20 @@ fun Route.søknadApi(
         call.respond(HttpStatusCode.OK, rowsUpdated)
     }
 
+    post<Søknader.SøknadId.Ordre> {
+        val søknadId = it.parent.søknadId
+        val ordrelinje = call.receive<Ordrelinje>()
+        val rowsUpdated = transaction { ordreStore.lagre(søknadId, ordrelinje) }
+        call.respond(HttpStatusCode.OK, rowsUpdated)
+    }
+
     get<Søknader.SøknadId.Sak> {
         val søknadId = it.parent.søknadId
-        val sak = søknadService.finnSak(søknadId) ?: return@get call.feilmelding(
-            HttpStatusCode.NotFound,
-            "Fant ikke sak for søknadId: $søknadId",
-        )
-        call.respond(HttpStatusCode.OK, sak)
+        val sak = søknadService.finnSak(søknadId)
+        if (sak == null) {
+            logg.info { "Fant ikke sak for søknadId: $søknadId" }
+        }
+        call.respondNullable(HttpStatusCode.OK, sak)
     }
 
     post<Søknader.SøknadId.Sak> {

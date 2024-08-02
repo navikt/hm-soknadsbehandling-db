@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -11,8 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
-import no.nav.hjelpemidler.soknad.db.domain.OrdrelinjeData
+import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
@@ -50,21 +48,10 @@ fun Route.azureADRoutes(
 
     // fixme -> slettes, bytt til POST /soknad/{soknadId}/ordre
     post("/ordre") {
-        val ordrelinje = call.receive<OrdrelinjeData>()
+        val ordrelinje = call.receive<Ordrelinje>()
         logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
-        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje) }
+        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje.søknadId, ordrelinje) }
         call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
-    // fixme -> slettes, brukes fremdeles i hm-kommune-api, bytt til GET /sak/{sakId}
-    post("/soknad/hotsak/fra-saknummer") {
-        data class Request(@JsonAlias("saksnummer") val sakId: HotsakSakId)
-        data class Response(val soknadId: UUID?)
-
-        val sakId = call.receive<Request>().sakId
-        val søknadId = transaction { hotsakStore.finnSak(sakId) }?.søknadId
-        logg.info { "Fant søknadId: $søknadId for sakId: $sakId fra Hotsak" }
-        call.respond(Response(søknadId))
     }
 
     // fixme -> slettes, bytt til DELETE /soknad/{soknadId}

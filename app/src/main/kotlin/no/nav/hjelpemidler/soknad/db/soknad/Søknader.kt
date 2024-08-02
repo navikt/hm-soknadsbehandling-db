@@ -47,11 +47,6 @@ class Søknader {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
         }
 
-        @Resource("/vedtaksresultat")
-        class Vedtaksresultat(val parent: SøknadId) {
-            constructor(søknadId: UUID) : this(SøknadId(søknadId))
-        }
-
         @Resource("/sak")
         class Sak(val parent: SøknadId) {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
@@ -59,6 +54,11 @@ class Søknader {
 
         @Resource("/status")
         class Status(val parent: SøknadId) {
+            constructor(søknadId: UUID) : this(SøknadId(søknadId))
+        }
+
+        @Resource("/vedtaksresultat")
+        class Vedtaksresultat(val parent: SøknadId) {
             constructor(søknadId: UUID) : this(SøknadId(søknadId))
         }
     }
