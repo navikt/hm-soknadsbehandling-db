@@ -10,6 +10,7 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
@@ -24,6 +25,12 @@ fun Route.søknadApi(
     serviceContext: ServiceContext,
 ) {
     val søknadService = serviceContext.søknadService
+
+    post<Søknader> {
+        val grunnlag = call.receive<Behovsmeldingsgrunnlag>()
+        val rowsUpdated = søknadService.lagreBehovsmelding(grunnlag)
+        call.respond(HttpStatusCode.OK, rowsUpdated)
+    }
 
     get<Søknader.SøknadId> {
         val søknadId = it.søknadId
@@ -79,17 +86,12 @@ fun Route.søknadApi(
     put<Søknader.SøknadId.Status> {
         val søknadId = it.parent.søknadId
         val statusendring = call.receive<Statusendring>()
-
-        logg.info { "Oppdaterer status på søknad, søknadId: $søknadId, status: ${statusendring.status}" }
-
-        val rowsUpdated = transaction {
-            søknadStore.oppdaterStatus(
-                søknadId,
-                statusendring.status,
-                statusendring.valgteÅrsaker,
-                statusendring.begrunnelse,
-            )
-        }
+        val rowsUpdated = søknadService.oppdaterStatus(
+            søknadId,
+            statusendring.status,
+            statusendring.valgteÅrsaker,
+            statusendring.begrunnelse,
+        )
         call.respond(HttpStatusCode.OK, rowsUpdated)
         serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, statusendring.status)
     }

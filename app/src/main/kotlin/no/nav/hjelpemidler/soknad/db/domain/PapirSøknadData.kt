@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 
+@Deprecated("Bruk no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag.Papir")
 data class PapirSøknadData(
     override val søknadId: SøknadId,
     @JsonAlias("journalpostid")

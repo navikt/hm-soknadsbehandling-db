@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
@@ -42,7 +43,17 @@ fun Route.azureADRoutes(
     post("/soknad/papir") {
         val søknad = call.receive<PapirSøknadData>()
         logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.søknadId}" }
-        val rowsUpdated = transaction { søknadStore.lagrePapirsøknad(søknad) }
+        val rowsUpdated = transaction {
+            søknadStore.lagrePapirsøknad(
+                Behovsmeldingsgrunnlag.Papir(
+                    søknadId = søknad.søknadId,
+                    status = søknad.status,
+                    fnrBruker = søknad.fnrBruker,
+                    navnBruker = søknad.navnBruker,
+                    journalpostId = søknad.journalpostId,
+                ),
+            )
+        }
         call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
@@ -74,7 +85,7 @@ fun Route.azureADRoutes(
     post("/infotrygd/fnr-jounralpost") {
         data class Request(
             val fnrBruker: String,
-            val journalpostId: Int,
+            val journalpostId: String,
         )
 
         val fnrOgJournalpostIdFinnesDto = call.receive<Request>()

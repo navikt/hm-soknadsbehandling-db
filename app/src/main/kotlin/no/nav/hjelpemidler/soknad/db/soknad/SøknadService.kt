@@ -2,15 +2,50 @@ package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.store.Transaction
+import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
 class SøknadService(private val transaction: Transaction) {
+    suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
+        val søknadId = grunnlag.søknadId
+        logg.info { "Lagrer behovsmelding, søknadId: $søknadId, digital: ${grunnlag.digital}" }
+        return when (grunnlag) {
+            is Behovsmeldingsgrunnlag.Digital -> transaction {
+                søknadStore.lagreBehovsmelding(grunnlag)
+            }
+
+            is Behovsmeldingsgrunnlag.Papir -> {
+                val journalpostId = grunnlag.journalpostId
+                val fnrOgJournalpostIdFinnes = transaction {
+                    søknadStore.fnrOgJournalpostIdFinnes(grunnlag.fnrBruker, journalpostId)
+                }
+                if (fnrOgJournalpostIdFinnes) {
+                    logg.info { "En søknad med dette fødselsnummeret og journalpostId: $journalpostId er allerede lagret, søknadId: $søknadId" }
+                    return 0
+                }
+                transaction {
+                    val rowsUpdated = søknadStore.lagrePapirsøknad(grunnlag)
+                    val sakstilknytning = grunnlag.sakstilknytning
+                    if (sakstilknytning != null) {
+                        infotrygdStore.lagKnytningMellomSakOgSøknad(
+                            søknadId,
+                            sakstilknytning.sakId,
+                            sakstilknytning.fnrBruker,
+                        )
+                    }
+                    rowsUpdated
+                }
+            }
+        }
+    }
+
     suspend fun finnSak(søknadId: SøknadId): Fagsak? {
         return transaction {
             hotsakStore.finnSak(søknadId) ?: infotrygdStore.finnSak(søknadId)
@@ -61,6 +96,32 @@ class SøknadService(private val transaction: Transaction) {
                     vedtaksdato = vedtaksresultat.vedtaksdato,
                     søknadstype = vedtaksresultat.søknadstype,
                 )
+            }
+        }
+    }
+
+    suspend fun oppdaterStatus(
+        søknadId: UUID,
+        status: BehovsmeldingStatus,
+        valgteÅrsaker: Set<String>? = null,
+        begrunnelse: String? = null,
+    ): Int {
+        return transaction {
+            when (status) {
+                BehovsmeldingStatus.SLETTET -> {
+                    logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                    søknadStore.slettSøknad(søknadId)
+                }
+
+                BehovsmeldingStatus.UTLØPT -> {
+                    logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                    søknadStore.slettUtløptSøknad(søknadId)
+                }
+
+                else -> {
+                    logg.info { "Oppdaterer søknadsstatus, søknadId: $søknadId, status: $status" }
+                    søknadStore.oppdaterStatus(søknadId, status, valgteÅrsaker, begrunnelse)
+                }
             }
         }
     }

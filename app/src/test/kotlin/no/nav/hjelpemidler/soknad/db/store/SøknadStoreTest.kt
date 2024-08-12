@@ -8,10 +8,10 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.soknad.db.domain.BruksarenaBruker
 import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
-import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
@@ -419,12 +419,13 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.lagrePapirsøknad(
-                PapirSøknadData(
+                Behovsmeldingsgrunnlag.Papir(
                     søknadId = søknadId,
-                    journalpostId = "1020",
                     status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
+                    journalpostId = "1020",
+                    sakstilknytning = null,
                 ),
             ) shouldBe 1
         }
@@ -436,12 +437,13 @@ class SøknadStoreTest {
 
         testTransaction {
             søknadStore.lagrePapirsøknad(
-                PapirSøknadData(
+                Behovsmeldingsgrunnlag.Papir(
                     søknadId = søknadId,
-                    journalpostId = "2040",
                     status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
+                    journalpostId = "2040",
+                    sakstilknytning = null,
                 ),
             )
             val søknad = søknadStore.hentSøknad(søknadId)

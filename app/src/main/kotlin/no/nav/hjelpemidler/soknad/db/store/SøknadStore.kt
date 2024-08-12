@@ -1,10 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.convertValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
@@ -21,7 +23,6 @@ import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
-import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
@@ -72,7 +73,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         )
     }
 
-    fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: Int): Boolean {
+    fun fnrOgJournalpostIdFinnes(fnrBruker: String, journalpostId: String): Boolean {
         val uuid = tx.singleOrNull(
             """
                 SELECT soknads_id
@@ -82,7 +83,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             """.trimIndent(),
             mapOf(
                 "fnrBruker" to fnrBruker,
-                "journalpostId" to journalpostId,
+                "journalpostId" to journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
             ),
         ) { it.uuid("soknads_id") }
         return uuid != null
@@ -171,11 +172,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
     }
 
-    @Deprecated("Bruk finnSøknad()", ReplaceWith("finnSøknad(søknadId, true)"))
-    fun hentSøknadData(søknadId: UUID): SøknadData? {
-        return finnSøknad(søknadId, true)?.let(::SøknadData)
-    }
-
     fun oppdaterStatus(
         søknadId: UUID,
         status: BehovsmeldingStatus,
@@ -248,7 +244,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
             mapOf(
-                "journalpostId" to journalpostId.toBigInteger(),
+                "journalpostId" to journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
                 "soknadId" to søknadId,
             ),
         ).actualRowCount
@@ -368,8 +364,24 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
     }
 
+    @Deprecated("Bytt til lagreBehovsmelding(grunnlag)", ReplaceWith(""))
     fun lagreBehovsmelding(søknad: SøknadData): Int {
-        lagreStatus(søknad.søknadId, søknad.status)
+        return lagreBehovsmelding(
+            Behovsmeldingsgrunnlag.Digital(
+                søknadId = søknad.søknadId,
+                status = søknad.status,
+                fnrBruker = søknad.fnrBruker,
+                navnBruker = søknad.navnBruker,
+                fnrInnsender = søknad.fnrInnsender,
+                kommunenavn = søknad.kommunenavn,
+                behovsmelding = jsonMapper.convertValue(søknad.soknad),
+                behovsmeldingGjelder = søknad.soknadGjelder,
+            ),
+        )
+    }
+
+    fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag.Digital): Int {
+        lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
                 INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital,
@@ -378,19 +390,19 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to søknad.soknadId,
-                "fnrBruker" to søknad.fnrBruker,
-                "navnBruker" to søknad.navnBruker,
-                "fnrInnsender" to søknad.fnrInnsender,
-                "data" to pgJsonbOf(søknad.soknad),
-                "kommunenavn" to søknad.kommunenavn,
-                "soknadGjelder" to (søknad.soknadGjelder ?: "Søknad om hjelpemidler"),
+                "soknadId" to grunnlag.søknadId,
+                "fnrBruker" to grunnlag.fnrBruker,
+                "navnBruker" to grunnlag.navnBruker,
+                "fnrInnsender" to grunnlag.fnrInnsender,
+                "data" to pgJsonbOf(grunnlag.behovsmelding),
+                "kommunenavn" to grunnlag.kommunenavn,
+                "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
             ),
         ).actualRowCount
     }
 
-    fun lagrePapirsøknad(søknad: PapirSøknadData): Int {
-        lagreStatus(søknad.søknadId, søknad.status)
+    fun lagrePapirsøknad(grunnlag: Behovsmeldingsgrunnlag.Papir): Int {
+        lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
                 INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpostid, navn_bruker)
@@ -398,10 +410,10 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
-                "soknadId" to søknad.søknadId,
-                "fnrBruker" to søknad.fnrBruker,
-                "journalpostId" to søknad.journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
-                "navnBruker" to søknad.navnBruker,
+                "soknadId" to grunnlag.søknadId,
+                "fnrBruker" to grunnlag.fnrBruker,
+                "journalpostId" to grunnlag.journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
+                "navnBruker" to grunnlag.navnBruker,
             ),
         ).actualRowCount
     }
