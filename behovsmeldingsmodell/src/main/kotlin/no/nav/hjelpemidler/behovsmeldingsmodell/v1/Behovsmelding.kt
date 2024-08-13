@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v1
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.hjelpemidler.behovsmeldingsmodell.AutomatiskGenerertTilbehør
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovForSeng
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
 import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
@@ -426,9 +427,9 @@ data class SengForVendesystemMontering(
 )
 
 data class SengInfo(
-    val påkrevdBehov: String?,
+    val påkrevdBehov: BehovForSeng?,
     val brukerOppfyllerPåkrevdBehov: Boolean?,
-    val behovForSeng: String?,
+    val behovForSeng: BehovForSeng?,
     val behovForSengBegrunnelse: String?,
     val madrassValg: MadrassValg?,
     val høyGrindValg: HøyGrindValg?,
@@ -455,7 +456,12 @@ data class ElektriskRullestolInfo(
     val kanBetjeneMotorisertStyring: Boolean?,
     val ferdesSikkertITrafikk: Boolean?,
     val nedsattGangfunksjon: Boolean?,
-    val oppbevaringOgLagring: Boolean?,
+    /**
+     * Her har det sneket seg inn en skrivefeil både i koden og i enkelte tekster.
+     * Det er oppbevaring og LADING vi er ute etter.
+     */
+    @JsonProperty("oppbevaringOgLagring")
+    val oppbevaringOgLading: Boolean?,
     val oppbevaringInfo: String?,
     val kjentMedForsikring: Boolean?,
     val harSpesialsykkel: Boolean?,

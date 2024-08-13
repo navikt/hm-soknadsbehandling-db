@@ -28,12 +28,11 @@ class Formidlerbehovsmelding(
     val hjelpemidler: Hjelpemidler,
     val levering: Levering,
     val innsender: Innsender,
-    val hast: Hast?,
 ) : Behovsmelding(
     id = id,
     type = type,
     innsendingsdato = innsendingsdato,
-    prioritet = toPrioritet(hast),
+    prioritet = tilPrioritet(levering.hast),
     hjmBrukersFnr = bruker.fnr,
     innsendersFnr = innsender.fnr,
 )
@@ -70,7 +69,11 @@ data class Levering(
     val oppfølgingsansvarlig: Oppfølgingsansvarlig,
     val annenOppfølgingsansvarlig: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenOppfølgingsansvarlig?,
 
-    // utleveringsmåte == null => alle hjm. er allerede utlevert // TODO null her og UTLEVERT i tilleggsinfo, eller kun ALLEREDE_UTLEVERT HER?
+    /**
+     * utleveringsmåte == null -> formidler har ikke fått spm om utlevering fordi det ikke er behov for denne infoen.
+     * Skjer når hvert hjm. er markert som utlevert eller ikke trenger info om utlevering (feks for apper hvor lisens
+     * sendes til MinSide på nav.no, eller til folkereg. adresse for barn under 18 år).
+     */
     val utleveringsmåte: Utleveringsmåte?,
     val annenUtleveringsadresse: Veiadresse?,
 
@@ -80,9 +83,12 @@ data class Levering(
 
     val utleveringMerknad: String,
 
-    // TODO dette er (per i dag) ekstra info som automatisk blir lagt på av behovsmeldingen, og ikke fylt ut av innsender.
-    // burde vi hatt et bedre navn på det? automatiskTilleggsinfo/metainfo eller noe sånnt?
-    val tilleggsinfo: Set<LeveringTilleggsinfo> = emptySet(),
+    val hast: Hast?,
+
+    /**
+     * Inneholder ekstra informasjon som automatisk er utledet. Dvs. det er ikke noe formidler har svart på (direkte).
+     */
+    val automatiskUtledetTilleggsinfo: Set<LeveringTilleggsinfo> = emptySet(),
 )
 
 data class Innsender(
@@ -105,6 +111,7 @@ data class Hjelpemiddel(
     val bytter: List<Bytte>,
     val bruksarena: Set<Bruksarena>,
     val opplysninger: List<Opplysning>,
+    val varsler: List<I18n>,
 
 //    val beskrivelse: String, // TODO hva er dette?
 )
@@ -124,15 +131,21 @@ data class Tilbehør(
     val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
-)
+) {
+    init {
+        if (begrunnelse == null) {
+            require(fritakFraBegrunnelseÅrsak != null) { "fritakFraBegrunnelseÅrsak må være satt når begrunnelse mangler" }
+        }
+    }
+}
 
 data class Opplysning(
-    val label: I18n,
+    val ledetekst: I18n,
     val tekster: List<Tekst>, // TODO bedre navn enn tekst(er)?
 ) {
-    constructor(label: I18n, tekst: Tekst) : this(label = label, tekster = listOf(tekst))
-    constructor(label: I18n, tekst: I18n) : this(label = label, tekst = Tekst(tekst))
-    constructor(label: I18n, tekst: String) : this(label = label, tekst = Tekst(tekst))
+    constructor(ledetekst: I18n, tekst: Tekst) : this(ledetekst = ledetekst, tekster = listOf(tekst))
+    constructor(ledetekst: I18n, tekst: I18n) : this(ledetekst = ledetekst, tekst = Tekst(tekst))
+    constructor(ledetekst: I18n, tekst: String) : this(ledetekst = ledetekst, tekst = Tekst(tekst))
 }
 
 data class Tekst(
@@ -141,11 +154,21 @@ data class Tekst(
 ) {
     constructor(i18n: I18n) : this(i18n = i18n, fritekst = null)
     constructor(fritekst: String) : this(i18n = null, fritekst = fritekst)
+    constructor(nb: String, nn: String) : this(I18n(nb = nb, nn = nn))
+
+    init {
+        require(
+            (i18n != null && fritekst == null) ||
+                (i18n == null && fritekst != null),
+        ) { "Én, og bare én, av i18n eller fritekst må ha verdi." }
+    }
 }
 
 data class I18n(
     val nb: String,
-    val nn: String = nb,
-)
+    val nn: String,
+) {
+    constructor(norsk: String) : this(nb = norsk, nn = norsk) // For enkle tekster som er like på begge målformer
+}
 
-private fun toPrioritet(hast: Hast?): Prioritet = if (hast != null) Prioritet.HAST else Prioritet.NORMAL
+private fun tilPrioritet(hast: Hast?): Prioritet = if (hast != null) Prioritet.HAST else Prioritet.NORMAL

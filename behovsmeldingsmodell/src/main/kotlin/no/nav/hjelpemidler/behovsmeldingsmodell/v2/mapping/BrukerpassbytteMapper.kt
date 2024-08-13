@@ -1,7 +1,10 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell.v2
+package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 
 fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): Brukerpassbytte {
     val fnr = v1.fnr ?: error("Brukerpassbytte ${v1.id} mangler fnr")
@@ -30,7 +33,7 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
         artnr = v1.hjelpemiddel.artnr,
         navn = v1.hjelpemiddel.navn,
         kategori = v1.hjelpemiddel.kategori,
-        iso6 = Iso6(v1.hjelpemiddel.kategorinummer),
+        iso6 = Iso6(v1.hjelpemiddel.kategorinummer ?: error("brukerpassbytte hjelpemiddel.kategorinummer var null")),
     )
 
     return Brukerpassbytte(

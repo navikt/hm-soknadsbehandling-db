@@ -7,8 +7,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product

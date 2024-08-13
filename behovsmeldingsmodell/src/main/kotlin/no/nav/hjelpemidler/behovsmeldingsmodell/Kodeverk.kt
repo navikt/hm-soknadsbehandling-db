@@ -262,6 +262,13 @@ enum class SitteputeValg {
     HAR_FRA_FØR,
 }
 
+enum class BehovForSeng {
+    DYSFUNKSJONELT_SØVNMØNSTER,
+    RISIKO_FOR_FALL_UT_AV_SENG,
+    STERKE_UFRIVILLIGE_BEVEGELSER,
+    ANNET_BEHOV,
+}
+
 enum class MadrassValg {
     @JsonProperty("TrengerMadrass")
     TRENGER_MADRASS,

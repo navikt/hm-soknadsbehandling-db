@@ -7,7 +7,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.tilFormidlerbehovsmeldingV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilFormidlerbehovsmeldingV2
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
