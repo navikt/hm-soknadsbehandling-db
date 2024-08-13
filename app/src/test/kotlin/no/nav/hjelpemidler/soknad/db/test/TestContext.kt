@@ -5,14 +5,18 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
+import io.ktor.client.plugins.resources.put
 import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
@@ -93,25 +97,50 @@ class TestContext(
         return søknad
     }
 
+    suspend inline fun <reified T : Behovsmeldingsgrunnlag> lagreBehovsmelding(grunnlag: T, rowUpdated: Int = 1): T {
+        client
+            .post(Søknader()) { setBody(grunnlag) }
+            .expect(HttpStatusCode.Created, rowUpdated)
+        return grunnlag
+    }
+
+    suspend fun oppdaterStatus(søknadId: SøknadId, status: BehovsmeldingStatus) {
+        client
+            .put(Søknader.SøknadId.Status(søknadId)) {
+                setBody(Statusendring(status = status, valgteÅrsaker = null, begrunnelse = null))
+            }
+            .expect(HttpStatusCode.OK, 1)
+    }
+
     suspend fun finnSøknad(søknadId: SøknadId, inkluderData: Boolean = false): Søknad? {
         val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<Søknad?>()
     }
 
+    suspend inline fun <reified T : Fagsak> finnSak(søknadId: SøknadId): T? {
+        val response = client.get(Søknader.SøknadId.Sak(søknadId))
+        response shouldHaveStatus HttpStatusCode.OK
+        return response.body<T?>()
+    }
+
     suspend fun oppdaterJournalpostId(
         søknadId: SøknadId,
         journalpostId: String,
     ) {
-        client.put("/api/soknad/$søknadId/journalpost") {
-            setBody(mapOf("journalpostId" to journalpostId))
-        } shouldHaveStatus HttpStatusCode.OK
+        client
+            .put(Søknader.SøknadId.Journalpost(søknadId)) {
+                setBody(mapOf("journalpostId" to journalpostId))
+            }
+            .expect(HttpStatusCode.OK, 1)
     }
 
     suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
-        client.put("/api/soknad/$søknadId/oppgave") {
-            setBody(mapOf("oppgaveId" to oppgaveId))
-        } shouldHaveStatus HttpStatusCode.OK
+        client
+            .put(Søknader.SøknadId.Oppgave(søknadId)) {
+                setBody(mapOf("oppgaveId" to oppgaveId))
+            }
+            .expect(HttpStatusCode.OK, 1)
     }
 
     suspend fun lagreSakstilknytning(

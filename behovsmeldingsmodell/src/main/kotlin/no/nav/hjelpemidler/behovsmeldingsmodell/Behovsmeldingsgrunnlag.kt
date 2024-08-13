@@ -11,16 +11,19 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "digital",
+    property = "kilde",
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(Behovsmeldingsgrunnlag.Digital::class, name = "true"),
-    JsonSubTypes.Type(Behovsmeldingsgrunnlag.Papir::class, name = "false"),
+    JsonSubTypes.Type(Behovsmeldingsgrunnlag.Digital::class, name = "DIGITAL"),
+    JsonSubTypes.Type(Behovsmeldingsgrunnlag.Papir::class, name = "PAPIR"),
 )
 sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
     val status: BehovsmeldingStatus
     val fnrBruker: String
     val navnBruker: String
+    val kilde: Kilde
+
+    @get:JsonAlias("er_digital")
     val digital: Boolean
 
     data class Digital(
@@ -35,6 +38,7 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
         @JsonAlias("soknadGjelder")
         val behovsmeldingGjelder: String?,
     ) : Behovsmeldingsgrunnlag {
+        override val kilde: Kilde = Kilde.DIGITAL
         override val digital: Boolean = true
     }
 
@@ -47,6 +51,12 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
         val journalpostId: String,
         val sakstilknytning: Sakstilknytning.Infotrygd? = null,
     ) : Behovsmeldingsgrunnlag {
+        override val kilde: Kilde = Kilde.PAPIR
         override val digital: Boolean = false
+    }
+
+    enum class Kilde {
+        DIGITAL,
+        PAPIR,
     }
 }

@@ -1,20 +1,114 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
+import com.fasterxml.jackson.databind.node.NullNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.client.plugins.resources.put
-import io.ktor.client.request.setBody
-import io.ktor.http.HttpStatusCode
-import no.nav.hjelpemidler.soknad.db.test.expect
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import java.util.UUID
 import kotlin.test.Test
 
 class SøknadApiTest {
     @Test
+    fun `Skal lagre digital behovsmelding`() = testApplication {
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital())
+        val søknadId = grunnlag.søknadId
+        finnSøknad(søknadId).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe grunnlag.status
+        }
+        finnSak<HotsakSak>(søknadId).shouldBeNull()
+    }
+
+    @Test
+    fun `Skal lagre papirsøknad`() = testApplication {
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagPapir())
+        val sakstilknytning = grunnlag.sakstilknytning.shouldNotBeNull()
+        val søknadId = grunnlag.søknadId
+        finnSøknad(søknadId).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe grunnlag.status
+        }
+        finnSak<InfotrygdSak>(søknadId).shouldNotBeNull {
+            this.sakId shouldBe sakstilknytning.sakId
+            this.fnrBruker shouldBe sakstilknytning.fnrBruker
+        }
+    }
+
+    @Test
+    fun `Skal oppdatere søknadsstatus`() = testApplication {
+        val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val søknadId = grunnlag.søknadId
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status1
+            this.data.shouldBeInstanceOf<ObjectNode>()
+        }
+        val status2 = BehovsmeldingStatus.GODKJENT shouldNotBe status1
+        oppdaterStatus(søknadId, status2)
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status2
+            this.data.shouldBeInstanceOf<ObjectNode>()
+        }
+    }
+
+    @Test
+    fun `Skal slette utløpt søknad gjennom statusendring`() = testApplication {
+        val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val søknadId = grunnlag.søknadId
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status1
+            this.data.shouldBeInstanceOf<ObjectNode>()
+        }
+        val status2 = BehovsmeldingStatus.UTLØPT shouldNotBe status1
+        oppdaterStatus(søknadId, status2)
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status2
+            this.data.shouldBeInstanceOf<NullNode>()
+        }
+    }
+
+    @Test
+    fun `Skal slette søknad gjennom statusendring`() = testApplication {
+        val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val søknadId = grunnlag.søknadId
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status1
+            this.data.shouldBeInstanceOf<ObjectNode>()
+        }
+        val status2 = BehovsmeldingStatus.SLETTET shouldNotBe status1
+        oppdaterStatus(søknadId, status2)
+        finnSøknad(søknadId, true).shouldNotBeNull {
+            this.søknadId shouldBe søknadId
+            this.status shouldBe status2
+            this.data.shouldBeInstanceOf<NullNode>()
+        }
+    }
+
+    @Test
+    fun `Skal ikke lagre papirsøknad hvis søknad er lagret allerede med samme fnr og journalpostId`() =
+        testApplication {
+            val grunnlag = lagBehovsmeldingsgrunnlagPapir()
+            lagreBehovsmelding(grunnlag, 1)
+            lagreBehovsmelding(grunnlag, 0)
+        }
+
+    @Test
     fun `Skal hente søknad`() = testApplication {
-        val søknadId = lagreSøknad().soknadId
+        val søknadId = lagreSøknad().søknadId
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
         }
@@ -29,18 +123,14 @@ class SøknadApiTest {
 
     @Test
     fun `Skal oppdatere journalpostId`() = testApplication {
-        val søknadId = lagreSøknad().soknadId
+        val søknadId = lagreSøknad().søknadId
         finnSøknad(søknadId).shouldNotBeNull {
             journalpostId.shouldBeNull()
         }
         val journalpostId = "102030"
-        client
-            .put(Søknader.SøknadId.Journalpost(søknadId)) {
-                setBody(mapOf("journalpostId" to journalpostId))
-            }
-            .expect(HttpStatusCode.OK, 1)
+        oppdaterJournalpostId(søknadId, journalpostId)
         finnSøknad(søknadId).shouldNotBeNull {
-            journalpostId shouldBe journalpostId
+            this.journalpostId shouldBe journalpostId
         }
     }
 
@@ -51,13 +141,9 @@ class SøknadApiTest {
             oppgaveId.shouldBeNull()
         }
         val oppgaveId = "302010"
-        client
-            .put(Søknader.SøknadId.Oppgave(søknadId)) {
-                setBody(mapOf("oppgaveId" to oppgaveId))
-            }
-            .expect(HttpStatusCode.OK, 1)
+        oppdaterOppgaveId(søknadId, oppgaveId)
         finnSøknad(søknadId).shouldNotBeNull {
-            oppgaveId shouldBe oppgaveId
+            this.oppgaveId shouldBe oppgaveId
         }
     }
 }

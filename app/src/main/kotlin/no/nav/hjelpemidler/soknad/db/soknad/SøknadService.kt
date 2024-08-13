@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.soknad.db.soknad
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
@@ -15,7 +16,7 @@ private val logg = KotlinLogging.logger {}
 class SøknadService(private val transaction: Transaction) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
-        logg.info { "Lagrer behovsmelding, søknadId: $søknadId, digital: ${grunnlag.digital}" }
+        logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
         return when (grunnlag) {
             is Behovsmeldingsgrunnlag.Digital -> transaction {
                 søknadStore.lagreBehovsmelding(grunnlag)
@@ -102,10 +103,9 @@ class SøknadService(private val transaction: Transaction) {
 
     suspend fun oppdaterStatus(
         søknadId: UUID,
-        status: BehovsmeldingStatus,
-        valgteÅrsaker: Set<String>? = null,
-        begrunnelse: String? = null,
+        statusendring: Statusendring,
     ): Int {
+        val status = statusendring.status
         return transaction {
             when (status) {
                 BehovsmeldingStatus.SLETTET -> {
@@ -120,7 +120,7 @@ class SøknadService(private val transaction: Transaction) {
 
                 else -> {
                     logg.info { "Oppdaterer søknadsstatus, søknadId: $søknadId, status: $status" }
-                    søknadStore.oppdaterStatus(søknadId, status, valgteÅrsaker, begrunnelse)
+                    søknadStore.oppdaterStatus(søknadId, status, statusendring.valgteÅrsaker, statusendring.begrunnelse)
                 }
             }
         }

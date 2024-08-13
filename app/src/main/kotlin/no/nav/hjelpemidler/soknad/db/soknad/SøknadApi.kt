@@ -29,7 +29,7 @@ fun Route.søknadApi(
     post<Søknader> {
         val grunnlag = call.receive<Behovsmeldingsgrunnlag>()
         val rowsUpdated = søknadService.lagreBehovsmelding(grunnlag)
-        call.respond(HttpStatusCode.OK, rowsUpdated)
+        call.respond(HttpStatusCode.Created, rowsUpdated)
     }
 
     get<Søknader.SøknadId> {
@@ -86,12 +86,7 @@ fun Route.søknadApi(
     put<Søknader.SøknadId.Status> {
         val søknadId = it.parent.søknadId
         val statusendring = call.receive<Statusendring>()
-        val rowsUpdated = søknadService.oppdaterStatus(
-            søknadId,
-            statusendring.status,
-            statusendring.valgteÅrsaker,
-            statusendring.begrunnelse,
-        )
+        val rowsUpdated = søknadService.oppdaterStatus(søknadId, statusendring)
         call.respond(HttpStatusCode.OK, rowsUpdated)
         serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, statusendring.status)
     }
