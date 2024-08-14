@@ -28,7 +28,7 @@ class SøknadService(private val transaction: Transaction) {
                     søknadStore.fnrOgJournalpostIdFinnes(grunnlag.fnrBruker, journalpostId)
                 }
                 if (fnrOgJournalpostIdFinnes) {
-                    logg.info { "En søknad med dette fødselsnummeret og journalpostId: $journalpostId er allerede lagret, søknadId: $søknadId" }
+                    logg.warn { "En søknad med dette fødselsnummeret og journalpostId: $journalpostId er allerede lagret, søknadId: $søknadId" }
                     return 0
                 }
                 transaction {
