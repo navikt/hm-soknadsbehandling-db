@@ -88,7 +88,7 @@ fun tilFormidlerbehovsmeldingV2(
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-        ),
+            ),
         innsender = Innsender(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
@@ -230,8 +230,15 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                 )
 
                 Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> Tekst(
-                    nb = "I eget hjem. Ikke avlastningsbolig.",
-                    nn = "I eigen heim. Ikkje avlastingsbustad.",
+                    i18n = I18n(
+                        nb = "I eget hjem. Ikke avlastningsbolig.",
+                        nn = "I eigen heim. Ikkje avlastingsbustad."
+                    ),
+                    begrepsforklaring = I18n(
+                        nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
+                        nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad."
+                    )
+
                 )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
@@ -579,7 +586,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -599,7 +606,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 

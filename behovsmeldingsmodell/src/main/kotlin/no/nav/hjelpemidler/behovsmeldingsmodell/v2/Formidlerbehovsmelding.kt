@@ -151,6 +151,7 @@ data class Opplysning(
 data class Tekst(
     val i18n: I18n? = null,
     val fritekst: String? = null,
+    val begrepsforklaring: I18n? = null, // feks forklaring av "avlastningsbolig"
 ) {
     constructor(i18n: I18n) : this(i18n = i18n, fritekst = null)
     constructor(fritekst: String) : this(i18n = null, fritekst = fritekst)
