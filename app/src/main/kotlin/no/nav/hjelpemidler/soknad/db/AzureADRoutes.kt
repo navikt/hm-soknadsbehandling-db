@@ -1,19 +1,13 @@
 package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
-import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
-import no.nav.hjelpemidler.soknad.db.domain.PapirSøknadData
-import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.sak.sakApi
 import no.nav.hjelpemidler.soknad.db.soknad.søknadApi
@@ -30,73 +24,6 @@ fun Route.azureADRoutes(
     søknadApi(transaction, serviceContext)
     sakApi(transaction)
     kommuneApi(transaction)
-
-    // fixme -> vurder felles endepunkt for lagring av behovsmeldinger av alle slag
-    post("/soknad/bruker") {
-        val søknad = call.receive<SøknadData>()
-        logg.info { "Digital behovsmelding mottatt for lagring, søknadId: ${søknad.soknadId}" }
-        val rowsUpdated = transaction { søknadStore.lagreBehovsmelding(søknad) }
-        call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
-    // fixme -> vurder felles endepunkt for lagring av behovsmeldinger av alle slag
-    post("/soknad/papir") {
-        val søknad = call.receive<PapirSøknadData>()
-        logg.info { "Papirsøknad mottatt for lagring, søknadId: ${søknad.søknadId}" }
-        val rowsUpdated = transaction {
-            søknadStore.lagrePapirsøknad(
-                Behovsmeldingsgrunnlag.Papir(
-                    søknadId = søknad.søknadId,
-                    status = søknad.status,
-                    fnrBruker = søknad.fnrBruker,
-                    navnBruker = søknad.navnBruker,
-                    journalpostId = søknad.journalpostId,
-                ),
-            )
-        }
-        call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
-    // fixme -> slettes, bytt til POST /soknad/{soknadId}/ordre
-    post("/ordre") {
-        val ordrelinje = call.receive<Ordrelinje>()
-        logg.info { "Ordrelinje mottatt for lagring, søknadId: ${ordrelinje.søknadId}" }
-        val rowsUpdated = transaction { ordreStore.lagre(ordrelinje.søknadId, ordrelinje) }
-        call.respond(HttpStatusCode.Created, rowsUpdated)
-    }
-
-    // fixme -> slettes, bytt til DELETE /soknad/{soknadId}
-    delete("/soknad/bruker") {
-        val søknadId = call.receive<UUID>()
-        logg.info { "Sletter søknad med søknadId: $søknadId" }
-        val rowsDeleted = transaction { søknadStore.slettSøknad(søknadId) }
-        call.respond(rowsDeleted)
-    }
-
-    // fixme -> slettes, bytt til DELETE /soknad/{soknadId}?status=UTLØPT
-    delete("/soknad/utlopt/bruker") {
-        val søknadId = call.receive<UUID>()
-        logg.info { "Sletter utløpt søknad med søknadId: $søknadId" }
-        val rowsDeleted = transaction { søknadStore.slettUtløptSøknad(søknadId) }
-        call.respond(rowsDeleted)
-    }
-
-    // fixme -> slettes, burde kunne orkestreres i backend
-    post("/infotrygd/fnr-jounralpost") {
-        data class Request(
-            val fnrBruker: String,
-            val journalpostId: String,
-        )
-
-        val fnrOgJournalpostIdFinnesDto = call.receive<Request>()
-        val fnrOgJournalpostIdFinnes = transaction {
-            søknadStore.fnrOgJournalpostIdFinnes(
-                fnrOgJournalpostIdFinnesDto.fnrBruker,
-                fnrOgJournalpostIdFinnesDto.journalpostId,
-            )
-        }
-        call.respond("fnrOgJournalpostIdFinnes" to fnrOgJournalpostIdFinnes)
-    }
 
     // fixme -> finn et bedre pattern
     post("/soknad/fra-vedtaksresultat-v2") {

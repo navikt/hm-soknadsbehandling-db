@@ -6,7 +6,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.plugins.resources.put
-import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
@@ -22,14 +21,13 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
-import no.nav.hjelpemidler.soknad.db.domain.SøknadData
-import no.nav.hjelpemidler.soknad.db.domain.lagSøknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
+import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -90,11 +88,8 @@ class TestContext(
         coEvery { rolleClient.hentRolle(any()) } throws RuntimeException(melding)
     }
 
-    suspend fun lagreSøknad(søknad: SøknadData = lagSøknad()): SøknadData {
-        client
-            .post("/api/soknad/bruker") { setBody(søknad) }
-            .expect(HttpStatusCode.Created, 1)
-        return søknad
+    suspend inline fun lagreBehovsmelding(): Behovsmeldingsgrunnlag.Digital {
+        return lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital())
     }
 
     suspend inline fun <reified T : Behovsmeldingsgrunnlag> lagreBehovsmelding(grunnlag: T, rowUpdated: Int = 1): T {

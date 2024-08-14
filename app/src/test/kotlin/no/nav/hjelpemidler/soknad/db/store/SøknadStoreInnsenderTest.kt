@@ -10,12 +10,11 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.SøknadData
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
-import no.nav.hjelpemidler.soknad.db.jsonMapper
-import no.nav.hjelpemidler.soknad.db.mockSøknad
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
+import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
+import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import org.junit.jupiter.api.Test
 
 class SøknadStoreInnsenderTest {
@@ -25,7 +24,7 @@ class SøknadStoreInnsenderTest {
         val fnrFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrFormidler))
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
                 .shouldBeSingleton {
@@ -41,8 +40,8 @@ class SøknadStoreInnsenderTest {
         val fnrAnnenFormidler = lagFødselsnummer()
 
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, fnrInnsender = fnrFormidler))
-            søknadStore.lagreBehovsmelding(mockSøknad(lagSøknadId(), fnrInnsender = fnrAnnenFormidler))
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrFormidler))
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(fnrInnsender = fnrAnnenFormidler))
             søknadStoreInnsender
                 .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER) shouldHaveSize 1
 
@@ -62,7 +61,7 @@ class SøknadStoreInnsenderTest {
 
         testTransaction {
             søknadStore.lagreBehovsmelding(
-                mockSøknad(
+                lagBehovsmeldingsgrunnlagDigital(
                     søknadId,
                     BehovsmeldingStatus.VENTER_GODKJENNING,
                     fnrInnsender = fnrFormidler,
@@ -85,16 +84,15 @@ class SøknadStoreInnsenderTest {
 
         testTransaction { tx ->
             søknadStore.lagreBehovsmelding(
-                SøknadData(
+                Behovsmeldingsgrunnlag.Digital(
+                    søknadId = søknadId,
+                    status = BehovsmeldingStatus.SLETTET,
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = fnrInnsender,
-                    soknadId = søknadId,
-                    soknad = jsonMapper.createObjectNode(),
-                    status = BehovsmeldingStatus.SLETTET,
                     kommunenavn = null,
-                    er_digital = true,
-                    soknadGjelder = null,
+                    behovsmelding = emptyMap(),
+                    behovsmeldingGjelder = null,
                 ),
             ) shouldBe 1
 
@@ -119,7 +117,7 @@ class SøknadStoreInnsenderTest {
 
         testTransaction {
             søknadStore.lagreBehovsmelding(
-                mockSøknad(
+                lagBehovsmeldingsgrunnlagDigital(
                     søknadId,
                     BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
                     fnrInnsender = fnrFormidler,
@@ -142,7 +140,7 @@ class SøknadStoreInnsenderTest {
 
         testTransaction {
             søknadStore.lagreBehovsmelding(
-                mockSøknad(
+                lagBehovsmeldingsgrunnlagDigital(
                     søknadId,
                     BehovsmeldingStatus.VENTER_GODKJENNING,
                     fnrInnsender = fnrInnsender,
@@ -167,14 +165,14 @@ class SøknadStoreInnsenderTest {
 
         testTransaction {
             søknadStore.lagreBehovsmelding(
-                mockSøknad(
+                lagBehovsmeldingsgrunnlagDigital(
                     idSøknad,
                     fnrInnsender = fnrInnsender,
                     behovsmeldingType = BehovsmeldingType.SØKNAD,
                 ),
             )
             søknadStore.lagreBehovsmelding(
-                mockSøknad(
+                lagBehovsmeldingsgrunnlagDigital(
                     idBestilling,
                     fnrInnsender = fnrInnsender,
                     behovsmeldingType = BehovsmeldingType.BESTILLING,
@@ -201,7 +199,12 @@ class SøknadStoreInnsenderTest {
     fun `Metrikker er non-blocking`() = databaseTest {
         val søknadId = lagSøknadId()
         testTransaction {
-            søknadStore.lagreBehovsmelding(mockSøknad(søknadId, BehovsmeldingStatus.VENTER_GODKJENNING)) shouldBe 1
+            søknadStore.lagreBehovsmelding(
+                lagBehovsmeldingsgrunnlagDigital(
+                    søknadId,
+                    BehovsmeldingStatus.VENTER_GODKJENNING,
+                ),
+            ) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.GODKJENT) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.VEDTAKSRESULTAT_ANNET) shouldBe 1
         }

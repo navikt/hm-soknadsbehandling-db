@@ -7,6 +7,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.TilknyttetSøknad
 import java.time.Instant
 
+// todo -> flytt til behovsmeldingsmodell
 data class Søknad(
     override val søknadId: SøknadId,
     val søknadOpprettet: Instant,

@@ -1,134 +1,25 @@
-package no.nav.hjelpemidler.soknad.db
+package no.nav.hjelpemidler.soknad.db.soknad
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.soknad.db.domain.SøknadData
+import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.test.readTree
+import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
-
-fun mockSøknad(
-    id: UUID,
-    status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
-    fnrBruker: String = lagFødselsnummer(),
-    fnrInnsender: String = lagFødselsnummer(),
-    behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
-): SøknadData = SøknadData(
-    fnrBruker = fnrBruker,
-    navnBruker = "Fornavn Etternavn",
-    fnrInnsender = fnrInnsender,
-    soknadId = id,
-    soknad = readTree(
-        """
-            {
-              "id": "$id",
-              "behovsmeldingType": "$behovsmeldingType",
-              "soknad": {
-                "id": "$id",
-                "date": "${LocalDate.now()}",
-                "bruker": {
-                  "fnummer": "$fnrBruker",
-                  "fornavn": "fornavn",
-                  "signatur": "FULLMAKT",
-                  "etternavn": "etternavn",
-                  "telefonNummer": "12345678",
-                  "poststed": "poststed",
-                  "kommunenummer": "9999",
-                  "kroppsmaal": {}
-                },
-                "brukersituasjon": {
-                  "bostedRadioButton": "Hjemme",
-                  "bruksarenaErDagliglivet": true,
-                  "nedsattFunksjonTypes": {
-                    "bevegelse": true,
-                    "kognisjon": false,
-                    "horsel": true
-                  }
-                },
-                "hjelpemidler": {
-                  "hjelpemiddelTotaltAntall": 2,
-                  "hjelpemiddelListe": [
-                    {
-                      "uniqueKey": "1",
-                      "hmsNr": "123456",
-                      "beskrivelse": "beskrivelse",
-                      "begrunnelsen": "begrunnelse",
-                      "antall": 1,
-                      "navn": "Hjelpemiddelnavn",
-                      "utlevertFraHjelpemiddelsentralen": true,
-                      "tilleggsinformasjon": "Tilleggsinformasjon",
-                      "kanIkkeTilsvarande": true,
-                      "hjelpemiddelkategori": "Arbeidsstoler",
-                      "produkt": {
-                        "postrank": "1"
-                      },
-                      "vilkarliste": [
-                        {
-                          "vilkartekst": "Vilkår 1",
-                          "tilleggsinfo": "Tilleggsinfo",
-                          "checked": true
-                        }
-                      ],
-                      "tilbehorListe": [
-                        {
-                          "hmsnr": "654321",
-                          "navn": "Tilbehør 1",
-                          "antall": 1
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "levering": {
-                  "hmfFornavn": "formidlerFornavn",
-                  "hmfEtternavn": "formidlerEtternavn",
-                  "hmfArbeidssted": "arbeidssted",
-                  "hmfStilling": "stilling",
-                  "hmfPostadresse": "postadresse arbeidssted",
-                  "hmfPostnr": "9999",
-                  "hmfPoststed": "poststed",
-                  "hmfTelefon": "12345678",
-                  "hmfTreffesEnklest": "treffesEnklest",
-                  "hmfEpost": "formidler@kommune.no",
-                  "opfRadioButton": "Hjelpemiddelformidler",
-                  "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
-                  "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker",
-                  "merknadTilUtlevering": ""
-                },
-                "innsender": {
-                  "somRolle": "FORMIDLER",
-                  "organisasjoner": [
-                    {
-                      "navn": "STORÅS OG HESSENG",
-                      "orgnr": "910753282",
-                      "orgform": "AS",
-                      "kommunenummer": "9999"
-                    }
-                  ],
-                  "godkjenningskurs": []
-                }
-              }
-            }
-        """.trimIndent(),
-    ),
-    status = status,
-    kommunenavn = null,
-    er_digital = true,
-    soknadGjelder = null,
-)
 
 fun mockSøknadMedRullestol(
     id: UUID,
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
-): SøknadData = SøknadData(
+): Behovsmeldingsgrunnlag.Digital = Behovsmeldingsgrunnlag.Digital(
+    søknadId = id,
+    status = status,
     fnrBruker = fnrBruker,
     navnBruker = "Fornavn Etternavn",
     fnrInnsender = lagFødselsnummer(),
-    soknadId = id,
-    soknad = readTree(
+    kommunenavn = null,
+    behovsmelding = readMap(
         """
             {
               "soknad": {
@@ -250,8 +141,5 @@ fun mockSøknadMedRullestol(
             }
         """.trimIndent(),
     ),
-    status = status,
-    kommunenavn = null,
-    er_digital = true,
-    soknadGjelder = null,
+    behovsmeldingGjelder = null,
 )

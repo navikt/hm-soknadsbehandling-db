@@ -5,7 +5,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
+import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.test.readTree
 import org.junit.jupiter.api.Test
 

@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.convertValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -24,7 +23,6 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelLi
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.Søknad
-import no.nav.hjelpemidler.soknad.db.domain.SøknadData
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
@@ -362,22 +360,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 fnrBruker = it.string("fnr_bruker"),
             )
         }
-    }
-
-    @Deprecated("Bytt til lagreBehovsmelding(grunnlag)", ReplaceWith(""))
-    fun lagreBehovsmelding(søknad: SøknadData): Int {
-        return lagreBehovsmelding(
-            Behovsmeldingsgrunnlag.Digital(
-                søknadId = søknad.søknadId,
-                status = søknad.status,
-                fnrBruker = søknad.fnrBruker,
-                navnBruker = søknad.navnBruker,
-                fnrInnsender = søknad.fnrInnsender,
-                kommunenavn = søknad.kommunenavn,
-                behovsmelding = jsonMapper.convertValue(søknad.soknad),
-                behovsmeldingGjelder = søknad.soknadGjelder,
-            ),
-        )
     }
 
     fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag.Digital): Int {

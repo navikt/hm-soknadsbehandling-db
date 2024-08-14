@@ -4,7 +4,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
+import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID

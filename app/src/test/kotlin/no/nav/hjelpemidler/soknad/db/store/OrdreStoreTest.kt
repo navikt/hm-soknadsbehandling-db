@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import io.kotest.matchers.shouldBe
-import no.nav.hjelpemidler.soknad.db.domain.lagOrdrelinje
+import no.nav.hjelpemidler.soknad.db.ordre.lagOrdrelinje
 import org.junit.jupiter.api.Test
 
 class OrdreStoreTest {

@@ -1,33 +1,135 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.domain.lagSøknadId
+import no.nav.hjelpemidler.soknad.db.test.readMap
+import java.time.LocalDate
 
 fun lagBehovsmeldingsgrunnlagDigital(
+    søknadId: SøknadId = lagSøknadId(),
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
-): Behovsmeldingsgrunnlag.Digital = Behovsmeldingsgrunnlag.Digital(
-    søknadId = lagSøknadId(),
-    status = status,
-    fnrBruker = lagFødselsnummer(),
-    navnBruker = "Bru K. Er",
-    fnrInnsender = lagFødselsnummer(),
-    kommunenavn = "TEST",
-    behovsmelding = emptyMap(),
-    behovsmeldingGjelder = "TEST",
-)
-
-fun lagBehovsmeldingsgrunnlagPapir(
-    status: BehovsmeldingStatus = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-): Behovsmeldingsgrunnlag.Papir {
-    val fnrBruker = lagFødselsnummer()
-    return Behovsmeldingsgrunnlag.Papir(
-        søknadId = lagSøknadId(),
+    fnrBruker: String = lagFødselsnummer(),
+    fnrInnsender: String = lagFødselsnummer(),
+    behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
+): Behovsmeldingsgrunnlag.Digital {
+    return Behovsmeldingsgrunnlag.Digital(
+        søknadId = søknadId,
         status = status,
         fnrBruker = fnrBruker,
-        navnBruker = "Bru K. Er",
-        journalpostId = "1",
+        navnBruker = "Fornavn Etternavn",
+        fnrInnsender = fnrInnsender,
+        kommunenavn = "TEST",
+        behovsmelding = readMap(
+            """
+                {
+                  "id": "$søknadId",
+                  "behovsmeldingType": "$behovsmeldingType",
+                  "soknad": {
+                    "id": "$søknadId",
+                    "date": "${LocalDate.now()}",
+                    "bruker": {
+                      "fnummer": "$fnrBruker",
+                      "fornavn": "Fornavn",
+                      "signatur": "FULLMAKT",
+                      "etternavn": "Etternavn",
+                      "telefonNummer": "12345678",
+                      "poststed": "poststed",
+                      "kommunenummer": "9999",
+                      "kroppsmaal": {}
+                    },
+                    "brukersituasjon": {
+                      "bostedRadioButton": "Hjemme",
+                      "bruksarenaErDagliglivet": true,
+                      "nedsattFunksjonTypes": {
+                        "bevegelse": true,
+                        "kognisjon": false,
+                        "horsel": true
+                      }
+                    },
+                    "hjelpemidler": {
+                      "hjelpemiddelTotaltAntall": 2,
+                      "hjelpemiddelListe": [
+                        {
+                          "uniqueKey": "1",
+                          "hmsNr": "123456",
+                          "beskrivelse": "beskrivelse",
+                          "begrunnelsen": "begrunnelse",
+                          "antall": 1,
+                          "navn": "Hjelpemiddelnavn",
+                          "utlevertFraHjelpemiddelsentralen": true,
+                          "tilleggsinformasjon": "Tilleggsinformasjon",
+                          "kanIkkeTilsvarande": true,
+                          "hjelpemiddelkategori": "Arbeidsstoler",
+                          "produkt": {
+                            "postrank": "1"
+                          },
+                          "vilkarliste": [
+                            {
+                              "vilkartekst": "Vilkår 1",
+                              "tilleggsinfo": "Tilleggsinfo",
+                              "checked": true
+                            }
+                          ],
+                          "tilbehorListe": [
+                            {
+                              "hmsnr": "654321",
+                              "navn": "Tilbehør 1",
+                              "antall": 1
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "levering": {
+                      "hmfFornavn": "formidlerFornavn",
+                      "hmfEtternavn": "formidlerEtternavn",
+                      "hmfArbeidssted": "arbeidssted",
+                      "hmfStilling": "stilling",
+                      "hmfPostadresse": "postadresse arbeidssted",
+                      "hmfPostnr": "9999",
+                      "hmfPoststed": "poststed",
+                      "hmfTelefon": "12345678",
+                      "hmfTreffesEnklest": "treffesEnklest",
+                      "hmfEpost": "formidler@kommune.no",
+                      "opfRadioButton": "Hjelpemiddelformidler",
+                      "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
+                      "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker",
+                      "merknadTilUtlevering": ""
+                    },
+                    "innsender": {
+                      "somRolle": "FORMIDLER",
+                      "organisasjoner": [
+                        {
+                          "navn": "STORÅS OG HESSENG",
+                          "orgnr": "910753282",
+                          "orgform": "AS",
+                          "kommunenummer": "9999"
+                        }
+                      ],
+                      "godkjenningskurs": []
+                    }
+                  }
+                }
+            """.trimIndent(),
+        ),
+        behovsmeldingGjelder = "TEST",
+    )
+}
+
+fun lagBehovsmeldingsgrunnlagPapir(
+    søknadId: SøknadId = lagSøknadId(),
+    status: BehovsmeldingStatus = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
+    fnrBruker: String = lagFødselsnummer(),
+): Behovsmeldingsgrunnlag.Papir {
+    return Behovsmeldingsgrunnlag.Papir(
+        søknadId = søknadId,
+        status = status,
+        fnrBruker = fnrBruker,
+        navnBruker = "Fornavn Etternavn",
+        journalpostId = (1_000_000..9_999_999).random().toString(),
         sakstilknytning = lagSakstilknytningInfotrygd(fnrBruker),
     )
 }

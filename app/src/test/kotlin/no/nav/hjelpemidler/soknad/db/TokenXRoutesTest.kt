@@ -22,24 +22,24 @@ import kotlin.test.Test
 class TokenXRoutesTest {
     @Test
     fun `Hent søknad med søknadId for bruker`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
         val sakId = InfotrygdSakId("9999A01")
         val søknadstype = "TEST"
         lagreSakstilknytning(
-            søknad.søknadId,
-            Sakstilknytning.Infotrygd(sakId, søknad.fnrBruker),
+            grunnlag.søknadId,
+            Sakstilknytning.Infotrygd(sakId, grunnlag.fnrBruker),
         )
         lagreVedtaksresultat(
-            søknad.søknadId,
+            grunnlag.søknadId,
             Vedtaksresultat.Infotrygd("I", LocalDate.now(), søknadstype),
         )
 
-        tokenXUser(søknad.fnrBruker)
+        tokenXUser(grunnlag.fnrBruker)
 
         client
-            .get(Søknader.Bruker.SøknadId(søknad.soknadId))
+            .get(Søknader.Bruker.SøknadId(grunnlag.søknadId))
             .expect<SøknadDto>(HttpStatusCode.OK) {
-                it.søknadId shouldBe søknad.soknadId
+                it.søknadId shouldBe grunnlag.søknadId
                 it.andre.shouldContain("fagsakId", sakId.toString())
                 it.andre.shouldContain("søknadType", søknadstype)
             }
@@ -47,13 +47,13 @@ class TokenXRoutesTest {
 
     @Test
     fun `Hent søknad med søknadId for bruker feiler`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
         val melding = "Noe gikk galt!"
 
         createTokenXUserFeiler(melding)
 
         client
-            .get(Søknader.Bruker.SøknadId(søknad.soknadId))
+            .get(Søknader.Bruker.SøknadId(grunnlag.søknadId))
             .feilmelding(HttpStatusCode.InternalServerError) {
                 it.message shouldBe melding
             }
@@ -61,12 +61,12 @@ class TokenXRoutesTest {
 
     @Test
     fun `Hent søknad med søknadId for bruker uten tilgang`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
 
         tokenXUser(lagFødselsnummer())
 
         client
-            .get(Søknader.Bruker.SøknadId(søknad.soknadId))
+            .get(Søknader.Bruker.SøknadId(grunnlag.søknadId))
             .feilmelding(HttpStatusCode.Forbidden) {
                 it.message shouldBe "Søknad er ikke registrert på aktuell bruker"
             }
@@ -74,45 +74,45 @@ class TokenXRoutesTest {
 
     @Test
     fun `Hent søknader for bruker`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
 
-        tokenXUser(søknad.fnrBruker)
+        tokenXUser(grunnlag.fnrBruker)
 
         client
             .get(Søknader.Bruker())
             .expect<List<SøknadDto>>(HttpStatusCode.OK) { søknader ->
                 søknader.shouldBeSingleton {
-                    it.søknadId shouldBe søknad.soknadId
+                    it.søknadId shouldBe grunnlag.søknadId
                 }
             }
     }
 
     @Test
     fun `Hent søknad med søknadId for innsender`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
 
-        tokenXUser(søknad.fnrInnsender)
+        tokenXUser(grunnlag.fnrInnsender)
         formidlerRolle()
 
         client
-            .get(Søknader.Innsender.SøknadId(søknad.soknadId))
+            .get(Søknader.Innsender.SøknadId(grunnlag.søknadId))
             .expect<SøknadDto>(HttpStatusCode.OK) {
-                it.søknadId shouldBe søknad.soknadId
+                it.søknadId shouldBe grunnlag.søknadId
             }
     }
 
     @Test
     fun `Hent søknader for innsender`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
 
-        tokenXUser(søknad.fnrInnsender)
+        tokenXUser(grunnlag.fnrInnsender)
         formidlerRolle()
 
         client
             .get(Søknader.Innsender())
             .expect<List<SøknadDto>>(HttpStatusCode.OK) { søknader ->
                 søknader.shouldBeSingleton {
-                    it.søknadId shouldBe søknad.soknadId
+                    it.søknadId shouldBe grunnlag.søknadId
                 }
             }
     }

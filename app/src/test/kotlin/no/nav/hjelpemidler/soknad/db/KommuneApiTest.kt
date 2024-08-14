@@ -13,17 +13,17 @@ import kotlin.test.Test
 class KommuneApiTest {
     @Test
     fun `Skal hente søknader`() = testApplication {
-        val søknad = lagreSøknad()
+        val grunnlag = lagreBehovsmelding()
         client
             .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "9999")) }
             .expect<List<SøknadForKommuneApi>>(HttpStatusCode.OK) { søknader ->
-                søknader.shouldHaveSingleElement { it.soknadId == søknad.soknadId }
+                søknader.shouldHaveSingleElement { it.soknadId == grunnlag.søknadId }
             }
     }
 
     @Test
     fun `Henting av søknader feiler`() = testApplication {
-        lagreSøknad()
+        lagreBehovsmelding()
         client
             .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "-1")) }
             .feilmelding(HttpStatusCode.BadRequest)

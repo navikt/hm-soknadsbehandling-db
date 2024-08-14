@@ -44,7 +44,7 @@ class SøknadApiTest {
     @Test
     fun `Skal oppdatere søknadsstatus`() = testApplication {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
-        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
@@ -63,7 +63,7 @@ class SøknadApiTest {
     @Test
     fun `Skal slette utløpt søknad gjennom statusendring`() = testApplication {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
-        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
@@ -82,7 +82,7 @@ class SøknadApiTest {
     @Test
     fun `Skal slette søknad gjennom statusendring`() = testApplication {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
-        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status1))
+        val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
@@ -108,7 +108,7 @@ class SøknadApiTest {
 
     @Test
     fun `Skal hente søknad`() = testApplication {
-        val søknadId = lagreSøknad().søknadId
+        val søknadId = lagreBehovsmelding().søknadId
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
         }
@@ -123,7 +123,7 @@ class SøknadApiTest {
 
     @Test
     fun `Skal oppdatere journalpostId`() = testApplication {
-        val søknadId = lagreSøknad().søknadId
+        val søknadId = lagreBehovsmelding().søknadId
         finnSøknad(søknadId).shouldNotBeNull {
             journalpostId.shouldBeNull()
         }
@@ -136,7 +136,7 @@ class SøknadApiTest {
 
     @Test
     fun `Skal oppdatere oppgaveId`() = testApplication {
-        val søknadId = lagreSøknad().soknadId
+        val søknadId = lagreBehovsmelding().søknadId
         finnSøknad(søknadId).shouldNotBeNull {
             oppgaveId.shouldBeNull()
         }

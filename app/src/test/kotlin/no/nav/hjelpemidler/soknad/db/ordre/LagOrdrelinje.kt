@@ -1,9 +1,8 @@
-package no.nav.hjelpemidler.soknad.db.domain
+package no.nav.hjelpemidler.soknad.db.ordre
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
-
-fun lagOrdrelinje(søknad: SøknadData): Ordrelinje =
-    lagOrdrelinje().copy(søknadId = søknad.soknadId, fnrBruker = søknad.fnrBruker)
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 
 fun lagOrdrelinje(): Ordrelinje = Ordrelinje(
     søknadId = lagSøknadId(),
