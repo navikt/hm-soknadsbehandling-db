@@ -1051,16 +1051,24 @@ fun posisjoneringssysteminfo(hm: Hjelpemiddel): List<Opplysning> {
                 )
             }
         }
-
-        val oppgaverNb = oppgaver.joinToString(separator = " ") { it.i18n?.nb ?: it.fritekst!! }
-        val oppgaverNn = oppgaver.joinToString(separator = " ") { it.i18n?.nn ?: it.fritekst!! }
+        
         opplysninger.add(
             Opplysning(
                 ledetekst = behov,
                 tekst = I18n(
-                    nb = "Det vil direkte avhjelpe nedsatt funksjonsevne slik at dagliglivets oppgaver kan utføres. Oppgaver i dagliglivet som skal utføres er: $oppgaverNb",
-                    nn = "Det vil direkte avhjelpa nedsett funksjonsevne slik at oppgåvene til dagleglivet kan utførast. Oppgåver i dagleglivet som skal utførast er: $oppgaverNn",
+                    nb = "Det vil direkte avhjelpe nedsatt funksjonsevne slik at dagliglivets oppgaver kan utføres.",
+                    nn = "Det vil direkte avhjelpa nedsett funksjonsevne slik at oppgåvene til dagleglivet kan utførast.",
                 ),
+            ),
+        )
+
+        opplysninger.add(
+            Opplysning(
+                ledetekst = I18n(
+                    nb = "Oppgaver i dagliglivet som skal utføres",
+                    nn = "Oppgåver i dagleglivet som skal utførast",
+                ),
+                tekster = oppgaver,
             ),
         )
     }
