@@ -131,13 +131,7 @@ data class Tilbehør(
     val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
-) {
-    init {
-        if (begrunnelse == null) {
-            require(fritakFraBegrunnelseÅrsak != null) { "fritakFraBegrunnelseÅrsak må være satt når begrunnelse mangler" }
-        }
-    }
-}
+)
 
 data class Opplysning(
     val ledetekst: I18n,
