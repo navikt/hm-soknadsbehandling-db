@@ -1266,6 +1266,32 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
 
     val opplysninger = mutableListOf<Opplysning>()
 
+    if (hm.ganghjelpemiddelInfo.kanIkkeBrukeMindreAvansertGanghjelpemiddel == true) {
+        opplysninger.add(
+            Opplysning(
+                ledetekst = formidlerBekrefterAt,
+                tekst = when (hm.ganghjelpemiddelInfo.type) {
+                    GanghjelpemiddelType.GÅBORD -> Tekst(
+                        nb = "Innbygger ikke kan bruke gåbord med manuell høyderegulering. Dette er på grunn av funksjonsnedsettelsen personen har.",
+                        nn = "Innbyggjar ikkje kan bruka gåbord med manuell høgderegulering. Dette er på grunn av funksjonsnedsetjinga personen har."
+                    )
+
+                    GanghjelpemiddelType.SPARKESYKKEL -> Tekst(
+                        nb = "Innbygger ikke kan bruke vanlig sparkesykkel. Med vanlig sparkesykkel menes sparkesykler som ikke er utviklet spesielt for personer med funksjonsnedsettelse.",
+                        nn = "Innbyggjar ikkje kan bruka vanleg sparkesykkel. Med vanleg sparkesykkel siktar ein til sparkesyklar som ikkje er utvikla spesielt for personar med funksjonsnedsetjing."
+                    )
+
+                    GanghjelpemiddelType.KRYKKE -> Tekst(
+                        nb = "Innbygger ikke kan bruke krykke uten støtdemping på grunn av sin funksjonsnedsettelse.",
+                        nn = "Innbyggjar ikkje kan bruka krykkje utan støytdemping på grunn av funksjonsnedsetjinga si."
+                    )
+
+                    else -> error("Uventet verdi for hm.ganghjelpemiddelInfo.type: ${hm.ganghjelpemiddelInfo.type}")
+                }
+            )
+        )
+    }
+
     if (hm.ganghjelpemiddelInfo.bruksområde != null) {
         val type = hm.ganghjelpemiddelInfo.type
             ?: error("hm.ganghjelpemiddelInfo.type skal være satt når hm.ganghjelpemiddelInfo.bruksområde er satt")
