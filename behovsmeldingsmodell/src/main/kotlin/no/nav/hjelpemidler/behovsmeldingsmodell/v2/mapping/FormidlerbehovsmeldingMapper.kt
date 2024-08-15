@@ -285,7 +285,11 @@ private fun trykksårforebygging(hm: Hjelpemiddel): List<Opplysning> {
     return opplysninger(
         ledetekst = behov,
         tekster = valgteVilkår.map {
-            Tekst(i18n = I18n(it.vilkårstekst), fritekst = it.tilleggsinfo)
+            if (it.tilleggsinfo != null) {
+                Tekst(fritekst = it.tilleggsinfo)
+            } else {
+                Tekst(i18n = I18n(it.vilkårstekst))
+            }
         },
     )
 }
