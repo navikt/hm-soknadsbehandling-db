@@ -41,9 +41,9 @@ fun tilFormidlerbehovsmeldingV2(
     v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding,
     fnrInnsender: Fødselsnummer,
 ): Formidlerbehovsmelding {
+
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
-
     return Formidlerbehovsmelding(
         id = id,
         type = v1.behovsmeldingType,
@@ -93,7 +93,11 @@ fun tilFormidlerbehovsmeldingV2(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
-            sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map { Iso6(it) }
+            sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map {
+                Iso6(
+                    it
+                )
+            }
                 ?.toSet() ?: emptySet(),
         ),
         hjelpemidler = Hjelpemidler(
@@ -1051,7 +1055,7 @@ fun posisjoneringssysteminfo(hm: Hjelpemiddel): List<Opplysning> {
                 )
             }
         }
-        
+
         opplysninger.add(
             Opplysning(
                 ledetekst = behov,
