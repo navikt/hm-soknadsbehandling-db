@@ -1191,13 +1191,13 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
             ledetekst = I18n("Funksjon"),
             tekst = if (hm.oppreisningsstolInfo.kanBrukerReiseSegSelvFraVanligStol) {
                 Tekst(
-                    nb = "Personen kan ikke reise seg selv fra vanlige stoler ved bruk av enklere tiltak som for eksempel forhøyningsklosser, puter, støttestang, støttehåndtak og lignende.",
-                    nn = "Personen kan ikkje reisa seg sjølv frå vanlege stolar ved bruk av enklare tiltak som til dømes løfteklossar, puter, støttestong, støttehandtak og liknande.",
+                    nb = "Personen kan reise seg selv fra vanlige stoler ved bruk av enklere tiltak som for eksempel forhøyningsklosser, puter, støttestang, støttehåndtak og lignende.",
+                    nn = "Personen kan reisa seg sjølv frå vanlege stolar ved bruk av enklare tiltak som til dømes løfteklossar, puter, støttestong, støttehandtak og liknande.",
                 )
             } else {
                 Tekst(
-                    nb = "Personen kan reise seg selv fra vanlige stoler ved bruk av enklere tiltak som for eksempel forhøyningsklosser, puter, støttestang, støttehåndtak og lignende.",
-                    nn = "Personen kan reisa seg sjølv frå vanlege stolar ved bruk av enklare tiltak som til dømes løfteklossar, puter, støttestong, støttehandtak og liknande.",
+                    nb = "Personen kan ikke reise seg selv fra vanlige stoler ved bruk av enklere tiltak som for eksempel forhøyningsklosser, puter, støttestang, støttehåndtak og lignende.",
+                    nn = "Personen kan ikkje reisa seg sjølv frå vanlege stolar ved bruk av enklare tiltak som til dømes løfteklossar, puter, støttestong, støttehandtak og liknande.",
                 )
             },
         ),
