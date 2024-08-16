@@ -35,13 +35,14 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Levering
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Opplysning
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tekst
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tilbehør
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 
 fun tilFormidlerbehovsmeldingV2(
     v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding,
     fnrInnsender: Fødselsnummer,
 ): Formidlerbehovsmelding {
-
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
     return Formidlerbehovsmelding(
@@ -88,14 +89,14 @@ fun tilFormidlerbehovsmeldingV2(
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-            ),
+        ),
         innsender = Innsender(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
             sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map {
                 Iso6(
-                    it
+                    it,
                 )
             }
                 ?.toSet() ?: emptySet(),
@@ -162,8 +163,8 @@ fun opplysninger(hm: Hjelpemiddel, søknad: Søknad): List<Opplysning> =
         ganghjelpemiddelInfo(hm),
     ).flatten()
 
-fun varsler(hm: Hjelpemiddel): List<I18n> {
-    val varsler = mutableListOf<I18n>()
+fun varsler(hm: Hjelpemiddel): List<Varsel> {
+    val varsler = mutableListOf<Varsel>()
 
     val over26År = I18n("Personen er over 26 år.")
 
@@ -172,19 +173,22 @@ fun varsler(hm: Hjelpemiddel): List<I18n> {
     ) {
         val bredde: Int = hm.elektriskVendesystemInfo.sengForMontering.madrassbredde
         varsler.add(
-            I18n(
-                nb = "Standard glidelaken og trekklaken byttes av NAV til å passe $bredde cm bredde.",
-                nn = "Standard glidelaken og trekklaken blir bytt av NAV til å passa $bredde cm breidd.",
+            Varsel(
+                I18n(
+                    nb = "Standard glidelaken og trekklaken byttes av NAV til å passe $bredde cm bredde.",
+                    nn = "Standard glidelaken og trekklaken blir bytt av NAV til å passa $bredde cm breidd.",
+                ),
+                Varseltype.INFO,
             ),
         )
     }
 
     if (hm.posisjoneringsputeForBarnInfo?.brukerErOver26År == true) {
-        varsler.add(over26År)
+        varsler.add(Varsel(over26År, Varseltype.WARNING))
     }
 
     if (hm.ganghjelpemiddelInfo?.brukerErFylt26År == true && hm.ganghjelpemiddelInfo.type == GanghjelpemiddelType.GÅTRENING) {
-        varsler.add(over26År)
+        varsler.add(Varsel(over26År, Varseltype.WARNING))
     }
 
     return varsler
@@ -236,12 +240,12 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                 Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> Tekst(
                     i18n = I18n(
                         nb = "I eget hjem. Ikke avlastningsbolig.",
-                        nn = "I eigen heim. Ikkje avlastingsbustad."
+                        nn = "I eigen heim. Ikkje avlastingsbustad.",
                     ),
                     begrepsforklaring = I18n(
                         nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
-                        nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad."
-                    )
+                        nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
+                    ),
 
                 )
 
@@ -594,7 +598,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -614,7 +618,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -1289,22 +1293,22 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
                 tekst = when (hm.ganghjelpemiddelInfo.type) {
                     GanghjelpemiddelType.GÅBORD -> Tekst(
                         nb = "Innbygger ikke kan bruke gåbord med manuell høyderegulering. Dette er på grunn av funksjonsnedsettelsen personen har.",
-                        nn = "Innbyggjar ikkje kan bruka gåbord med manuell høgderegulering. Dette er på grunn av funksjonsnedsetjinga personen har."
+                        nn = "Innbyggjar ikkje kan bruka gåbord med manuell høgderegulering. Dette er på grunn av funksjonsnedsetjinga personen har.",
                     )
 
                     GanghjelpemiddelType.SPARKESYKKEL -> Tekst(
                         nb = "Innbygger ikke kan bruke vanlig sparkesykkel. Med vanlig sparkesykkel menes sparkesykler som ikke er utviklet spesielt for personer med funksjonsnedsettelse.",
-                        nn = "Innbyggjar ikkje kan bruka vanleg sparkesykkel. Med vanleg sparkesykkel siktar ein til sparkesyklar som ikkje er utvikla spesielt for personar med funksjonsnedsetjing."
+                        nn = "Innbyggjar ikkje kan bruka vanleg sparkesykkel. Med vanleg sparkesykkel siktar ein til sparkesyklar som ikkje er utvikla spesielt for personar med funksjonsnedsetjing.",
                     )
 
                     GanghjelpemiddelType.KRYKKE -> Tekst(
                         nb = "Innbygger ikke kan bruke krykke uten støtdemping på grunn av sin funksjonsnedsettelse.",
-                        nn = "Innbyggjar ikkje kan bruka krykkje utan støytdemping på grunn av funksjonsnedsetjinga si."
+                        nn = "Innbyggjar ikkje kan bruka krykkje utan støytdemping på grunn av funksjonsnedsetjinga si.",
                     )
 
                     else -> error("Uventet verdi for hm.ganghjelpemiddelInfo.type: ${hm.ganghjelpemiddelInfo.type}")
-                }
-            )
+                },
+            ),
         )
     }
 

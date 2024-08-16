@@ -111,7 +111,7 @@ data class Hjelpemiddel(
     val bytter: List<Bytte>,
     val bruksarena: Set<Bruksarena>,
     val opplysninger: List<Opplysning>,
-    val varsler: List<I18n>,
+    val varsler: List<Varsel>,
 
 //    val beskrivelse: String, // TODO hva er dette?
 )
@@ -164,6 +164,16 @@ data class I18n(
     val nn: String,
 ) {
     constructor(norsk: String) : this(nb = norsk, nn = norsk) // For enkle tekster som er like på begge målformer
+}
+
+data class Varsel(
+    val tekst: I18n,
+    val type: Varseltype,
+)
+
+enum class Varseltype {
+    INFO,
+    WARNING,
 }
 
 private fun tilPrioritet(hast: Hast?): Prioritet = if (hast != null) Prioritet.HAST else Prioritet.NORMAL
