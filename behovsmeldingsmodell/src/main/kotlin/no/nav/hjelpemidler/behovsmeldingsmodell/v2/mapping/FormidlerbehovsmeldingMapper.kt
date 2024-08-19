@@ -1317,7 +1317,6 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
             ?: error("hm.ganghjelpemiddelInfo.type skal være satt når hm.ganghjelpemiddelInfo.bruksområde er satt")
         val bruksområde = hm.ganghjelpemiddelInfo.bruksområde
         val brukerErFylt26År = hm.ganghjelpemiddelInfo.brukerErFylt26År
-            ?: error("hm.ganghjelpemiddelInfo.brukerErFylt26År skal være satt når hm.ganghjelpemiddelInfo.bruksområde er satt")
         val tekst = when (type) {
             GanghjelpemiddelType.GÅSTOL -> when (bruksområde) {
                 BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> I18n(nb = "Til forflytning", nn = "Til forflytting")
@@ -1335,6 +1334,7 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
                         nb = "Til forflytning ved nedsatt gangfunksjon",
                         nn = "Til forflytting ved nedsett gangfunksjon",
                     )
+                    else -> error("hm.ganghjelpemiddelInfo.brukerErFylt26År skal være satt når type==SPARKESYKKEL og bruksområde==TIL_FORFLYTNING")
                 }
 
                 BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> I18n(
