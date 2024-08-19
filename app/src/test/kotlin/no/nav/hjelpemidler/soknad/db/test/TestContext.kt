@@ -14,13 +14,13 @@ import io.mockk.mockk
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
-import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
@@ -107,10 +107,10 @@ class TestContext(
             .expect(HttpStatusCode.OK, 1)
     }
 
-    suspend fun finnSøknad(søknadId: SøknadId, inkluderData: Boolean = false): Søknad? {
+    suspend fun finnSøknad(søknadId: SøknadId, inkluderData: Boolean = false): SøknadDto? {
         val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
-        return response.body<Søknad?>()
+        return response.body<SøknadDto?>()
     }
 
     suspend inline fun <reified T : Fagsak> finnSak(søknadId: SøknadId): T? {

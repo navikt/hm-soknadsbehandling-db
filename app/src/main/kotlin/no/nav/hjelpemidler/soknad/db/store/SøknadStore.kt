@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
@@ -22,7 +23,6 @@ import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
 import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
-import no.nav.hjelpemidler.soknad.db.domain.Søknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
@@ -40,7 +40,7 @@ import java.util.UUID
 private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
-    fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): Søknad? {
+    fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): SøknadDto? {
         return tx.singleOrNull(
             """
                 SELECT soknad.soknads_id,

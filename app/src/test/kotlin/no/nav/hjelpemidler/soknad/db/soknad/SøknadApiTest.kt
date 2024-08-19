@@ -1,12 +1,11 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
-import com.fasterxml.jackson.databind.node.NullNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import io.kotest.matchers.maps.shouldBeEmpty
+import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
@@ -49,14 +48,14 @@ class SøknadApiTest {
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldBeInstanceOf<ObjectNode>()
+            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.GODKJENT shouldNotBe status1
         oppdaterStatus(søknadId, status2)
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldBeInstanceOf<ObjectNode>()
+            this.data.shouldNotBeEmpty()
         }
     }
 
@@ -68,14 +67,14 @@ class SøknadApiTest {
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldBeInstanceOf<ObjectNode>()
+            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.UTLØPT shouldNotBe status1
         oppdaterStatus(søknadId, status2)
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldBeInstanceOf<NullNode>()
+            this.data.shouldBeEmpty()
         }
     }
 
@@ -87,14 +86,14 @@ class SøknadApiTest {
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldBeInstanceOf<ObjectNode>()
+            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.SLETTET shouldNotBe status1
         oppdaterStatus(søknadId, status2)
         finnSøknad(søknadId, true).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldBeInstanceOf<NullNode>()
+            this.data.shouldBeEmpty()
         }
     }
 
