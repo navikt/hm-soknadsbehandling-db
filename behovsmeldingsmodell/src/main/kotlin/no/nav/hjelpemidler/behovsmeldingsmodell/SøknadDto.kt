@@ -4,7 +4,9 @@ import java.time.Instant
 import java.util.UUID
 
 /**
- * Bruker bla. ved henting av behovsmelding i hm-soknadsbehandling.
+ * Brukes bla. ved henting av behovsmelding i hm-soknadsbehandling.
+ *
+ * todo -> Kunne vi gitt klassen en mindre generisk navn?
  */
 data class SøknadDto(
     override val søknadId: UUID,
