@@ -89,7 +89,7 @@ fun tilFormidlerbehovsmeldingV2(
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-        ),
+            ),
         innsender = Innsender(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
@@ -247,7 +247,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
 
-                )
+                    )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
                     nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
@@ -598,7 +598,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -618,7 +618,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -1316,7 +1316,6 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         val type = hm.ganghjelpemiddelInfo.type
             ?: error("hm.ganghjelpemiddelInfo.type skal være satt når hm.ganghjelpemiddelInfo.bruksområde er satt")
         val bruksområde = hm.ganghjelpemiddelInfo.bruksområde
-        val brukerErFylt26År = hm.ganghjelpemiddelInfo.brukerErFylt26År
         val tekst = when (type) {
             GanghjelpemiddelType.GÅSTOL -> when (bruksområde) {
                 BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> I18n(nb = "Til forflytning", nn = "Til forflytting")
@@ -1324,17 +1323,16 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
             }
 
             GanghjelpemiddelType.SPARKESYKKEL -> when (bruksområde) {
-                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> when (brukerErFylt26År) {
+                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> when (hm.ganghjelpemiddelInfo.brukerErFylt26År) {
                     true -> I18n(
                         nb = "Til forflytning. Den skal ikke brukes til trening, aktivisering og stimulering.",
                         nn = "Til forflytting. Den skal ikkje brukast til trening, aktivisering og stimulering.",
                     )
 
-                    false -> I18n(
+                    else -> I18n(
                         nb = "Til forflytning ved nedsatt gangfunksjon",
                         nn = "Til forflytting ved nedsett gangfunksjon",
                     )
-                    else -> error("hm.ganghjelpemiddelInfo.brukerErFylt26År skal være satt når type==SPARKESYKKEL og bruksområde==TIL_FORFLYTNING")
                 }
 
                 BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> I18n(
