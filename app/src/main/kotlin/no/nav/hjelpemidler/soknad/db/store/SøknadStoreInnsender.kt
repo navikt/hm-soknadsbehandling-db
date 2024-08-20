@@ -102,11 +102,10 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
         innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SøknadForInnsender? {
-//        val behovsmeldingTypeClause = when (innsenderRolle) {
-//            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
-//            else -> ""
-//        }
-        val behovsmeldingTypeClause = "" // TODO revert me
+        val behovsmeldingTypeClause = when (innsenderRolle) {
+            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
+            else -> ""
+        }
 
         val statement = Sql(
             """
@@ -129,17 +128,10 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                                    ON status.id =
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
+                  AND soknad.fnr_innsender = :fnrInnsender
                   AND soknad.data ->> 'behovsmeldingType' <> 'BRUKERPASSBYTTE'
                   AND soknad.soknads_id = :soknadId
-                  
-            """.trimIndent(),
-        )
-
-        /*
-        TODO revert me
-        AND soknad.fnr_innsender = :fnrInnsender
-
-                $behovsmeldingTypeClause
+                  $behovsmeldingTypeClause
                   AND soknad.created > :opprettetEtter
                      AND (
                       status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
@@ -152,14 +144,15 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                       AND status.CREATED < '2022-02-14' -- Dagen etter vi lanserte de siste fiksene
                       AND status.CREATED < (now() - INTERVAL '4 week') -- Vises i maks fire uker etter vedtak
                   )
-         */
+            """.trimIndent(),
+        )
 
         return tx.singleOrNull(
             statement,
             mapOf(
-                // "fnrInnsender" to fnrInnsender, TODO revert me
+                "fnrInnsender" to fnrInnsender,
                 "soknadId" to søknadId,
-                // "opprettetEtter" to LocalDateTime.now().minusMonths(6), TODO revert me
+                "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
         ) {
             val datoOpprettet = it.sqlTimestamp("created")
