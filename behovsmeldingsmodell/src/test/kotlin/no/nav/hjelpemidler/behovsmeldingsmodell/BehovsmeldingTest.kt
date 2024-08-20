@@ -6,7 +6,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.BehovsmeldingResponse
 import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.test.Test
 
-class BehovsmeldingBaseTest {
+class BehovsmeldingTest {
     @Test
     fun `Skal kunne deserialisere både gammel og ny JSON til felles behovsmeldingsmodell`() {
         assertDoesNotThrow {
