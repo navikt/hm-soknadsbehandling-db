@@ -161,7 +161,7 @@ data class Tekst(
     init {
         require(
             (i18n != null && fritekst == null) ||
-                    (i18n == null && fritekst != null),
+                (i18n == null && fritekst != null),
         ) { "Én, og bare én, av i18n eller fritekst må ha verdi. Mottok i18n <$i18n> og fritekst <$fritekst>" }
     }
 }

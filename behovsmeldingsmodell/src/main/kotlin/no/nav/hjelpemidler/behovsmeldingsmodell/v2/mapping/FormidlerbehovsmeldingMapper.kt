@@ -79,7 +79,7 @@ fun tilFormidlerbehovsmeldingV2(
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-            ),
+        ),
         innsender = Innsender(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
@@ -180,9 +180,10 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
             Varsel(
                 I18n(
                     nb = "Før hjelpemiddelsentralen kan behandle saken må det være laget en plan for hjelpemiddelbruken. NAV må innhente opplysninger.",
-                    nn = "Før hjelpemiddelsentralen kan behandla saka må det vera laga ein plan for hjelpemiddelbruken. NAV må innhenta opplysningar."
-                ), Varseltype.INFO
-            )
+                    nn = "Før hjelpemiddelsentralen kan behandla saka må det vera laga ein plan for hjelpemiddelbruken. NAV må innhenta opplysningar.",
+                ),
+                Varseltype.INFO,
+            ),
         )
     }
 
@@ -250,7 +251,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
 
-                    )
+                )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
                     nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
@@ -601,7 +602,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -621,7 +622,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -831,7 +832,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
                         I18n(
                             nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
                             nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsett funksjonsevne på dagtid.",
-                        ), begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring
+                        ),
+                        begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring,
                     )
                 } else {
                     Tekst(
@@ -886,7 +888,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
                             I18n(
                                 nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
                                 nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedset funksjonsevne på dagtid.",
-                            ), begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring
+                            ),
+                            begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring,
                         ),
                     ),
                 )
@@ -1402,5 +1405,5 @@ private val bruksområde = I18n("Bruksområde")
 private val grunnenTilBehovet = I18n("Grunnen til behovet")
 private val dysfunksjoneltSøvnmønsterForklaring = I18n(
     nb = "Med dysfunksjonelt søvnmønster menes: Varige og vesentlige problemer med å sovne, urolig nattesøvn, meget tidlig oppvåkning om morgenen og/eller dårlig søvnkvalitet som fører til nedsatt funksjon på dagtid. Den nedsatte funksjonen på dagtid må føre til problemer med å utføre dagliglivets nødvendige aktiviteter.",
-    nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet."
+    nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet.",
 )
