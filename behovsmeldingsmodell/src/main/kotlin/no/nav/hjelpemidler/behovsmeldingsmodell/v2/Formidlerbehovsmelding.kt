@@ -19,6 +19,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
+import org.owasp.html.HtmlPolicyBuilder
 import java.time.LocalDate
 import java.util.UUID
 
@@ -160,16 +161,23 @@ data class Tekst(
     init {
         require(
             (i18n != null && fritekst == null) ||
-                (i18n == null && fritekst != null),
+                    (i18n == null && fritekst != null),
         ) { "Én, og bare én, av i18n eller fritekst må ha verdi. Mottok i18n <$i18n> og fritekst <$fritekst>" }
     }
 }
+
+private val htmlPolicy = HtmlPolicyBuilder().allowElements("em", "strong").toFactory()
 
 data class I18n(
     val nb: String,
     val nn: String,
 ) {
     constructor(norsk: String) : this(nb = norsk, nn = norsk) // For enkle tekster som er like på begge målformer
+
+    init {
+        require(nb == htmlPolicy.sanitize(nb)) { "Ugyldig HTML i nb" }
+        require(nn == htmlPolicy.sanitize(nn)) { "Ugyldig HTML i nn" }
+    }
 }
 
 data class Varsel(

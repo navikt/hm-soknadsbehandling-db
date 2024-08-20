@@ -186,17 +186,6 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
         )
     }
 
-    if (hm.sengInfo?.påkrevdBehov == BehovForSeng.DYSFUNKSJONELT_SØVNMØNSTER) {
-        varsler.add(
-            Varsel(
-                I18n(
-                    nb = "Med dysfunksjonelt søvnmønster menes: Varige og vesentlige problemer med å sovne, urolig nattesøvn, meget tidlig oppvåkning om morgenen og/eller dårlig søvnkvalitet som fører til nedsatt funksjon på dagtid. Den nedsatte funksjonen på dagtid må føre til problemer med å utføre dagliglivets nødvendige aktiviteter.",
-                    nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet."
-                ), Varseltype.INFO
-            )
-        )
-    }
-
     if (hm.posisjoneringsputeForBarnInfo?.brukerErOver26År == true) {
         varsler.add(Varsel(over26År, Varseltype.WARNING))
     }
@@ -839,8 +828,10 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
             val tekst =
                 if (hm.sengInfo.brukerOppfyllerPåkrevdBehov == true) {
                     Tekst(
-                        nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
-                        nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsett funksjonsevne på dagtid.",
+                        I18n(
+                            nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
+                            nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsett funksjonsevne på dagtid.",
+                        ), begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring
                     )
                 } else {
                     Tekst(
@@ -892,8 +883,10 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
                     Opplysning(
                         ledetekst = behovForSengLabel,
                         tekst = Tekst(
-                            nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
-                            nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedset funksjonsevne på dagtid.",
+                            I18n(
+                                nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
+                                nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedset funksjonsevne på dagtid.",
+                            ), begrepsforklaring = dysfunksjoneltSøvnmønsterForklaring
                         ),
                     ),
                 )
@@ -1407,3 +1400,7 @@ private val formidlerBekrefterAt = I18n(nb = "Formidler bekrefter at", nn = "For
 private val behov = I18n("Behov")
 private val bruksområde = I18n("Bruksområde")
 private val grunnenTilBehovet = I18n("Grunnen til behovet")
+private val dysfunksjoneltSøvnmønsterForklaring = I18n(
+    nb = "Med dysfunksjonelt søvnmønster menes: Varige og vesentlige problemer med å sovne, urolig nattesøvn, meget tidlig oppvåkning om morgenen og/eller dårlig søvnkvalitet som fører til nedsatt funksjon på dagtid. Den nedsatte funksjonen på dagtid må føre til problemer med å utføre dagliglivets nødvendige aktiviteter.",
+    nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet."
+)
