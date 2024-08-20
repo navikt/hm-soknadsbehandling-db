@@ -310,7 +310,7 @@ data class Hjelpemiddel(
     val årsakForAntall: String? = null,
     @JsonProperty("arsakForAntallBegrunnelse")
     val årsakForAntallBegrunnelse: String? = null,
-    val beskrivelse: String,
+    val beskrivelse: String, // = navn
     val hjelpemiddelkategori: String,
     @JsonProperty("hmsNr")
     val hmsnr: String,
@@ -328,7 +328,7 @@ data class Hjelpemiddel(
     val begrunnelse: String? = null,
     @JsonProperty("kanIkkeTilsvarande") // nynorsk
     val kanIkkeTilsvarende: Boolean? = null,
-    val navn: String? = null,
+    val navn: String? = null, // = beskrivelse
     val produkt: HjelpemiddelProdukt? = null,
     val rullestolInfo: RullestolInfo? = null,
     val utlevertInfo: UtlevertInfo? = null,

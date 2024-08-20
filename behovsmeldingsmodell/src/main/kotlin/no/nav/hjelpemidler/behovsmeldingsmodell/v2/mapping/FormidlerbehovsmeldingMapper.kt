@@ -35,6 +35,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Levering
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Opplysning
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tekst
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tilbehør
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utlevertinfo
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
@@ -89,7 +90,7 @@ fun tilFormidlerbehovsmeldingV2(
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-            ),
+        ),
         innsender = Innsender(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
@@ -113,14 +114,14 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
     return no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemiddel(
         antall = v1.antall,
         produkt = HjelpemiddelProdukt(
-            hmsnr = v1.hmsnr,
-            navn = v1.navn
-                ?: error("Behovsmelding $id mangler hjelpemiddelnavn for ${v1.hmsnr}"), // TODO v1.beskrivelse?
+            hmsArtNr = v1.hmsnr,
+            artikkelnavn = v1.beskrivelse,
             iso8 = Iso8(v1.produkt?.isocode ?: error("Behovsmelding $id mangler isocode for ${v1.hmsnr}")),
-            iso8Navn = v1.produkt.isotitle ?: error("Behovsmelding $id mangler isotitle for ${v1.hmsnr}"),
+            iso8Tittel = v1.produkt.isotitle ?: error("Behovsmelding $id mangler isotitle for ${v1.hmsnr}"),
             rangering = v1.produkt.postrank?.toInt() ?: error("Behovsmelding $id mangler rangering for ${v1.hmsnr}"),
             delkontrakttittel = v1.produkt.aposttitle
                 ?: error("Behovsmelding $id mangler delkontrakttittel for ${v1.hmsnr}"),
+            sortimentkategori = v1.produkt.kategori ?: error("v1.produkt.kategori (sortimentkategori) mangler"),
         ),
         tilbehør = (v1.tilbehør ?: emptyList()).map {
             Tilbehør(
@@ -133,6 +134,12 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
         },
         bytter = v1.bytter,
         bruksarena = v1.bruksarena,
+        utlevertinfo = Utlevertinfo(
+            alleredeUtlevertFraHjelpemiddelsentralen = v1.utlevertFraHjelpemiddelsentralen,
+            utleverttype = v1.utlevertInfo?.utlevertType,
+            overførtFraBruker = v1.utlevertInfo?.overførtFraBruker,
+            annenKommentar = v1.utlevertInfo?.annenKommentar,
+        ),
         opplysninger = opplysninger(v1, søknad),
         varsler = varsler(v1),
     )
@@ -247,7 +254,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
 
-                    )
+                )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
                     nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
@@ -598,7 +605,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -618,7 +625,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 

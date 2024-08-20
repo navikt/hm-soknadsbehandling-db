@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Kontaktperson
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
@@ -110,19 +111,19 @@ data class Hjelpemiddel(
     val tilbehør: List<Tilbehør>,
     val bytter: List<Bytte>,
     val bruksarena: Set<Bruksarena>,
+    val utlevertinfo: Utlevertinfo,
     val opplysninger: List<Opplysning>,
     val varsler: List<Varsel>,
-
-//    val beskrivelse: String, // TODO hva er dette?
 )
 
 data class HjelpemiddelProdukt(
-    val hmsnr: String,
-    val navn: String,
+    val hmsArtNr: String,
+    val artikkelnavn: String,
     val iso8: Iso8,
-    val iso8Navn: String,
+    val iso8Tittel: String,
     val rangering: Int,
     val delkontrakttittel: String,
+    val sortimentkategori: String, // fra digithot-sortiment
 )
 
 data class Tilbehør(
@@ -132,6 +133,15 @@ data class Tilbehør(
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
 )
+
+data class Utlevertinfo(
+    val alleredeUtlevertFraHjelpemiddelsentralen: Boolean,
+    val utleverttype: UtlevertType?,
+    val overførtFraBruker: Brukernummer?,
+    val annenKommentar: String?,
+)
+
+typealias Brukernummer = String
 
 data class Opplysning(
     val ledetekst: I18n,
