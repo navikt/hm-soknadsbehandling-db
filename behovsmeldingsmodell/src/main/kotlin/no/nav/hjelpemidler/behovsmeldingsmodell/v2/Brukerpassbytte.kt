@@ -4,16 +4,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte // TODO flytt ut felles enums
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import java.time.LocalDate
 import java.util.UUID
 
-class Brukerpassbytte(
-    id: UUID,
-    innsendingsdato: LocalDate,
-    hjmBrukersFnr: Fødselsnummer,
-    innsendersFnr: Fødselsnummer,
-
+data class Brukerpassbytte(
     val navn: Personnavn,
     val folkeregistrertAdresse: Veiadresse,
     val annenUtleveringsadresse: Veiadresse?,
@@ -21,18 +16,19 @@ class Brukerpassbytte(
     val bytteårsak: Brukerpassbytte.Bytteårsak,
     val byttebegrunnelse: String?,
     val utleveringsmåte: Brukerpassbytte.Utleveringsmåte,
-) : Behovsmelding(
-    id = id,
-    type = BehovsmeldingType.BRUKERPASSBYTTE,
-    innsendingsdato = innsendingsdato,
-    hjmBrukersFnr = hjmBrukersFnr,
-    innsendersFnr = innsendersFnr,
-    prioritet = Prioritet.NORMAL,
-) {
+
+    override val id: UUID,
+    override val type: BehovsmeldingType = BehovsmeldingType.BRUKERPASSBYTTE,
+    override val skjemaversjon: Int = 2,
+    override val innsendingsdato: LocalDate,
+    override val hjmBrukersFnr: Fødselsnummer,
+    override val innsendersFnr: Fødselsnummer = hjmBrukersFnr,
+    override val prioritet: Prioritet = Prioritet.NORMAL,
+) : BehovsmeldingBase {
     data class Hjelpemiddel(
-        val artnr: String, // TODO skal vi standardisere på artnr eller hmsnr?
-        val navn: String,
-        val kategori: String, // rename til iso6Navn?
+        val hmsArtNr: String,
+        val artikkelnavn: String,
+        val iso6Tittel: String,
         val iso6: Iso6,
     )
 }

@@ -19,24 +19,21 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import java.time.LocalDate
 import java.util.UUID
 
-class Formidlerbehovsmelding(
-    id: UUID,
-    type: BehovsmeldingType,
-    innsendingsdato: LocalDate,
-
+data class Formidlerbehovsmelding(
     val bruker: Bruker,
     val brukersituasjon: Brukersituasjon,
     val hjelpemidler: Hjelpemidler,
     val levering: Levering,
     val innsender: Innsender,
-) : Behovsmelding(
-    id = id,
-    type = type,
-    innsendingsdato = innsendingsdato,
-    prioritet = tilPrioritet(levering.hast),
-    hjmBrukersFnr = bruker.fnr,
-    innsendersFnr = innsender.fnr,
-)
+
+    override val id: UUID,
+    override val type: BehovsmeldingType,
+    override val innsendingsdato: LocalDate,
+    override val skjemaversjon: Int = 2,
+    override val hjmBrukersFnr: Fødselsnummer = bruker.fnr,
+    override val innsendersFnr: Fødselsnummer = innsender.fnr,
+    override val prioritet: Prioritet = tilPrioritet(levering.hast),
+) : BehovsmeldingBase
 
 data class Bruker(
     val fnr: Fødselsnummer,
@@ -47,10 +44,7 @@ data class Bruker(
     val kommunenummer: String?,
     val brukernummer: String?,
     val kilde: Brukerkilde?,
-
-    // val kroppsmål: Kroppsmål?, // TODO kun som info på relevenate hjm.
-    // val erInformertOmRettigheter: Boolean?, // TODO brukersituasjon???
-    // val borIPilotkommuneForHast: Boolean? = false, // TODO brukes kun i hm-soknad-api for statistikk
+    val erInformertOmRettigheter: Boolean?, // brukt i forbindelse med fritak fra fullmakt (covid)
 )
 
 data class Brukersituasjon(
@@ -97,7 +91,6 @@ data class Innsender(
     val rolle: InnsenderRolle,
     val kurs: List<Godkjenningskurs>,
     val sjekketUtlånsoversiktForKategorier: Set<Iso6>,
-    // val organisasjoner: List<Organisasjon>, // TODO hva brukes denne til?
 )
 
 data class Hjelpemidler(

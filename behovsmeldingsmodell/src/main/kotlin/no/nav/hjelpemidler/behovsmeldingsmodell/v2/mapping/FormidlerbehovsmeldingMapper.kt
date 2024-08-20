@@ -53,13 +53,13 @@ fun tilFormidlerbehovsmeldingV2(
         bruker = Bruker(
             fnr = v1Bruker.fnr,
             navn = v1Bruker.navn,
-            signaturtype = v1Bruker.signaturtype
-                ?: error("Behovsmelding $id mangler signaturtype"), // TODO hva var reel signaturtype før det ble innført?
+            signaturtype = v1Bruker.signaturtype ?: error("Behovsmelding $id mangler signaturtype"),
             telefon = v1Bruker.telefon,
             veiadresse = v1Bruker.veiadresse,
             kommunenummer = v1Bruker.kommunenummer,
             brukernummer = v1Bruker.brukernummer,
             kilde = v1Bruker.kilde,
+            erInformertOmRettigheter = v1Bruker.erInformertOmRettigheter,
         ),
         brukersituasjon = Brukersituasjon(
             bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår,
@@ -93,7 +93,7 @@ fun tilFormidlerbehovsmeldingV2(
         ),
         innsender = Innsender(
             fnr = fnrInnsender,
-            rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER, // TODO Kan vi anta dette?
+            rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
             sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map {
                 Iso6(

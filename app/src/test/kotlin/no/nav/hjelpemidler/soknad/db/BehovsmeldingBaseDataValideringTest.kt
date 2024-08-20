@@ -9,7 +9,7 @@ import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.test.readTree
 import org.junit.jupiter.api.Test
 
-class BehovsmeldingDataValideringTest {
+class BehovsmeldingBaseDataValideringTest {
     @Test
     fun `Validering av en normal søknad i dagens format`() {
         val søknadId = lagSøknadId()

@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.BehovsmeldingBase
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 
@@ -30,9 +30,9 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
     }
 
     val hjelpemiddel = Brukerpassbytte.Hjelpemiddel(
-        artnr = v1.hjelpemiddel.artnr,
-        navn = v1.hjelpemiddel.navn,
-        kategori = v1.hjelpemiddel.kategori,
+        hmsArtNr = v1.hjelpemiddel.artnr,
+        artikkelnavn = v1.hjelpemiddel.navn,
+        iso6Tittel = v1.hjelpemiddel.kategori,
         iso6 = Iso6(v1.hjelpemiddel.kategorinummer ?: error("brukerpassbytte hjelpemiddel.kategorinummer var null")),
     )
 
@@ -51,5 +51,5 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
     )
 }
 
-fun tilBehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): Behovsmelding =
+fun tilBehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): BehovsmeldingBase =
     tilBrukerpassbytteV2(v1)
