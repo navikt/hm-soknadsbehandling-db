@@ -7,7 +7,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KanIkkeAvhjelpesMedEnklereÅrsak
-import no.nav.hjelpemidler.behovsmeldingsmodell.Oppfølgingsansvarlig
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBruksområde
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolLøftType
@@ -16,7 +15,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeForBarnBruk
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeOppgaverIDagligliv
 import no.nav.hjelpemidler.behovsmeldingsmodell.SitteputeValg
-import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
@@ -71,18 +69,9 @@ fun tilFormidlerbehovsmeldingV2(
         ),
         levering = Levering(
             hjelpmiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
-            oppfølgingsansvarlig = when (v1.søknad.levering.oppfølgingsansvarlig) {
-                Oppfølgingsansvarlig.HJELPEMIDDELFORMIDLER -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Oppfølgingsansvarlig.HJELPEMIDDELFORMIDLER
-                Oppfølgingsansvarlig.ANNEN_OPPFØLGINGSANSVARLIG -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Oppfølgingsansvarlig.ANNEN_OPPFØLGINGSANSVARLIG
-            },
+            oppfølgingsansvarlig = v1.søknad.levering.oppfølgingsansvarlig,
             annenOppfølgingsansvarlig = v1.søknad.levering.annenOppfølgingsansvarlig,
-            utleveringsmåte = when (v1.søknad.levering.utleveringsmåte) {
-                Utleveringsmåte.FOLKEREGISTRERT_ADRESSE -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utleveringsmåte.FOLKEREGISTRERT_ADRESSE
-                Utleveringsmåte.ANNEN_BRUKSADRESSE -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utleveringsmåte.ANNEN_BRUKSADRESSE
-                Utleveringsmåte.HJELPEMIDDELSENTRALEN -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utleveringsmåte.HJELPEMIDDELSENTRALEN
-                Utleveringsmåte.ALLEREDE_UTLEVERT_AV_NAV -> no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utleveringsmåte.ALLEREDE_UTLEVERT_AV_NAV
-                null -> null
-            },
+            utleveringsmåte = v1.søknad.levering.utleveringsmåte,
             annenUtleveringsadresse = v1.søknad.levering.annenUtleveringsadresse,
             utleveringKontaktperson = v1.søknad.levering.utleveringKontaktperson,
             annenKontaktperson = v1.søknad.levering.annenKontaktperson,
@@ -95,11 +84,7 @@ fun tilFormidlerbehovsmeldingV2(
             fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
-            sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map {
-                Iso6(
-                    it,
-                )
-            }
+            sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map { Iso6(it) }
                 ?.toSet() ?: emptySet(),
         ),
         hjelpemidler = Hjelpemidler(

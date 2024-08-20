@@ -9,8 +9,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.Kontaktperson
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
+import no.nav.hjelpemidler.behovsmeldingsmodell.Oppfølgingsansvarlig
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
+import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte

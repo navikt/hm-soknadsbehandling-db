@@ -286,3 +286,8 @@ enum class FritakFraBegrunnelseÅrsak {
     ER_PÅ_BESTILLINGSORDNING,
     IKKE_I_PILOT,
 }
+
+enum class Prioritet {
+    NORMAL,
+    HAST,
+}
