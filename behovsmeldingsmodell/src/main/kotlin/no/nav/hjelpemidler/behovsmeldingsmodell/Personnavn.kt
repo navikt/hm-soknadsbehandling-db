@@ -4,7 +4,9 @@ data class Personnavn(
     val fornavn: String,
     val etternavn: String,
 ) {
-    override fun toString(): String = listOf(fornavn, etternavn).filter(String::isNotBlank).joinToString(" ")
+    override fun toString(): String = listOf(fornavn, etternavn)
+        .filter(String::isNotBlank)
+        .joinToString(" ", transform = String::trim)
 }
 
 fun lagPersonnavn(fornavn: String, etternavn: String): Personnavn =
