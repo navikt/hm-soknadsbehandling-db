@@ -53,14 +53,14 @@ data class Bruker(
 
 data class Brukersituasjon(
     val bekreftedeVilkår: Set<BrukersituasjonVilkår>,
-    val funksjonsnedsettelser: Funksjonsnedsettelser,
+    val funksjonsnedsettelser: Set<Funksjonsnedsettelser>,
 )
 
-data class Funksjonsnedsettelser(
-    val bevegelse: Boolean,
-    val kognisjon: Boolean,
-    val hørsel: Boolean,
-)
+enum class Funksjonsnedsettelser {
+    BEVEGELSE,
+    KOGNISJON,
+    HØRSEL,
+}
 
 data class Levering(
     val hjelpmiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,

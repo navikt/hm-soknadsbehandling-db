@@ -61,11 +61,17 @@ fun tilFormidlerbehovsmeldingV2(
         ),
         brukersituasjon = Brukersituasjon(
             bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår,
-            funksjonsnedsettelser = Funksjonsnedsettelser(
-                bevegelse = v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse,
-                kognisjon = v1.søknad.brukersituasjon.funksjonsnedsettelser.kognisjon,
-                hørsel = v1.søknad.brukersituasjon.funksjonsnedsettelser.hørsel,
-            ),
+            funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
+                if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
+                    it.add(Funksjonsnedsettelser.BEVEGELSE)
+                }
+                if (v1.søknad.brukersituasjon.funksjonsnedsettelser.kognisjon) {
+                    it.add(Funksjonsnedsettelser.KOGNISJON)
+                }
+                if (v1.søknad.brukersituasjon.funksjonsnedsettelser.hørsel) {
+                    it.add(Funksjonsnedsettelser.HØRSEL)
+                }
+            },
         ),
         levering = Levering(
             hjelpmiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
