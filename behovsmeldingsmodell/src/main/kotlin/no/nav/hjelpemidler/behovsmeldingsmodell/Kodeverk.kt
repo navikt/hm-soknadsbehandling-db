@@ -145,7 +145,31 @@ enum class Bruksarena {
     SKOLEFRITIDSORDNING,
     INSTITUSJON,
     INSTITUSJON_BARNEBOLIG,
-    INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK,
+
+    /**
+     * NB! Misvisende navn. Skal KUN være til personlig bruk.
+     */
+    @JsonProperty("INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK")
+    INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK,
+}
+
+enum class KanIkkeAvhjelpesMedEnklereÅrsak {
+    HAR_LUFTVEISPROBLEMER,
+    BEGRENSNING_VED_FUNKSJONSNEDSETTELSE,
+    ANNET,
+}
+
+enum class ÅrsakForAntall {
+    BEHOV_I_FLERE_ETASJER,
+    BEHOV_I_FLERE_ROM,
+    BEHOV_INNENDØRS_OG_UTENDØRS,
+    BEHOV_FOR_FLERE_PUTER_FOR_RULLESTOL,
+    BEHOV_FOR_JEVNLIG_VASK_ELLER_VEDLIKEHOLD,
+    BRUKER_HAR_TO_HJEM,
+    ANNET_BEHOV,
+    PUTENE_SKAL_KOMBINERES_I_POSISJONERING,
+    BEHOV_HJEMME_OG_I_BARNEHAGE,
+    PUTENE_SKAL_SETTES_SAMMEN_VED_BRUK,
 }
 
 enum class BytteÅrsak {
@@ -238,6 +262,13 @@ enum class SitteputeValg {
     HAR_FRA_FØR,
 }
 
+enum class BehovForSeng {
+    DYSFUNKSJONELT_SØVNMØNSTER,
+    RISIKO_FOR_FALL_UT_AV_SENG,
+    STERKE_UFRIVILLIGE_BEVEGELSER,
+    ANNET_BEHOV,
+}
+
 enum class MadrassValg {
     @JsonProperty("TrengerMadrass")
     TRENGER_MADRASS,
@@ -254,4 +285,9 @@ enum class AutomatiskGenerertTilbehør {
 enum class FritakFraBegrunnelseÅrsak {
     ER_PÅ_BESTILLINGSORDNING,
     IKKE_I_PILOT,
+}
+
+enum class Prioritet {
+    NORMAL,
+    HAST,
 }

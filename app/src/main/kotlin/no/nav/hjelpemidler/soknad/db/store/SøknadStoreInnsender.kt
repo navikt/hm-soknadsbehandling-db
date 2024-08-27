@@ -1,8 +1,13 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilFormidlerbehovsmeldingV2
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
@@ -16,6 +21,8 @@ import java.util.Date
 import java.util.UUID
 
 private const val UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS = 4
+
+private val logg = KotlinLogging.logger {}
 
 class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
     fun hentSøknaderForInnsender(
@@ -160,6 +167,15 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 navnBruker = it.stringOrNull("navn_bruker"),
                 søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
+                behovsmeldingV2 = try {
+                    tilFormidlerbehovsmeldingV2(
+                        it.json<Behovsmelding>("data"),
+                        Fødselsnummer(fnrInnsender),
+                    )
+                } catch (e: Exception) {
+                    logg.error(e) { "Mapping til BehovsmeldingV2 feilet. Data: ${it.json<JsonNode>("data")}" }
+                    null
+                },
             )
         }
     }
@@ -176,4 +192,5 @@ class SøknadForInnsender(
     val navnBruker: String?,
     val søknadsdata: Søknadsdata? = null,
     val valgteÅrsaker: List<String>,
+    val behovsmeldingV2: Formidlerbehovsmelding? = null,
 )
