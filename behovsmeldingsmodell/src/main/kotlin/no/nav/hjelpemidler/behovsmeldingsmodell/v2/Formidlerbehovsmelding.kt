@@ -48,7 +48,7 @@ data class Bruker(
     val kommunenummer: String?,
     val brukernummer: String?,
     val kilde: Brukerkilde?,
-    val erInformertOmRettigheter: Boolean?, // brukt i forbindelse med fritak fra fullmakt (covid)
+    val legacyopplysninger: List<Opplysning>, // for visning av opplysninger som bare finnes i eldre behovsmeldinger
 )
 
 data class Brukersituasjon(
@@ -124,7 +124,7 @@ data class HjelpemiddelProdukt(
 )
 
 data class Tilbehør(
-    val hmsnr: String,
+    val hmsArtNr: String,
     val navn: String,
     val antall: Int,
     val begrunnelse: String?,

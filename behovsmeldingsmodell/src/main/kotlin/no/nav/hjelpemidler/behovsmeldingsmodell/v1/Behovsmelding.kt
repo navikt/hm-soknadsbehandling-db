@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.hjelpemidler.behovsmeldingsmodell.AutomatiskGenerertTilbehør
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovForSeng
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
+import no.nav.hjelpemidler.behovsmeldingsmodell.Boform
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
 import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
 import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
@@ -96,6 +97,13 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
     val borIPilotkommuneForHast: Boolean? = false,
+
+    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
+    @JsonProperty("bostedRadioButton")
+    val boform: Boform?,
+
+    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
+    val bruksarenaErDagliglivet: Boolean?,
 ) {
     val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn)
     val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)

@@ -1,6 +1,8 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovForSeng
+import no.nav.hjelpemidler.behovsmeldingsmodell.Boform
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
 import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
@@ -57,10 +59,35 @@ fun tilFormidlerbehovsmeldingV2(
             kommunenummer = v1Bruker.kommunenummer,
             brukernummer = v1Bruker.brukernummer,
             kilde = v1Bruker.kilde,
-            erInformertOmRettigheter = v1Bruker.erInformertOmRettigheter,
+            legacyopplysninger = mutableListOf<Opplysning>().also {
+                if (v1Bruker.boform != null) {
+                    it.add(
+                        Opplysning(
+                            ledetekst = I18n(nb = "Boform", nn = "Buform"),
+                            tekst = when (v1Bruker.boform) {
+                                Boform.HJEMME -> Tekst(nb = "Hjemme", nn = "Heime")
+                                Boform.INSTITUSJON -> Tekst(I18n("Institusjon"))
+                            },
+                        ),
+                    )
+                }
+                if (v1Bruker.bruksarenaErDagliglivet == true) {
+                    it.add(
+                        Opplysning(
+                            ledetekst = I18n("Bruksarena"),
+                            tekst = Tekst(nb = "Dagliglivet", nn = "Dagleglivet"),
+                        ),
+                    )
+                }
+            },
         ),
         brukersituasjon = Brukersituasjon(
-            bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår,
+            bekreftedeVilkår = mutableSetOf<BrukersituasjonVilkår>().also {
+                it.addAll(v1.søknad.brukersituasjon.bekreftedeVilkår)
+                if (v1Bruker.erInformertOmRettigheter == true) {
+                    it.add(BrukersituasjonVilkår.ER_INFORMERT_OM_RETTIGHETER_IFBM_FRITAK_FRA_FULLMAKT)
+                }
+            },
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)
@@ -116,7 +143,7 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
         ),
         tilbehør = (v1.tilbehør ?: emptyList()).map {
             Tilbehør(
-                hmsnr = it.hmsnr,
+                hmsArtNr = it.hmsnr,
                 navn = it.navn,
                 antall = it.antall!!,
                 begrunnelse = it.begrunnelse,

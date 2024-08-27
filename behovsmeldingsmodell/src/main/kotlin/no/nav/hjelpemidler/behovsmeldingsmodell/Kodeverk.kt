@@ -64,7 +64,30 @@ enum class Brukerkilde {
     FORMIDLER,
 }
 
+@Deprecated("Erstattet av bruksarena per hjelpemiddel")
+enum class Boform {
+    @JsonProperty("Hjemme")
+    HJEMME,
+
+    @JsonProperty("Institusjon")
+    INSTITUSJON,
+}
+
 enum class BrukersituasjonVilkår {
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    NEDSATT_FUNKSJON,
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    @JsonProperty("STORRE_BEHOV")
+    STØRRE_BEHOV,
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    PRAKTISKE_PROBLEM,
+
+    @Deprecated("Kun brukt under covid")
+    ER_INFORMERT_OM_RETTIGHETER_IFBM_FRITAK_FRA_FULLMAKT,
+
     PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
     VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
 
