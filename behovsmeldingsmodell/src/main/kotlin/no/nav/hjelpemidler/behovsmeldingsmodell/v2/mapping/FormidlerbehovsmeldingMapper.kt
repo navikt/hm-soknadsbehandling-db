@@ -27,11 +27,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.HjelpemiddelProdukt
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemidler
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.I18n
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsender
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso8
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Levering
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.LokalisertTekst
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Opplysning
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tekst
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Tilbehør
@@ -49,7 +49,7 @@ fun tilFormidlerbehovsmeldingV2(
     return Formidlerbehovsmelding(
         id = id,
         type = v1.behovsmeldingType,
-        innsendingsdato = v1.søknad?.dato ?: error("Behovsmelding $id mangler dato"),
+        innsendingsdato = v1.søknad.dato ?: error("Behovsmelding $id mangler dato"),
         bruker = Bruker(
             fnr = v1Bruker.fnr,
             navn = v1Bruker.navn,
@@ -63,10 +63,10 @@ fun tilFormidlerbehovsmeldingV2(
                 if (v1Bruker.boform != null) {
                     it.add(
                         Opplysning(
-                            ledetekst = I18n(nb = "Boform", nn = "Buform"),
-                            tekst = when (v1Bruker.boform) {
+                            ledetekst = LokalisertTekst(nb = "Boform", nn = "Buform"),
+                            innhold = when (v1Bruker.boform) {
                                 Boform.HJEMME -> Tekst(nb = "Hjemme", nn = "Heime")
-                                Boform.INSTITUSJON -> Tekst(I18n("Institusjon"))
+                                Boform.INSTITUSJON -> Tekst(LokalisertTekst("Institusjon"))
                             },
                         ),
                     )
@@ -74,8 +74,8 @@ fun tilFormidlerbehovsmeldingV2(
                 if (v1Bruker.bruksarenaErDagliglivet == true) {
                     it.add(
                         Opplysning(
-                            ledetekst = I18n("Bruksarena"),
-                            tekst = Tekst(nb = "Dagliglivet", nn = "Dagleglivet"),
+                            ledetekst = LokalisertTekst("Bruksarena"),
+                            innhold = Tekst(nb = "Dagliglivet", nn = "Dagleglivet"),
                         ),
                     )
                 }
@@ -191,7 +191,7 @@ fun opplysninger(hm: Hjelpemiddel, søknad: Søknad): List<Opplysning> =
 fun varsler(hm: Hjelpemiddel): List<Varsel> {
     val varsler = mutableListOf<Varsel>()
 
-    val over26År = I18n("Personen er over 26 år.")
+    val over26År = LokalisertTekst("Personen er over 26 år.")
 
     if (hm.elektriskVendesystemInfo?.standardLakenByttesTilRiktigStørrelseAvNav == true &&
         hm.elektriskVendesystemInfo.sengForMontering?.madrassbredde != null
@@ -199,7 +199,7 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
         val bredde: Int = hm.elektriskVendesystemInfo.sengForMontering.madrassbredde
         varsler.add(
             Varsel(
-                I18n(
+                LokalisertTekst(
                     nb = "Standard glidelaken og trekklaken byttes av NAV til å passe $bredde cm bredde.",
                     nn = "Standard glidelaken og trekklaken blir bytt av NAV til å passa $bredde cm breidd.",
                 ),
@@ -211,7 +211,7 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
     if (hm.sengInfo?.høyGrindValg?.erLagetPlanForOppfølging == false) {
         varsler.add(
             Varsel(
-                I18n(
+                LokalisertTekst(
                     nb = "Før hjelpemiddelsentralen kan behandle saken må det være laget en plan for hjelpemiddelbruken. NAV må innhente opplysninger.",
                     nn = "Før hjelpemiddelsentralen kan behandla saka må det vera laga ein plan for hjelpemiddelbruken. NAV må innhenta opplysningar.",
                 ),
@@ -237,7 +237,7 @@ private fun utlevertinfo(hm: Hjelpemiddel): List<Opplysning> {
     }
     val brukernummer = hm.utlevertInfo.overførtFraBruker
     return opplysninger(
-        ledetekst = I18n("Utlevert"),
+        ledetekst = LokalisertTekst("Utlevert"),
         tekst = when (hm.utlevertInfo.utlevertType) {
             UtlevertType.FREMSKUTT_LAGER -> Tekst(
                 nb = "Utlevert fra fremskutt lager",
@@ -245,7 +245,7 @@ private fun utlevertinfo(hm: Hjelpemiddel): List<Opplysning> {
             )
 
             UtlevertType.KORTTIDSLÅN -> Tekst(
-                I18n("Utprøvingslån"),
+                LokalisertTekst("Utprøvingslån"),
             )
 
             UtlevertType.OVERFØRT -> Tekst(
@@ -265,7 +265,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
         return emptyList()
     }
     return opplysninger(
-        ledetekst = I18n("Bruksarena"),
+        ledetekst = LokalisertTekst("Bruksarena"),
         tekster =
         hm.bruksarena.map {
             when (it) {
@@ -275,11 +275,11 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                 )
 
                 Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> Tekst(
-                    i18n = I18n(
+                    forhåndsdefinertTekst = LokalisertTekst(
                         nb = "I eget hjem. Ikke avlastningsbolig.",
                         nn = "I eigen heim. Ikkje avlastingsbustad.",
                     ),
-                    begrepsforklaring = I18n(
+                    begrepsforklaring = LokalisertTekst(
                         nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
@@ -291,7 +291,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                     nn = "I omsorgsbustad, bufellesskap eller servicebustad.",
                 )
 
-                Bruksarena.BARNEHAGE -> Tekst(I18n("I barnehage."))
+                Bruksarena.BARNEHAGE -> Tekst(LokalisertTekst("I barnehage."))
 
                 Bruksarena.GRUNN_ELLER_VIDEREGÅENDE_SKOLE -> Tekst(
                     nb = "På skolen som grunnskole eller videregående skole.",
@@ -333,7 +333,7 @@ private fun trykksårforebygging(hm: Hjelpemiddel): List<Opplysning> {
             if (it.tilleggsinfo != null) {
                 Tekst(fritekst = it.tilleggsinfo)
             } else {
-                Tekst(i18n = I18n(it.vilkårstekst))
+                Tekst(forhåndsdefinertTekst = LokalisertTekst(it.vilkårstekst))
             }
         },
     )
@@ -346,12 +346,12 @@ private fun begrunnelseLavereRangeringEllerIkkeTilsvarende(hm: Hjelpemiddel): Li
     val label = if (hm.kanIkkeTilsvarende == true) {
         val rangering = hm.produkt?.postrank?.toInt() ?: error("Klarte ikke parse rangering (postrank)")
         if (rangering > 1) {
-            I18n(nb = "Begrunnelse for lavere rangering", nn = "Grunngiving for lågare rangering")
+            LokalisertTekst(nb = "Begrunnelse for lavere rangering", nn = "Grunngiving for lågare rangering")
         } else {
-            I18n(nb = "Kan ikke ha tilsvarende fordi", nn = "Kan ikkje ha tilsvarande fordi")
+            LokalisertTekst(nb = "Kan ikke ha tilsvarende fordi", nn = "Kan ikkje ha tilsvarande fordi")
         }
     } else {
-        I18n(nb = "Begrunnelse", nn = "Grunngiving")
+        LokalisertTekst(nb = "Begrunnelse", nn = "Grunngiving")
     }
     return opplysninger(label, Tekst(hm.begrunnelse))
 }
@@ -366,7 +366,7 @@ private fun påkrevdeGodkjenningskurs(hm: Hjelpemiddel): List<Opplysning> {
     val erERS =
         hm.produkt.påkrevdGodkjenningskurs.kursId == no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt.KursId.ELEKTRISK_RULLESTOL.id
     return opplysninger(
-        ledetekst = I18n("Krav om kurs"),
+        ledetekst = LokalisertTekst("Krav om kurs"),
         tekst = if (erVerifisert) {
             if (erERS) {
                 Tekst(
@@ -403,8 +403,8 @@ private fun ersMedKabin(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.kabin.brukerOppfyllerKrav) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Behov for kabin"),
-                tekst = Tekst(
+                ledetekst = LokalisertTekst("Behov for kabin"),
+                innhold = Tekst(
                     nb = "Bruker har en varig funksjonsnedsettelse som gir kuldeintoleranse, og som fører til at rullestolen ikke kan benyttes uten kabin",
                     nn = "Brukar har ei varig funksjonsnedsetjing som gir kuldeintoleranse, og som fører til at rullestolen ikkje kan nyttast utan kabin",
                 ),
@@ -432,15 +432,15 @@ private fun ersMedKabin(hm: Hjelpemiddel): List<Opplysning> {
 
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Enklere løsning er vurdert", nn = "Enklare løysing er vurdert"),
-                tekst = kanIkkeAvhjelpesMedEnklereTekst,
+                ledetekst = LokalisertTekst(nb = "Enklere løsning er vurdert", nn = "Enklare løysing er vurdert"),
+                innhold = kanIkkeAvhjelpesMedEnklereTekst,
             ),
         )
     } else {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Behov for kabin"),
-                tekst = Tekst(
+                ledetekst = LokalisertTekst("Behov for kabin"),
+                innhold = Tekst(
                     nb = "Bruker har <em>ikke</em> en varig funksjonsnedsettelse som gir kuldeintoleranse, og som fører til at rullestolen ikke kan benyttes uten kabin",
                     nn = "Brukar har <em>ikkje</em> ei varig funksjonsnedsetjing som gir kuldeintoleranse, og som fører til at rullestolen ikkje kan nyttast utan kabin",
                 ),
@@ -448,8 +448,8 @@ private fun ersMedKabin(hm: Hjelpemiddel): List<Opplysning> {
         )
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Grunnen til behovet"),
-                tekst = hm.elektriskRullestolInfo.kabin.årsakForBehovBegrunnelse
+                ledetekst = LokalisertTekst("Grunnen til behovet"),
+                innhold = hm.elektriskRullestolInfo.kabin.årsakForBehovBegrunnelse
                     ?: error("Mangler hm.elektriskRullestolInfo.kabin.årsakForBehovBegrunnelse"),
             ),
         )
@@ -462,7 +462,7 @@ private fun årsakForAntall(hm: Hjelpemiddel): List<Opplysning> {
         return emptyList()
     }
     return opplysninger(
-        ledetekst = I18n(nb = "Nødvendig med flere", nn = "Naudsynt med fleire"),
+        ledetekst = LokalisertTekst(nb = "Nødvendig med flere", nn = "Naudsynt med fleire"),
         tekst = if (hm.årsakForAntallBegrunnelse != null) {
             Tekst(hm.årsakForAntallBegrunnelse)
         } else {
@@ -523,8 +523,8 @@ private fun rullestolinfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.rullestolInfo?.skalBrukesIBil == true) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Bil"),
-                tekst = Tekst(
+                ledetekst = LokalisertTekst("Bil"),
+                innhold = Tekst(
                     nb = "Rullestolen skal brukes som sete i bil",
                     nn = "Rullestolen skal brukast som sete i bil",
                 ),
@@ -535,8 +535,8 @@ private fun rullestolinfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.rullestolInfo?.sitteputeValg != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Sittepute", nn = "Sitjepute"),
-                tekst = when (hm.rullestolInfo.sitteputeValg) {
+                ledetekst = LokalisertTekst(nb = "Sittepute", nn = "Sitjepute"),
+                innhold = when (hm.rullestolInfo.sitteputeValg) {
                     SitteputeValg.TRENGER_SITTEPUTE -> Tekst(
                         nb = "Bruker skal ha sittepute",
                         nn = "Brukar skal ha sitjepute",
@@ -559,7 +559,7 @@ private fun tilleggsinformasjon(hm: Hjelpemiddel): List<Opplysning> {
         return emptyList()
     }
     return opplysninger(
-        ledetekst = I18n("Kommentar"),
+        ledetekst = LokalisertTekst("Kommentar"),
         tekst = hm.tilleggsinfo,
     )
 }
@@ -569,13 +569,13 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
         return emptyList()
     }
     val opplysninger = mutableListOf<Opplysning>()
-    val betjeneStyringLabel = I18n(nb = "Betjene styring", nn = "Betene styring")
+    val betjeneStyringLabel = LokalisertTekst(nb = "Betjene styring", nn = "Betene styring")
 
     if (hm.elektriskRullestolInfo.kanBetjeneManuellStyring == true) {
         opplysninger.add(
             Opplysning(
                 ledetekst = betjeneStyringLabel,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Brukeren er vurdert til å kunne betjene elektrisk rullestol med manuell styring",
                     nn = "Brukaren er vurdert til å kunne betene elektrisk rullestol med manuell styring",
                 ),
@@ -587,7 +587,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = betjeneStyringLabel,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Brukeren er vurdert til å kunne betjene elektrisk rullestol med motorisert styring",
                     nn = "Brukaren er vurdert til å kunne betene elektrisk rullestol med motorisert styring",
                 ),
@@ -598,8 +598,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.ferdesSikkertITrafikk == true) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Trafikk"),
-                tekst = Tekst(
+                ledetekst = LokalisertTekst("Trafikk"),
+                innhold = Tekst(
                     nb = "Brukeren er vurdert til å kunne ferdes sikkert i trafikken",
                     nn = "Brukaren er vurdert til å kunne ferdast sikkert i trafikken",
                 ),
@@ -610,8 +610,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.nedsattGangfunksjon == true) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Nedsatt gangfunksjon"),
-                tekst = Tekst(
+                ledetekst = LokalisertTekst("Nedsatt gangfunksjon"),
+                innhold = Tekst(
                     nb = "Brukeren skal benytte den elektriske rullestolen til å avhjelpe en vesentlig nedsatt gangfunksjon. Den skal ikke brukes til et generelt transportbehov.",
                     nn = "Brukaren skal benytte den elektriske rullestolen til å avhjelpe ein vesentlig nedsatt gangfunksjon. Den skal ikkje brukes til eit generelt transportbehov.",
                 ),
@@ -622,8 +622,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.oppbevaringOgLading != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Oppbevaring og lading"),
-                tekst = when (hm.elektriskRullestolInfo.oppbevaringOgLading) {
+                ledetekst = LokalisertTekst("Oppbevaring og lading"),
+                innhold = when (hm.elektriskRullestolInfo.oppbevaringOgLading) {
                     true -> Tekst(
                         nb = "Bruker har egnet sted for oppbevaring og lading",
                         nn = "Brukar har eigna sted for oppbevaring og lading",
@@ -642,8 +642,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.kjentMedForsikring != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Forsikringsvilkår"),
-                tekst = when (hm.elektriskRullestolInfo.kjentMedForsikring) {
+                ledetekst = LokalisertTekst("Forsikringsvilkår"),
+                innhold = when (hm.elektriskRullestolInfo.kjentMedForsikring) {
                     true -> Tekst(
                         nb = "Bruker er gjort kjent med forsikringsvilkårene",
                         nn = "Brukar er gjort kjent med forsikringsvilkåra",
@@ -662,8 +662,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.harSpesialsykkel != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Spesialsykkel"),
-                tekst = when (hm.elektriskRullestolInfo.harSpesialsykkel) {
+                ledetekst = LokalisertTekst("Spesialsykkel"),
+                innhold = when (hm.elektriskRullestolInfo.harSpesialsykkel) {
                     true -> Tekst(
                         nb = "Bruker har spesialsykkel fra før",
                         nn = "Brukar har spesialsykkel frå før",
@@ -681,8 +681,8 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskRullestolInfo.plasseringAvHendel != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Gasshendel"),
-                tekst = when (hm.elektriskRullestolInfo.plasseringAvHendel) {
+                ledetekst = LokalisertTekst("Gasshendel"),
+                innhold = when (hm.elektriskRullestolInfo.plasseringAvHendel) {
                     PlasseringType.HØYRE -> Tekst(
                         nb = "Skal plasseres på høyre side",
                         nn = "Skal plasserast på høgre side",
@@ -714,7 +714,7 @@ fun kroppsmål(hm: Hjelpemiddel, kroppsmål: Kroppsmål?): List<Opplysning> {
     }
 
     return opplysninger(
-        ledetekst = I18n("Kroppsmål"),
+        ledetekst = LokalisertTekst("Kroppsmål"),
         tekst = with(kroppsmål) {
             Tekst(
                 nb = "Setebredde: $setebredde cm, legglengde: $legglengde cm, lårlengde: $lårlengde cm, høyde: $høyde cm, kroppsvekt: $kroppsvekt kg.",
@@ -734,10 +734,10 @@ fun seilEllerSele(hm: Hjelpemiddel): List<Opplysning> {
     val apostnrBadekarheis = "9"
     if (hm.produkt?.kategori == "Personløftere og seil" && hm.produkt.apostnr != apostnrBadekarheis) {
         return opplysninger(
-            ledetekst = I18n(nb = "Har bruker behov for seil eller sele", nn = "Har brukar behov for segl eller sele"),
+            ledetekst = LokalisertTekst(nb = "Har bruker behov for seil eller sele", nn = "Har brukar behov for segl eller sele"),
             tekst = when (hm.personløfterInfo?.harBehovForSeilEllerSele) {
-                true -> I18n("Ja")
-                false -> I18n("Nei")
+                true -> LokalisertTekst("Ja")
+                false -> LokalisertTekst("Nei")
                 else -> error("hm.personløfterInfo?.harBehovForSeilEllerSele skal være satt for hjm ${hm.produkt}")
             },
         )
@@ -753,8 +753,8 @@ fun appinfo(hm: Hjelpemiddel): List<Opplysning> {
 
     opplysninger.add(
         Opplysning(
-            ledetekst = I18n(nb = "Utprøving for bruker", nn = "Utprøving for brukar"),
-            tekst = when (hm.appInfo.brukerHarPrøvdPrøvelisens) {
+            ledetekst = LokalisertTekst(nb = "Utprøving for bruker", nn = "Utprøving for brukar"),
+            innhold = when (hm.appInfo.brukerHarPrøvdPrøvelisens) {
                 true -> Tekst(
                     nb = "Bruker har hatt en vellykket utprøving av prøvelisensen.",
                     nn = "Brukar har hatt ei vellykka utprøving av prøvelisensen.",
@@ -770,8 +770,8 @@ fun appinfo(hm: Hjelpemiddel): List<Opplysning> {
 
     opplysninger.add(
         Opplysning(
-            ledetekst = I18n("Støtteperson"),
-            tekst = when (hm.appInfo.støttepersonSkalAdministrere) {
+            ledetekst = LokalisertTekst("Støtteperson"),
+            innhold = when (hm.appInfo.støttepersonSkalAdministrere) {
                 true -> Tekst(
                     nb = "Støtteperson skal hjelpe bruker med kalenderen.",
                     nn = "Støtteperson skal hjelpa bruker med kalenderen.",
@@ -788,8 +788,8 @@ fun appinfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.appInfo.støttepersonSkalAdministrere) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Utprøving for støtteperson"),
-                tekst = when (hm.appInfo.støttepersonHarPrøvdPrøvelisens) {
+                ledetekst = LokalisertTekst("Utprøving for støtteperson"),
+                innhold = when (hm.appInfo.støttepersonHarPrøvdPrøvelisens) {
                     true -> Tekst(
                         nb = "Støtteperson har hatt en vellykket utprøving av prøvelisensen.",
                         nn = "Støtteperson har hatt ei vellykka utprøving av prøvelisensen.",
@@ -816,7 +816,7 @@ fun varmehjelpemiddelinfo(hm: Hjelpemiddel): List<Opplysning> {
 
     if (hm.varmehjelpemiddelInfo.harHelseopplysningerFraFør == true) {
         return opplysninger(
-            ledetekst = I18n(nb = "Opplysninger fra lege", nn = "Opplysningar frå lege"),
+            ledetekst = LokalisertTekst(nb = "Opplysninger fra lege", nn = "Opplysningar frå lege"),
             tekst = Tekst(
                 nb = "Det er automatisk sjekket at NAV har opplysninger fra lege fra før, eller at opplysningene oppbevares i kommunen",
                 nn = "Det er automatisk sjekka at NAV har opplysningar frå lege frå før, eller at opplysningane blir oppbevarte i kommunen",
@@ -843,7 +843,7 @@ fun varmehjelpemiddelinfo(hm: Hjelpemiddel): List<Opplysning> {
     }
 
     return opplysninger(
-        ledetekst = I18n(nb = "Formidler bekrefter at", nn = "Formidlar stadfestar at"),
+        ledetekst = LokalisertTekst(nb = "Formidler bekrefter at", nn = "Formidlar stadfestar at"),
         tekster = tekster,
     )
 }
@@ -854,7 +854,7 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
     }
 
     val opplysninger = mutableListOf<Opplysning>()
-    val behovForSengLabel = I18n("Behov for seng")
+    val behovForSengLabel = LokalisertTekst("Behov for seng")
 
     // Seng har påkrevd behov
     if (hm.sengInfo.påkrevdBehov != null) {
@@ -862,7 +862,7 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
             val tekst =
                 if (hm.sengInfo.brukerOppfyllerPåkrevdBehov == true) {
                     Tekst(
-                        I18n(
+                        forhåndsdefinertTekst = LokalisertTekst(
                             nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
                             nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsett funksjonsevne på dagtid.",
                         ),
@@ -896,8 +896,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
         if (!hm.sengInfo.behovForSengBegrunnelse.isNullOrBlank()) {
             opplysninger.add(
                 Opplysning(
-                    ledetekst = I18n("Grunnen til behovet"),
-                    tekst = Tekst(hm.sengInfo.behovForSengBegrunnelse),
+                    ledetekst = LokalisertTekst("Grunnen til behovet"),
+                    innhold = Tekst(hm.sengInfo.behovForSengBegrunnelse),
                 ),
             )
         }
@@ -908,8 +908,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
         if (!hm.sengInfo.behovForSengBegrunnelse.isNullOrBlank()) {
             opplysninger.add(
                 Opplysning(
-                    ledetekst = I18n("Grunnen til behovet"),
-                    tekst = Tekst(hm.sengInfo.behovForSengBegrunnelse),
+                    ledetekst = LokalisertTekst("Grunnen til behovet"),
+                    innhold = Tekst(hm.sengInfo.behovForSengBegrunnelse),
                 ),
             )
         } else {
@@ -917,8 +917,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
                 opplysninger.add(
                     Opplysning(
                         ledetekst = behovForSengLabel,
-                        tekst = Tekst(
-                            I18n(
+                        innhold = Tekst(
+                            forhåndsdefinertTekst = LokalisertTekst(
                                 nb = "Barnet har en varig funksjonsnedsettelse som gir et dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedsatt funksjonsevne på dagtid.",
                                 nn = "Barnet har ei varig funksjonsnedsetjing som gir eit dysfunksjonelt søvnmønster slik at barnet får for lite søvn. Dette fører til at barnet får nedset funksjonsevne på dagtid.",
                             ),
@@ -931,7 +931,7 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
                 opplysninger.add(
                     Opplysning(
                         ledetekst = behovForSengLabel,
-                        tekst = Tekst(
+                        innhold = Tekst(
                             nb = "Barnet har varig nedsatt funksjonsevne som gir økt risiko for å falle ut av seng.",
                             nn = "Barnet har varig nedsett funksjonsevne som gir auka risiko for å falla ut av seng.",
                         ),
@@ -945,7 +945,7 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = bekreftetAvFormidler,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Jeg er kjent med at denne sengen har et tvangsaspekt som er omtalt i Rundskriv til ftrl § 10-7. Jeg er også kjent med at det er jeg som har ansvaret for i hvilke sammenhenger hjelpemiddelet skal brukes, og for å følge opp hjelpemiddelbruken.",
                     nn = "Eg er kjend med at denne senga har eit tvangsaspekt som er omtalt i Rundskriv til ftrl § 10-7. Eg er også kjend med at det er eg som har ansvaret for i kva samanhengar hjelpemiddelet skal brukast, og for å følgja opp hjelpemiddelbruken.",
                 ),
@@ -954,8 +954,8 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
 
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Andre tiltak"),
-                tekst = if (hm.sengInfo.høyGrindValg.harForsøktOpptrening) {
+                ledetekst = LokalisertTekst("Andre tiltak"),
+                innhold = if (hm.sengInfo.høyGrindValg.harForsøktOpptrening) {
                     Tekst(
                         nb = "Det er forsøkt opptrening i ferdigheter eller andre tiltak som reduserer eller fjerner behovet for hjelpemiddelet.",
                         nn = "Det er prøvd opptrening i ferdigheiter eller andre tiltak som reduserer eller fjernar behovet for hjelpemiddelet.",
@@ -972,19 +972,19 @@ fun sengeinfo(hm: Hjelpemiddel): List<Opplysning> {
         if (!hm.sengInfo.høyGrindValg.harIkkeForsøktOpptreningBegrunnelse.isNullOrBlank()) {
             opplysninger.add(
                 Opplysning(
-                    ledetekst = I18n(
+                    ledetekst = LokalisertTekst(
                         nb = "Begrunnelse for at opptrening i ferdigheter eller andre tiltak ikke er forsøkt",
                         nn = "Grunngiving for at opptrening i ferdigheiter eller andre tiltak ikkje er prøvd",
                     ),
-                    tekst = hm.sengInfo.høyGrindValg.harIkkeForsøktOpptreningBegrunnelse,
+                    innhold = hm.sengInfo.høyGrindValg.harIkkeForsøktOpptreningBegrunnelse,
                 ),
             )
         }
 
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Plan"),
-                tekst = if (hm.sengInfo.høyGrindValg.erLagetPlanForOppfølging) {
+                ledetekst = LokalisertTekst("Plan"),
+                innhold = if (hm.sengInfo.høyGrindValg.erLagetPlanForOppfølging) {
                     Tekst(
                         nb = "Det er laget en plan for oppfølging av bruken av hjelpemiddelet.",
                         nn = "Det er laga ein plan for oppfølging av bruken av hjelpemiddelet.",
@@ -1012,8 +1012,8 @@ fun elektriskVendesystemInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskVendesystemInfo.sengForMontering?.hmsnr != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n("Art.nr. på senga"),
-                tekst = I18n("${hm.elektriskVendesystemInfo.sengForMontering.hmsnr} ${hm.elektriskVendesystemInfo.sengForMontering.navn ?: ""}"),
+                ledetekst = LokalisertTekst("Art.nr. på senga"),
+                innhold = LokalisertTekst("${hm.elektriskVendesystemInfo.sengForMontering.hmsnr} ${hm.elektriskVendesystemInfo.sengForMontering.navn ?: ""}"),
             ),
         )
     }
@@ -1021,8 +1021,8 @@ fun elektriskVendesystemInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.elektriskVendesystemInfo.sengForMontering?.madrassbredde != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Madrassbredde", nn = "Madrassbreidd"),
-                tekst = I18n("${hm.elektriskVendesystemInfo.sengForMontering.madrassbredde} cm"),
+                ledetekst = LokalisertTekst(nb = "Madrassbredde", nn = "Madrassbreidd"),
+                innhold = LokalisertTekst("${hm.elektriskVendesystemInfo.sengForMontering.madrassbredde} cm"),
             ),
         )
     }
@@ -1057,14 +1057,14 @@ fun posisjoneringssysteminfo(hm: Hjelpemiddel): List<Opplysning> {
                 ),
             )
         }
-        opplysninger.add(Opplysning(ledetekst = formidlerBekrefterAt, tekster = tekster))
+        opplysninger.add(Opplysning(ledetekst = formidlerBekrefterAt, innhold = tekster))
     }
 
     if (hm.posisjoneringssystemInfo.behov === PosisjoneringsputeBehov.STORE_LAMMELSER) {
         opplysninger.add(
             Opplysning(
                 ledetekst = behov,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Det er nødvendig for å kunne sitte eller ligge på grunn av store lammelser, feilstillinger og kontrakturer.",
                     nn = "Det er nødvendig for å kunna sitja eller liggja på grunn av store lammingar, feilstillingar og kontrakturar.",
                 ),
@@ -1106,7 +1106,7 @@ fun posisjoneringssysteminfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = behov,
-                tekst = I18n(
+                innhold = LokalisertTekst(
                     nb = "Det vil direkte avhjelpe nedsatt funksjonsevne slik at dagliglivets oppgaver kan utføres.",
                     nn = "Det vil direkte avhjelpa nedsett funksjonsevne slik at oppgåvene til dagleglivet kan utførast.",
                 ),
@@ -1115,11 +1115,11 @@ fun posisjoneringssysteminfo(hm: Hjelpemiddel): List<Opplysning> {
 
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(
+                ledetekst = LokalisertTekst(
                     nb = "Oppgaver i dagliglivet som skal utføres",
                     nn = "Oppgåver i dagleglivet som skal utførast",
                 ),
-                tekster = oppgaver,
+                innhold = oppgaver,
             ),
         )
     }
@@ -1138,7 +1138,7 @@ fun posisjoneringsputerForBarnInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = bruksområde,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Tilrettelegge utgangsstilling for aktivitet",
                     nn = "Leggja til rette utgangsstilling for aktivitet",
                 ),
@@ -1150,7 +1150,7 @@ fun posisjoneringsputerForBarnInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = bruksområde,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Til trening, aktivitet og stimulering",
                     nn = "Til trening, aktivitet og stimulering",
                 ),
@@ -1182,7 +1182,7 @@ fun posisjoneringsputerForBarnInfo(hm: Hjelpemiddel): List<Opplysning> {
             opplysninger.add(
                 Opplysning(
                     ledetekst = formidlerBekrefterAt,
-                    tekster = tekster,
+                    innhold = tekster,
                 ),
             )
         }
@@ -1201,8 +1201,8 @@ fun diverseinfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.diverseInfo.takhøydeStøttestangCm != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Takhøyde", nn = "Takhøgde"),
-                tekst = I18n("${hm.diverseInfo.takhøydeStøttestangCm} cm"),
+                ledetekst = LokalisertTekst(nb = "Takhøyde", nn = "Takhøgde"),
+                innhold = LokalisertTekst("${hm.diverseInfo.takhøydeStøttestangCm} cm"),
             ),
         )
     }
@@ -1211,7 +1211,7 @@ fun diverseinfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = formidlerBekrefterAt,
-                tekst = Tekst(
+                innhold = Tekst(
                     nb = "Sitteputen skal kun brukes i en rullestol som er utlånt fra NAV.",
                     nn = "Sitjeputa skal berre brukast i ein rullestol som er utlånt frå NAV.",
                 ),
@@ -1231,8 +1231,8 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
 
     opplysninger.add(
         Opplysning(
-            ledetekst = I18n("Funksjon"),
-            tekst = if (hm.oppreisningsstolInfo.kanBrukerReiseSegSelvFraVanligStol) {
+            ledetekst = LokalisertTekst("Funksjon"),
+            innhold = if (hm.oppreisningsstolInfo.kanBrukerReiseSegSelvFraVanligStol) {
                 Tekst(
                     nb = "Personen kan reise seg selv fra vanlige stoler ved bruk av enklere tiltak som for eksempel forhøyningsklosser, puter, støttestang, støttehåndtak og lignende.",
                     nn = "Personen kan reisa seg sjølv frå vanlege stolar ved bruk av enklare tiltak som til dømes løfteklossar, puter, støttestong, støttehandtak og liknande.",
@@ -1249,8 +1249,8 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
     if (hm.oppreisningsstolInfo.bruksområde != null) {
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Stolen skal brukes i", nn = "Stolen skal brukast i"),
-                tekst = when (hm.oppreisningsstolInfo.bruksområde) {
+                ledetekst = LokalisertTekst(nb = "Stolen skal brukes i", nn = "Stolen skal brukast i"),
+                innhold = when (hm.oppreisningsstolInfo.bruksområde) {
                     OppreisningsstolBruksområde.EGEN_BOENHET -> Tekst(
                         nb = "Personens egen boenhet.",
                         nn = "Personen si eiga bueining.",
@@ -1269,14 +1269,14 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = grunnenTilBehovet,
-                tekst = hm.oppreisningsstolInfo.behovForStolBegrunnelse,
+                innhold = hm.oppreisningsstolInfo.behovForStolBegrunnelse,
             ),
         )
     } else {
         opplysninger.add(
             Opplysning(
                 ledetekst = grunnenTilBehovet,
-                tekster = hm.oppreisningsstolInfo.behov?.map { behov ->
+                innhold = hm.oppreisningsstolInfo.behov?.map { behov ->
                     when (behov) {
                         OppreisningsstolBehov.OPPGAVER_I_DAGLIGLIVET -> Tekst(
                             nb = "Personen skal reise seg opp og utføre dagliglivets oppgaver.",
@@ -1301,8 +1301,8 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
 
     opplysninger.add(
         Opplysning(
-            ledetekst = I18n("Trekk"),
-            tekst = when (hm.oppreisningsstolInfo.annetTrekkKanBenyttes) {
+            ledetekst = LokalisertTekst("Trekk"),
+            innhold = when (hm.oppreisningsstolInfo.annetTrekkKanBenyttes) {
                 true -> Tekst(nb = "Stol i annet trekk kan benyttes", nn = "Stol i anna trekk kan nyttast")
                 false -> Tekst(nb = "Stol i annet trekk kan ikke benyttes", nn = "Stol i anna trekk kan ikkje nyttast")
             },
@@ -1311,10 +1311,10 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
 
     opplysninger.add(
         Opplysning(
-            ledetekst = I18n("Skråløft eller rettløft"),
-            tekst = when (hm.oppreisningsstolInfo.løftType) {
-                OppreisningsstolLøftType.SKRÅLØFT -> I18n("Skråløft")
-                OppreisningsstolLøftType.RETTLØFT -> I18n("Rettløft")
+            ledetekst = LokalisertTekst("Skråløft eller rettløft"),
+            innhold = when (hm.oppreisningsstolInfo.løftType) {
+                OppreisningsstolLøftType.SKRÅLØFT -> LokalisertTekst("Skråløft")
+                OppreisningsstolLøftType.RETTLØFT -> LokalisertTekst("Rettløft")
             },
         ),
     )
@@ -1333,7 +1333,7 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = formidlerBekrefterAt,
-                tekst = when (hm.ganghjelpemiddelInfo.type) {
+                innhold = when (hm.ganghjelpemiddelInfo.type) {
                     GanghjelpemiddelType.GÅBORD -> Tekst(
                         nb = "Innbygger ikke kan bruke gåbord med manuell høyderegulering. Dette er på grunn av funksjonsnedsettelsen personen har.",
                         nn = "Innbyggjar ikkje kan bruka gåbord med manuell høgderegulering. Dette er på grunn av funksjonsnedsetjinga personen har.",
@@ -1361,31 +1361,31 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         val bruksområde = hm.ganghjelpemiddelInfo.bruksområde
         val tekst = when (type) {
             GanghjelpemiddelType.GÅSTOL -> when (bruksområde) {
-                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> I18n(nb = "Til forflytning", nn = "Til forflytting")
-                BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> I18n("Til trening, aktivisering og stimulering")
+                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> LokalisertTekst(nb = "Til forflytning", nn = "Til forflytting")
+                BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> LokalisertTekst("Til trening, aktivisering og stimulering")
             }
 
             GanghjelpemiddelType.SPARKESYKKEL -> when (bruksområde) {
                 BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> when (hm.ganghjelpemiddelInfo.brukerErFylt26År) {
-                    true -> I18n(
+                    true -> LokalisertTekst(
                         nb = "Til forflytning. Den skal ikke brukes til trening, aktivisering og stimulering.",
                         nn = "Til forflytting. Den skal ikkje brukast til trening, aktivisering og stimulering.",
                     )
 
-                    else -> I18n(
+                    else -> LokalisertTekst(
                         nb = "Til forflytning ved nedsatt gangfunksjon",
                         nn = "Til forflytting ved nedsett gangfunksjon",
                     )
                 }
 
-                BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> I18n(
+                BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> LokalisertTekst(
                     nb = "Til leke- og sportsaktiviteter, trening og stimulering",
                     nn = "Til leike- og sportsaktivitetar, trening og stimulering",
                 )
             }
 
             GanghjelpemiddelType.GÅTRENING -> when (bruksområde) {
-                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> I18n("Til trening av gangfunksjonen")
+                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> LokalisertTekst("Til trening av gangfunksjonen")
                 else -> error("Forventet ikke type=$type og bruksområde=$bruksområde for hm.ganghjelpemiddelInfo")
             }
 
@@ -1393,8 +1393,8 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         }
         opplysninger.add(
             Opplysning(
-                ledetekst = I18n(nb = "Hovedformål", nn = "Hovudformål"),
-                tekst = tekst,
+                ledetekst = LokalisertTekst(nb = "Hovedformål", nn = "Hovudformål"),
+                innhold = tekst,
             ),
         )
     }
@@ -1415,7 +1415,7 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger.add(
             Opplysning(
                 ledetekst = formidlerBekrefterAt,
-                tekster = tekster,
+                innhold = tekster,
             ),
         )
     }
@@ -1423,20 +1423,20 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
     return opplysninger
 }
 
-private fun opplysninger(ledetekst: I18n, tekster: List<Tekst>) = listOf(Opplysning(ledetekst, tekster))
+private fun opplysninger(ledetekst: LokalisertTekst, tekster: List<Tekst>) = listOf(Opplysning(ledetekst, tekster))
 
-private fun opplysninger(ledetekst: I18n, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
 
-private fun opplysninger(ledetekst: I18n, tekst: I18n) = listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 
-private fun opplysninger(ledetekst: I18n, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 
-private val bekreftetAvFormidler = I18n(nb = "Bekreftet av formidler", nn = "Stadfesta av formidlar")
-private val formidlerBekrefterAt = I18n(nb = "Formidler bekrefter at", nn = "Formidlar stadfestar at")
-private val behov = I18n("Behov")
-private val bruksområde = I18n("Bruksområde")
-private val grunnenTilBehovet = I18n("Grunnen til behovet")
-private val dysfunksjoneltSøvnmønsterForklaring = I18n(
+private val bekreftetAvFormidler = LokalisertTekst(nb = "Bekreftet av formidler", nn = "Stadfesta av formidlar")
+private val formidlerBekrefterAt = LokalisertTekst(nb = "Formidler bekrefter at", nn = "Formidlar stadfestar at")
+private val behov = LokalisertTekst("Behov")
+private val bruksområde = LokalisertTekst("Bruksområde")
+private val grunnenTilBehovet = LokalisertTekst("Grunnen til behovet")
+private val dysfunksjoneltSøvnmønsterForklaring = LokalisertTekst(
     nb = "Med dysfunksjonelt søvnmønster menes: Varige og vesentlige problemer med å sovne, urolig nattesøvn, meget tidlig oppvåkning om morgenen og/eller dårlig søvnkvalitet som fører til nedsatt funksjon på dagtid. Den nedsatte funksjonen på dagtid må føre til problemer med å utføre dagliglivets nødvendige aktiviteter.",
     nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet.",
 )

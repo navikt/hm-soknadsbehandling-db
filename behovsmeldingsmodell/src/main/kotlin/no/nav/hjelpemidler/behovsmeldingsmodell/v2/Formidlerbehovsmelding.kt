@@ -141,34 +141,43 @@ data class Utlevertinfo(
 typealias Brukernummer = String
 
 data class Opplysning(
-    val ledetekst: I18n,
-    val tekster: List<Tekst>, // TODO bedre navn enn tekst(er)?
+    val ledetekst: LokalisertTekst,
+    val innhold: List<Tekst>,
 ) {
-    constructor(ledetekst: I18n, tekst: Tekst) : this(ledetekst = ledetekst, tekster = listOf(tekst))
-    constructor(ledetekst: I18n, tekst: I18n) : this(ledetekst = ledetekst, tekst = Tekst(tekst))
-    constructor(ledetekst: I18n, tekst: String) : this(ledetekst = ledetekst, tekst = Tekst(tekst))
+    constructor(ledetekst: LokalisertTekst, innhold: Tekst) : this(ledetekst = ledetekst, innhold = listOf(innhold))
+
+    constructor(ledetekst: LokalisertTekst, innhold: String) : this(ledetekst = ledetekst, innhold = Tekst(innhold))
+
+    constructor(ledetekst: LokalisertTekst, innhold: LokalisertTekst) : this(
+        ledetekst = ledetekst,
+        innhold = Tekst(innhold),
+    )
 }
 
 data class Tekst(
-    val i18n: I18n? = null,
     val fritekst: String? = null,
-    val begrepsforklaring: I18n? = null, // feks forklaring av "avlastningsbolig"
+    val forhåndsdefinertTekst: LokalisertTekst? = null,
+    val begrepsforklaring: LokalisertTekst? = null, // feks forklaring av "avlastningsbolig". Ikke relevant for fritekst.
 ) {
-    constructor(i18n: I18n) : this(i18n = i18n, fritekst = null)
-    constructor(fritekst: String) : this(i18n = null, fritekst = fritekst)
-    constructor(nb: String, nn: String) : this(I18n(nb = nb, nn = nn))
+    constructor(forhåndsdefinertTekst: LokalisertTekst) : this(
+        forhåndsdefinertTekst = forhåndsdefinertTekst,
+        fritekst = null,
+    )
+
+    constructor(fritekst: String) : this(forhåndsdefinertTekst = null, fritekst = fritekst)
+    constructor(nb: String, nn: String) : this(LokalisertTekst(nb = nb, nn = nn))
 
     init {
         require(
-            (i18n != null && fritekst == null) ||
-                (i18n == null && fritekst != null),
-        ) { "Én, og bare én, av i18n eller fritekst må ha verdi. Mottok i18n <$i18n> og fritekst <$fritekst>" }
+            (forhåndsdefinertTekst != null && fritekst == null) ||
+                (forhåndsdefinertTekst == null && fritekst != null),
+        ) { "Én, og bare én, av forhåndsdefinertTekst eller fritekst må ha verdi. Mottok forhåndsdefinertTekst <$forhåndsdefinertTekst> og fritekst <$fritekst>" }
     }
 }
 
 private val htmlPolicy = HtmlPolicyBuilder().allowElements("em", "strong").toFactory()
 
-data class I18n(
+data class LokalisertTekst(
     val nb: String,
     val nn: String,
 ) {
@@ -181,7 +190,7 @@ data class I18n(
 }
 
 data class Varsel(
-    val tekst: I18n,
+    val tekst: LokalisertTekst,
     val type: Varseltype,
 )
 
