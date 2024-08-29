@@ -308,6 +308,7 @@ enum class AutomatiskGenerertTilbehør {
 enum class FritakFraBegrunnelseÅrsak {
     ER_PÅ_BESTILLINGSORDNING,
     IKKE_I_PILOT,
+    ER_STANDARD_TILBEHØR,
 }
 
 enum class Prioritet {
