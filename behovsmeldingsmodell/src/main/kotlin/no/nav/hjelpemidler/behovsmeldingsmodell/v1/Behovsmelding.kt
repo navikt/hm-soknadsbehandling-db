@@ -97,13 +97,6 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
     val borIPilotkommuneForHast: Boolean? = false,
-
-    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
-    @JsonProperty("bostedRadioButton")
-    val boform: Boform?,
-
-    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
-    val bruksarenaErDagliglivet: Boolean?,
 ) {
     val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn)
     val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)
@@ -123,6 +116,12 @@ data class Brukersituasjon(
     val bekreftedeVilkår: Set<BrukersituasjonVilkår> = emptySet(),
     @JsonProperty("nedsattFunksjonTypes")
     val funksjonsnedsettelser: Funksjonsnedsettelser,
+    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
+    @JsonProperty("bostedRadioButton")
+    val boform: Boform?,
+
+    @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
+    val bruksarenaErDagliglivet: Boolean?,
 )
 
 data class Funksjonsnedsettelser(

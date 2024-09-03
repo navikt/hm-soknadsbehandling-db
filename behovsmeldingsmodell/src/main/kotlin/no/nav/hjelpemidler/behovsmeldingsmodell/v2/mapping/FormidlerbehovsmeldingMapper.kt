@@ -70,18 +70,18 @@ fun tilFormidlerbehovsmeldingV2(
             brukernummer = v1Bruker.brukernummer,
             kilde = v1Bruker.kilde,
             legacyopplysninger = mutableListOf<EnkelOpplysning>().also {
-                if (v1Bruker.boform != null) {
+                if (v1.søknad.brukersituasjon.boform != null) {
                     it.add(
                         EnkelOpplysning(
                             ledetekst = LokalisertTekst(nb = "Boform", nn = "Buform"),
-                            innhold = when (v1Bruker.boform) {
+                            innhold = when (v1.søknad.brukersituasjon.boform) {
                                 Boform.HJEMME -> LokalisertTekst(nb = "Hjemme", nn = "Heime")
                                 Boform.INSTITUSJON -> LokalisertTekst("Institusjon")
                             },
                         ),
                     )
                 }
-                if (v1Bruker.bruksarenaErDagliglivet == true) {
+                if (v1.søknad.brukersituasjon.bruksarenaErDagliglivet == true) {
                     it.add(
                         EnkelOpplysning(
                             ledetekst = LokalisertTekst("Bruksarena"),
