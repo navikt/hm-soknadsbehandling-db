@@ -23,6 +23,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Bruker
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukersituasjon
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.EnkelOpplysning
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.HjelpemiddelProdukt
@@ -59,10 +60,10 @@ fun tilFormidlerbehovsmeldingV2(
             kommunenummer = v1Bruker.kommunenummer,
             brukernummer = v1Bruker.brukernummer,
             kilde = v1Bruker.kilde,
-            legacyopplysninger = mutableListOf<Opplysning>().also {
+            legacyopplysninger = mutableListOf<EnkelOpplysning>().also {
                 if (v1Bruker.boform != null) {
                     it.add(
-                        Opplysning(
+                        EnkelOpplysning(
                             ledetekst = LokalisertTekst(nb = "Boform", nn = "Buform"),
                             innhold = when (v1Bruker.boform) {
                                 Boform.HJEMME -> Tekst(nb = "Hjemme", nn = "Heime")
@@ -73,7 +74,7 @@ fun tilFormidlerbehovsmeldingV2(
                 }
                 if (v1Bruker.bruksarenaErDagliglivet == true) {
                     it.add(
-                        Opplysning(
+                        EnkelOpplysning(
                             ledetekst = LokalisertTekst("Bruksarena"),
                             innhold = Tekst(nb = "Dagliglivet", nn = "Dagleglivet"),
                         ),

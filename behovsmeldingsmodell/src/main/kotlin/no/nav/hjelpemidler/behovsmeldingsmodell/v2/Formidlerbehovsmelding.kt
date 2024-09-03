@@ -48,7 +48,7 @@ data class Bruker(
     val kommunenummer: String?,
     val brukernummer: String?,
     val kilde: Brukerkilde?,
-    val legacyopplysninger: List<Opplysning>, // for visning av opplysninger som bare finnes i eldre behovsmeldinger
+    val legacyopplysninger: List<EnkelOpplysning>, // for visning av opplysninger som bare finnes i eldre behovsmeldinger
 )
 
 data class Brukersituasjon(
@@ -153,6 +153,11 @@ data class Opplysning(
         innhold = Tekst(innhold),
     )
 }
+
+data class EnkelOpplysning(
+    val ledetekst: LokalisertTekst,
+    val innhold: LokalisertTekst,
+)
 
 data class Tekst(
     val fritekst: String? = null,
