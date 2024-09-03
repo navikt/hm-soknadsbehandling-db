@@ -102,11 +102,6 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
         innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SøknadForInnsender? {
-        val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
-            else -> ""
-        }
-
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,
@@ -115,35 +110,10 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                        soknad.updated,
                        soknad.data,
                        soknad.fnr_bruker,
-                       soknad.navn_bruker,
-                       status.status,
-                       status.arsaker,
-                       (CASE
-                            WHEN EXISTS (SELECT 1
-                                         FROM v1_status
-                                         WHERE soknads_id = soknad.soknads_id AND status IN ('GODKJENT_MED_FULLMAKT')) THEN TRUE
-                            ELSE FALSE END)                AS fullmakt
+                       soknad.navn_bruker
                 FROM v1_soknad AS soknad
-                         LEFT JOIN v1_status AS status
-                                   ON status.id =
-                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
-                  AND soknad.fnr_innsender = :fnrInnsender
-                  AND soknad.data ->> 'behovsmeldingType' <> 'BRUKERPASSBYTTE'
                   AND soknad.soknads_id = :soknadId
-                  $behovsmeldingTypeClause
-                  AND soknad.created > :opprettetEtter
-                     AND (
-                      status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
-                      OR (status.CREATED + INTERVAL '$ukerEtterEndeligStatus week') > now()
-                  )
-                  AND NOT (
-                      -- Hvis vi har stått fast i status positivt vedtak i fire uker, og vedtaket kom før de siste fiksene våre så fjerner vi de fra formidleroversikten.
-                      -- Dette trengs pga. hvordan vi har kastet ordrelinjer som ikke kunne knyttes til sak, og da ble man hengende igjen for alltid.
-                      status.STATUS IN ('VEDTAKSRESULTAT_INNVILGET', 'VEDTAKSRESULTAT_MUNTLIG_INNVILGET', 'VEDTAKSRESULTAT_DELVIS_INNVILGET', 'BESTILLING_FERDIGSTILT')
-                      AND status.CREATED < '2022-02-14' -- Dagen etter vi lanserte de siste fiksene
-                      AND status.CREATED < (now() - INTERVAL '4 week') -- Vises i maks fire uker etter vedtak
-                  )
             """.trimIndent(),
         )
 
@@ -152,21 +122,20 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
             mapOf(
                 "fnrInnsender" to fnrInnsender,
                 "soknadId" to søknadId,
-                "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
         ) {
             val datoOpprettet = it.sqlTimestamp("created")
             SøknadForInnsender(
                 søknadId = it.uuid("soknads_id"),
-                behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
+                behovsmeldingType = BehovsmeldingType.SØKNAD,
                 datoOpprettet = datoOpprettet,
                 datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
-                status = it.enum<BehovsmeldingStatus>("status"),
-                fullmakt = it.boolean("fullmakt"),
+                status = BehovsmeldingStatus.GODKJENT,
+                fullmakt = true,
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
                 søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
-                valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
+                valgteÅrsaker = emptyList(),
                 behovsmelding = try {
                     tilFormidlerbehovsmeldingV2(
                         it.json<Behovsmelding>("data"),

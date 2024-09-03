@@ -81,6 +81,7 @@ fun tilFormidlerbehovsmeldingV2(
                         ),
                     )
                 }
+
                 if (v1.søknad.brukersituasjon.bruksarenaErDagliglivet == true) {
                     it.add(
                         EnkelOpplysning(
@@ -131,6 +132,7 @@ fun tilFormidlerbehovsmeldingV2(
                     }
                 }
             },
+
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)

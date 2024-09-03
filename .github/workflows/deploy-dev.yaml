@@ -11,6 +11,7 @@ on:
       - main
       - tilbehør-mapping
       - ny-behovsmeldingmodell
+      - test
 
 jobs:
   build:
