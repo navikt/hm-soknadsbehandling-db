@@ -85,9 +85,6 @@ enum class BrukersituasjonVilkår {
     @Deprecated("Ikke lenger et valg i hm-soknad")
     PRAKTISKE_PROBLEM,
 
-    @Deprecated("Kun brukt under covid")
-    ER_INFORMERT_OM_RETTIGHETER_IFBM_FRITAK_FRA_FULLMAKT,
-
     PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
     VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
 

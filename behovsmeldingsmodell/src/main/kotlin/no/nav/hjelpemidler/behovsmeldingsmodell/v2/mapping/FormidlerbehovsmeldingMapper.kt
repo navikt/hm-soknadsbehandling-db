@@ -83,12 +83,7 @@ fun tilFormidlerbehovsmeldingV2(
             },
         ),
         brukersituasjon = Brukersituasjon(
-            bekreftedeVilkår = mutableSetOf<BrukersituasjonVilkår>().also {
-                it.addAll(v1.søknad.brukersituasjon.bekreftedeVilkår)
-                if (v1Bruker.erInformertOmRettigheter == true) {
-                    it.add(BrukersituasjonVilkår.ER_INFORMERT_OM_RETTIGHETER_IFBM_FRITAK_FRA_FULLMAKT)
-                }
-            },
+            bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår,
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)
