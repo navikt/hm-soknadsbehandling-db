@@ -2,12 +2,19 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovForSeng
 import no.nav.hjelpemidler.behovsmeldingsmodell.Boform
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
+import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KanIkkeAvhjelpesMedEnklereÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.Kontaktperson
+import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.Oppfølgingsansvarlig
+import no.nav.hjelpemidler.behovsmeldingsmodell.OppfølgingsansvarligV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBruksområde
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolLøftType
@@ -16,7 +23,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeForBarnBruk
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeOppgaverIDagligliv
 import no.nav.hjelpemidler.behovsmeldingsmodell.SitteputeValg
+import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad
@@ -82,7 +92,17 @@ fun tilFormidlerbehovsmeldingV2(
             },
         ),
         brukersituasjon = Brukersituasjon(
-            bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår,
+            bekreftedeVilkår = v1.søknad.brukersituasjon.bekreftedeVilkår.map { vilkår ->
+                when (vilkår) {
+                    BrukersituasjonVilkår.NEDSATT_FUNKSJON -> BrukersituasjonVilkårV2.NEDSATT_FUNKSJON
+                    BrukersituasjonVilkår.STØRRE_BEHOV -> BrukersituasjonVilkårV2.STØRRE_BEHOV
+                    BrukersituasjonVilkår.PRAKTISKE_PROBLEM -> BrukersituasjonVilkårV2.PRAKTISKE_PROBLEM
+                    BrukersituasjonVilkår.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1 -> BrukersituasjonVilkårV2.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1
+                    BrukersituasjonVilkår.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1 -> BrukersituasjonVilkårV2.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1
+                    BrukersituasjonVilkår.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1 -> BrukersituasjonVilkårV2.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1
+                    BrukersituasjonVilkår.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1 -> BrukersituasjonVilkårV2.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1
+                }
+            }.toSet(),
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)
@@ -97,11 +117,25 @@ fun tilFormidlerbehovsmeldingV2(
         ),
         levering = Levering(
             hjelpemiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
-            oppfølgingsansvarlig = v1.søknad.levering.oppfølgingsansvarlig,
+            oppfølgingsansvarlig = when (v1.søknad.levering.oppfølgingsansvarlig) {
+                Oppfølgingsansvarlig.HJELPEMIDDELFORMIDLER -> OppfølgingsansvarligV2.HJELPEMIDDELFORMIDLER
+                Oppfølgingsansvarlig.ANNEN_OPPFØLGINGSANSVARLIG -> OppfølgingsansvarligV2.ANNEN_OPPFØLGINGSANSVARLIG
+            },
             annenOppfølgingsansvarlig = v1.søknad.levering.annenOppfølgingsansvarlig,
-            utleveringsmåte = v1.søknad.levering.utleveringsmåte,
+            utleveringsmåte = when (v1.søknad.levering.utleveringsmåte) {
+                Utleveringsmåte.FOLKEREGISTRERT_ADRESSE -> UtleveringsmåteV2.FOLKEREGISTRERT_ADRESSE
+                Utleveringsmåte.ANNEN_BRUKSADRESSE -> UtleveringsmåteV2.ANNEN_BRUKSADRESSE
+                Utleveringsmåte.HJELPEMIDDELSENTRALEN -> UtleveringsmåteV2.HJELPEMIDDELSENTRALEN
+                Utleveringsmåte.ALLEREDE_UTLEVERT_AV_NAV -> UtleveringsmåteV2.ALLEREDE_UTLEVERT_AV_NAV
+                null -> null
+            },
             annenUtleveringsadresse = v1.søknad.levering.annenUtleveringsadresse,
-            utleveringKontaktperson = v1.søknad.levering.utleveringKontaktperson,
+            utleveringKontaktperson = when (v1.søknad.levering.utleveringKontaktperson) {
+                Kontaktperson.HJELPEMIDDELBRUKER -> KontaktpersonV2.HJELPEMIDDELBRUKER
+                Kontaktperson.HJELPEMIDDELFORMIDLER -> KontaktpersonV2.HJELPEMIDDELFORMIDLER
+                Kontaktperson.ANNEN_KONTAKTPERSON -> KontaktpersonV2.ANNEN_KONTAKTPERSON
+                null -> null
+            },
             annenKontaktperson = v1.søknad.levering.annenKontaktperson,
             utleveringMerknad = v1.søknad.levering.utleveringMerknad,
             hast = v1.søknad.hast,
@@ -146,10 +180,28 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
             )
         },
         bytter = v1.bytter,
-        bruksarena = v1.bruksarena,
+        bruksarenaer = v1.bruksarena.map { bruksarena ->
+            when (bruksarena) {
+                Bruksarena.EGET_HJEM -> BruksarenaV2.EGET_HJEM
+                Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> BruksarenaV2.EGET_HJEM_IKKE_AVLASTNING
+                Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> BruksarenaV2.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG
+                Bruksarena.BARNEHAGE -> BruksarenaV2.BARNEHAGE
+                Bruksarena.GRUNN_ELLER_VIDEREGÅENDE_SKOLE -> BruksarenaV2.GRUNN_ELLER_VIDEREGÅENDE_SKOLE
+                Bruksarena.SKOLEFRITIDSORDNING -> BruksarenaV2.SKOLEFRITIDSORDNING
+                Bruksarena.INSTITUSJON -> BruksarenaV2.INSTITUSJON
+                Bruksarena.INSTITUSJON_BARNEBOLIG -> BruksarenaV2.INSTITUSJON_BARNEBOLIG
+                Bruksarena.INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK -> BruksarenaV2.INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK
+            }
+        }.toSet(),
         utlevertinfo = Utlevertinfo(
             alleredeUtlevertFraHjelpemiddelsentralen = v1.utlevertFraHjelpemiddelsentralen,
-            utleverttype = v1.utlevertInfo?.utlevertType,
+            utleverttype = when (v1.utlevertInfo?.utlevertType) {
+                UtlevertType.FREMSKUTT_LAGER -> UtlevertTypeV2.FREMSKUTT_LAGER
+                UtlevertType.KORTTIDSLÅN -> UtlevertTypeV2.KORTTIDSLÅN
+                UtlevertType.OVERFØRT -> UtlevertTypeV2.OVERFØRT
+                UtlevertType.ANNET -> UtlevertTypeV2.ANNET
+                null -> null
+            },
             overførtFraBruker = v1.utlevertInfo?.overførtFraBruker,
             annenKommentar = v1.utlevertInfo?.annenKommentar,
         ),
@@ -729,7 +781,10 @@ fun seilEllerSele(hm: Hjelpemiddel): List<Opplysning> {
     val apostnrBadekarheis = "9"
     if (hm.produkt?.kategori == "Personløftere og seil" && hm.produkt.apostnr != apostnrBadekarheis) {
         return opplysninger(
-            ledetekst = LokalisertTekst(nb = "Har bruker behov for seil eller sele", nn = "Har brukar behov for segl eller sele"),
+            ledetekst = LokalisertTekst(
+                nb = "Har bruker behov for seil eller sele",
+                nn = "Har brukar behov for segl eller sele",
+            ),
             tekst = when (hm.personløfterInfo?.harBehovForSeilEllerSele) {
                 true -> LokalisertTekst("Ja")
                 false -> LokalisertTekst("Nei")
@@ -1356,7 +1411,11 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
         val bruksområde = hm.ganghjelpemiddelInfo.bruksområde
         val tekst = when (type) {
             GanghjelpemiddelType.GÅSTOL -> when (bruksområde) {
-                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> LokalisertTekst(nb = "Til forflytning", nn = "Til forflytting")
+                BruksområdeGanghjelpemiddel.TIL_FORFLYTNING -> LokalisertTekst(
+                    nb = "Til forflytning",
+                    nn = "Til forflytting",
+                )
+
                 BruksområdeGanghjelpemiddel.TIL_TRENING_OG_ANNET -> LokalisertTekst("Til trening, aktivisering og stimulering")
             }
 
@@ -1422,7 +1481,8 @@ private fun opplysninger(ledetekst: LokalisertTekst, tekster: List<Tekst>) = lis
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
 
-private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) = listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) =
+    listOf(Opplysning(ledetekst, Tekst(tekst)))
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 

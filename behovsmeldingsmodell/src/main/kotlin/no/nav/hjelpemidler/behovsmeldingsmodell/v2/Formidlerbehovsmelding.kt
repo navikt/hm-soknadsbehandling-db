@@ -2,19 +2,19 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
-import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
-import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
-import no.nav.hjelpemidler.behovsmeldingsmodell.Kontaktperson
+import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
-import no.nav.hjelpemidler.behovsmeldingsmodell.Oppfølgingsansvarlig
+import no.nav.hjelpemidler.behovsmeldingsmodell.OppfølgingsansvarligV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
-import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
-import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
@@ -52,7 +52,7 @@ data class Bruker(
 )
 
 data class Brukersituasjon(
-    val bekreftedeVilkår: Set<BrukersituasjonVilkår>,
+    val bekreftedeVilkår: Set<BrukersituasjonVilkårV2>,
     val funksjonsnedsettelser: Set<Funksjonsnedsettelser>,
 )
 
@@ -65,7 +65,7 @@ enum class Funksjonsnedsettelser {
 data class Levering(
     val hjelpemiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,
 
-    val oppfølgingsansvarlig: Oppfølgingsansvarlig,
+    val oppfølgingsansvarlig: OppfølgingsansvarligV2,
     val annenOppfølgingsansvarlig: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenOppfølgingsansvarlig?,
 
     /**
@@ -73,11 +73,11 @@ data class Levering(
      * Skjer når hvert hjm. er markert som utlevert eller ikke trenger info om utlevering (feks for apper hvor lisens
      * sendes til MinSide på nav.no, eller til folkereg. adresse for barn under 18 år).
      */
-    val utleveringsmåte: Utleveringsmåte?,
+    val utleveringsmåte: UtleveringsmåteV2?,
     val annenUtleveringsadresse: Veiadresse?,
 
     // utleveringKontaktperson == null => alle hjm. er allerede utlevert
-    val utleveringKontaktperson: Kontaktperson?,
+    val utleveringKontaktperson: KontaktpersonV2?,
     val annenKontaktperson: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenKontaktperson?,
 
     val utleveringMerknad: String,
@@ -107,7 +107,7 @@ data class Hjelpemiddel(
     val produkt: HjelpemiddelProdukt,
     val tilbehør: List<Tilbehør>,
     val bytter: List<Bytte>,
-    val bruksarena: Set<Bruksarena>,
+    val bruksarenaer: Set<BruksarenaV2>,
     val utlevertinfo: Utlevertinfo,
     val opplysninger: List<Opplysning>,
     val varsler: List<Varsel>,
@@ -133,7 +133,7 @@ data class Tilbehør(
 
 data class Utlevertinfo(
     val alleredeUtlevertFraHjelpemiddelsentralen: Boolean,
-    val utleverttype: UtlevertType?,
+    val utleverttype: UtlevertTypeV2?,
     val overførtFraBruker: Brukernummer?,
     val annenKommentar: String?,
 )

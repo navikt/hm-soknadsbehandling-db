@@ -98,6 +98,23 @@ enum class BrukersituasjonVilkår {
     I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
 }
 
+enum class BrukersituasjonVilkårV2 {
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    NEDSATT_FUNKSJON,
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    STØRRE_BEHOV,
+
+    @Deprecated("Ikke lenger et valg i hm-soknad")
+    PRAKTISKE_PROBLEM,
+
+    PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
+    VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
+    KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1,
+    I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
+}
+
 enum class LeveringTilleggsinfo {
     UTLEVERING_KALENDERAPP,
     ALLE_HJELPEMIDLER_ER_UTLEVERT,
@@ -114,6 +131,11 @@ enum class Oppfølgingsansvarlig {
     ANNEN_OPPFØLGINGSANSVARLIG,
 }
 
+enum class OppfølgingsansvarligV2 {
+    HJELPEMIDDELFORMIDLER,
+    ANNEN_OPPFØLGINGSANSVARLIG,
+}
+
 enum class Kontaktperson {
     @JsonProperty("Hjelpemiddelbruker")
     HJELPEMIDDELBRUKER,
@@ -122,6 +144,12 @@ enum class Kontaktperson {
     HJELPEMIDDELFORMIDLER,
 
     @JsonProperty("AnnenKontaktperson")
+    ANNEN_KONTAKTPERSON,
+}
+
+enum class KontaktpersonV2 {
+    HJELPEMIDDELBRUKER,
+    HJELPEMIDDELFORMIDLER,
     ANNEN_KONTAKTPERSON,
 }
 
@@ -137,6 +165,15 @@ enum class Utleveringsmåte {
 
     @Deprecated("Brukes ikke i digital behovsmelding lenger")
     @JsonProperty("AlleredeUtlevertAvNav")
+    ALLEREDE_UTLEVERT_AV_NAV,
+}
+
+enum class UtleveringsmåteV2 {
+    FOLKEREGISTRERT_ADRESSE,
+    ANNEN_BRUKSADRESSE,
+    HJELPEMIDDELSENTRALEN,
+
+    @Deprecated("Brukes ikke i digital behovsmelding lenger")
     ALLEREDE_UTLEVERT_AV_NAV,
 }
 
@@ -170,6 +207,18 @@ enum class Bruksarena {
      * NB! Misvisende navn. Skal KUN være til personlig bruk.
      */
     @JsonProperty("INSTITUSJON_BARNEBOLIG_IKKE_PERSONLIG_BRUK")
+    INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK,
+}
+
+enum class BruksarenaV2 {
+    EGET_HJEM,
+    EGET_HJEM_IKKE_AVLASTNING,
+    OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG,
+    BARNEHAGE,
+    GRUNN_ELLER_VIDEREGÅENDE_SKOLE,
+    SKOLEFRITIDSORDNING,
+    INSTITUSJON,
+    INSTITUSJON_BARNEBOLIG,
     INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK,
 }
 
@@ -271,6 +320,13 @@ enum class UtlevertType {
     OVERFØRT,
 
     @JsonProperty("Annet")
+    ANNET,
+}
+
+enum class UtlevertTypeV2 {
+    FREMSKUTT_LAGER,
+    KORTTIDSLÅN,
+    OVERFØRT,
     ANNET,
 }
 
