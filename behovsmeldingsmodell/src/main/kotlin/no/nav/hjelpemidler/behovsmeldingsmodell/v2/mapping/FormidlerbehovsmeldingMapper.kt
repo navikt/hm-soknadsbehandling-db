@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovForSeng
 import no.nav.hjelpemidler.behovsmeldingsmodell.Boform
-import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkår
 import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
@@ -97,7 +96,7 @@ fun tilFormidlerbehovsmeldingV2(
             },
         ),
         levering = Levering(
-            hjelpmiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
+            hjelpemiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
             oppfølgingsansvarlig = v1.søknad.levering.oppfølgingsansvarlig,
             annenOppfølgingsansvarlig = v1.søknad.levering.annenOppfølgingsansvarlig,
             utleveringsmåte = v1.søknad.levering.utleveringsmåte,

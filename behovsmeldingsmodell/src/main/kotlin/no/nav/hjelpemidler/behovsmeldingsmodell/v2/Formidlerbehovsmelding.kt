@@ -63,7 +63,7 @@ enum class Funksjonsnedsettelser {
 }
 
 data class Levering(
-    val hjelpmiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,
+    val hjelpemiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,
 
     val oppfølgingsansvarlig: Oppfølgingsansvarlig,
     val annenOppfølgingsansvarlig: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenOppfølgingsansvarlig?,
