@@ -66,8 +66,8 @@ fun tilFormidlerbehovsmeldingV2(
                         EnkelOpplysning(
                             ledetekst = LokalisertTekst(nb = "Boform", nn = "Buform"),
                             innhold = when (v1Bruker.boform) {
-                                Boform.HJEMME -> Tekst(nb = "Hjemme", nn = "Heime")
-                                Boform.INSTITUSJON -> Tekst(LokalisertTekst("Institusjon"))
+                                Boform.HJEMME -> LokalisertTekst(nb = "Hjemme", nn = "Heime")
+                                Boform.INSTITUSJON -> LokalisertTekst("Institusjon")
                             },
                         ),
                     )
@@ -76,7 +76,7 @@ fun tilFormidlerbehovsmeldingV2(
                     it.add(
                         EnkelOpplysning(
                             ledetekst = LokalisertTekst("Bruksarena"),
-                            innhold = Tekst(nb = "Dagliglivet", nn = "Dagleglivet"),
+                            innhold = LokalisertTekst(nb = "Dagliglivet", nn = "Dagleglivet"),
                         ),
                     )
                 }
