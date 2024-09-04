@@ -103,14 +103,32 @@ fun tilFormidlerbehovsmeldingV2(
                     BrukersituasjonVilkår.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1 -> BrukersituasjonVilkårV2.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1
                 }
             }.toMutableSet().also {
-                if (v1.søknad.brukersituasjon.nedsattFunksjon == true) {
-                    it.add(BrukersituasjonVilkårV2.NEDSATT_FUNKSJON)
-                }
-                if (v1.søknad.brukersituasjon.storreBehov == true) {
-                    it.add(BrukersituasjonVilkårV2.STØRRE_BEHOV)
-                }
-                if (v1.søknad.brukersituasjon.praktiskeProblem == true) {
-                    it.add(BrukersituasjonVilkårV2.PRAKTISKE_PROBLEM)
+                if (it.isEmpty()) {
+                    // Håndter eldre variant av datamodellen
+                    if (v1.søknad.brukersituasjon.skalIkkeBrukesTilAndreFormål == true) {
+                        // Bestilling
+                        it.add(BrukersituasjonVilkårV2.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1)
+                        if (v1.søknad.brukersituasjon.størreBehov == true) {
+                            it.add(BrukersituasjonVilkårV2.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1)
+                        }
+                        if (v1.søknad.brukersituasjon.praktiskeProblem == true) {
+                            it.add(BrukersituasjonVilkårV2.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1)
+                        }
+                        if (v1.søknad.brukersituasjon.bruksarenaErDagliglivet == true) {
+                            it.add(BrukersituasjonVilkårV2.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1)
+                        }
+                    } else {
+                        // Formidlersøknad
+                        if (v1.søknad.brukersituasjon.nedsattFunksjon == true) {
+                            it.add(BrukersituasjonVilkårV2.NEDSATT_FUNKSJON)
+                        }
+                        if (v1.søknad.brukersituasjon.størreBehov == true) {
+                            it.add(BrukersituasjonVilkårV2.STØRRE_BEHOV)
+                        }
+                        if (v1.søknad.brukersituasjon.praktiskeProblem == true) {
+                            it.add(BrukersituasjonVilkårV2.PRAKTISKE_PROBLEM)
+                        }
+                    }
                 }
             },
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {

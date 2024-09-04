@@ -167,7 +167,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 navnBruker = it.stringOrNull("navn_bruker"),
                 søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
-                behovsmeldingV2 = try {
+                behovsmelding = try {
                     tilFormidlerbehovsmeldingV2(
                         it.json<Behovsmelding>("data"),
                         Fødselsnummer(fnrInnsender),
@@ -192,5 +192,5 @@ class SøknadForInnsender(
     val navnBruker: String?,
     val søknadsdata: Søknadsdata? = null,
     val valgteÅrsaker: List<String>,
-    val behovsmeldingV2: Formidlerbehovsmelding? = null,
+    val behovsmelding: Formidlerbehovsmelding? = null,
 )

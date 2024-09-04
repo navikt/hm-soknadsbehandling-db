@@ -124,11 +124,15 @@ data class Brukersituasjon(
     val bruksarenaErDagliglivet: Boolean?,
 
     @Deprecated("Erstattet med bekreftedeVilkår")
-    val storreBehov: Boolean?,
+    @JsonProperty("storreBehov")
+    val størreBehov: Boolean?,
     @Deprecated("Erstattet med bekreftedeVilkår")
     val nedsattFunksjon: Boolean?,
     @Deprecated("Erstattet med bekreftedeVilkår")
     val praktiskeProblem: Boolean?,
+    @Deprecated("Erstattet med bekreftedeVilkår")
+    @JsonProperty("skalIkkeBrukesTilAndreFormaal")
+    val skalIkkeBrukesTilAndreFormål: Boolean?,
 )
 
 data class Funksjonsnedsettelser(
