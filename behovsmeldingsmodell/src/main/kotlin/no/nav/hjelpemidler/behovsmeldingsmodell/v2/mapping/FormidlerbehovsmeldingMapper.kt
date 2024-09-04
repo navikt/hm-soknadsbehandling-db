@@ -102,7 +102,17 @@ fun tilFormidlerbehovsmeldingV2(
                     BrukersituasjonVilkår.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1 -> BrukersituasjonVilkårV2.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1
                     BrukersituasjonVilkår.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1 -> BrukersituasjonVilkårV2.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1
                 }
-            }.toSet(),
+            }.toMutableSet().also {
+                if (v1.søknad.brukersituasjon.nedsattFunksjon == true) {
+                    it.add(BrukersituasjonVilkårV2.NEDSATT_FUNKSJON)
+                }
+                if (v1.søknad.brukersituasjon.storreBehov == true) {
+                    it.add(BrukersituasjonVilkårV2.STØRRE_BEHOV)
+                }
+                if (v1.søknad.brukersituasjon.praktiskeProblem == true) {
+                    it.add(BrukersituasjonVilkårV2.PRAKTISKE_PROBLEM)
+                }
+            },
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)

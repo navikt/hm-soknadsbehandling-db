@@ -122,6 +122,13 @@ data class Brukersituasjon(
 
     @Deprecated("Erstattet med bruksarena på hvert enkelt hjm")
     val bruksarenaErDagliglivet: Boolean?,
+
+    @Deprecated("Erstattet med bekreftedeVilkår")
+    val storreBehov: Boolean?,
+    @Deprecated("Erstattet med bekreftedeVilkår")
+    val nedsattFunksjon: Boolean?,
+    @Deprecated("Erstattet med bekreftedeVilkår")
+    val praktiskeProblem: Boolean?,
 )
 
 data class Funksjonsnedsettelser(
