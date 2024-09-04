@@ -173,7 +173,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                         Fødselsnummer(fnrInnsender),
                     )
                 } catch (e: Exception) {
-                    logg.error(e) { "Mapping til BehovsmeldingV2 feilet. Data: ${it.json<JsonNode>("data")}" }
+                    logg.error(e) { "Mapping til BehovsmeldingV2 feilet. ID: ${it.uuid("soknads_id")}" }
                     null
                 },
             )
