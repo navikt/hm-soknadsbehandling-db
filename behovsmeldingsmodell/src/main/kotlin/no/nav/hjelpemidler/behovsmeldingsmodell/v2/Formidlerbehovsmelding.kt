@@ -118,9 +118,15 @@ data class HjelpemiddelProdukt(
     val artikkelnavn: String,
     val iso8: Iso8,
     val iso8Tittel: String,
-    val rangering: Int,
     val delkontrakttittel: String,
     val sortimentkategori: String, // fra digithot-sortiment
+
+    /*
+    null -> ikke på rammeavtale
+    Har i sjeldne tilfeller skjedd at formidler får søkt om produkt som ikke lenger er på rammeavtale, antageligvis pga
+    endring i produkter på rammeavtale etter lansering av rammeavtalen.
+     */
+    val rangering: Int?,
 )
 
 data class Tilbehør(

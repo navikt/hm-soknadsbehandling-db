@@ -71,6 +71,12 @@ enum class Boform {
 
     @JsonProperty("Institusjon")
     INSTITUSJON,
+
+    @JsonProperty("Hjemme i egen bolig")
+    HJEMME_I_EGEN_BOLIG,
+
+    @JsonProperty("Hjemme i omsorgsbolig, bofellesskap eller servicebolig")
+    HJEMME_I_EGEN_BOLIG_OMSORGSBOLIG_BOFELLESSKAP_SERVICEBOLIG,
 }
 
 enum class BrukersituasjonVilkår {
@@ -336,6 +342,14 @@ enum class SitteputeValg {
 
     @JsonProperty("HarFraFor")
     HAR_FRA_FØR,
+
+    @JsonProperty("StandardSittepute")
+    @Deprecated("Ikke lenger et valg. Tidligere brukt for å legge til et tilbehør med navn 'Standard sittepute' og hmsArtNr '000000'")
+    STANDARD_SITTEPUTE,
+
+    @JsonProperty("LeggesTilSeparat")
+    @Deprecated("Ikke lenger et valg.")
+    LEGGES_TIL_SEPARAT,
 }
 
 enum class BehovForSeng {

@@ -77,6 +77,15 @@ fun tilFormidlerbehovsmeldingV2(
                             innhold = when (v1.søknad.brukersituasjon.boform) {
                                 Boform.HJEMME -> LokalisertTekst(nb = "Hjemme", nn = "Heime")
                                 Boform.INSTITUSJON -> LokalisertTekst("Institusjon")
+                                Boform.HJEMME_I_EGEN_BOLIG -> LokalisertTekst(
+                                    nb = "Hjemme i egen bolig",
+                                    nn = "Heime i eigen bustad",
+                                )
+
+                                Boform.HJEMME_I_EGEN_BOLIG_OMSORGSBOLIG_BOFELLESSKAP_SERVICEBOLIG -> LokalisertTekst(
+                                    nb = "Hjemme i omsorgsbolig, bofellesskap eller servicebolig",
+                                    nn = "Heime i omsorgsbustad, bufellesskap eller servicebustad",
+                                )
                             },
                         ),
                     )
@@ -148,6 +157,7 @@ fun tilFormidlerbehovsmeldingV2(
             oppfølgingsansvarlig = when (v1.søknad.levering.oppfølgingsansvarlig) {
                 Oppfølgingsansvarlig.HJELPEMIDDELFORMIDLER -> OppfølgingsansvarligV2.HJELPEMIDDELFORMIDLER
                 Oppfølgingsansvarlig.ANNEN_OPPFØLGINGSANSVARLIG -> OppfølgingsansvarligV2.ANNEN_OPPFØLGINGSANSVARLIG
+                null -> OppfølgingsansvarligV2.HJELPEMIDDELFORMIDLER
             },
             annenOppfølgingsansvarlig = v1.søknad.levering.annenOppfølgingsansvarlig,
             utleveringsmåte = when (v1.søknad.levering.utleveringsmåte) {
@@ -191,9 +201,9 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
         produkt = HjelpemiddelProdukt(
             hmsArtNr = v1.hmsnr,
             artikkelnavn = v1.beskrivelse,
-            iso8 = Iso8(v1.produkt?.isocode ?: error("Behovsmelding $id mangler isocode for ${v1.hmsnr}")),
-            iso8Tittel = v1.produkt.isotitle ?: error("Behovsmelding $id mangler isotitle for ${v1.hmsnr}"),
-            rangering = v1.produkt.postrank?.toInt() ?: error("Behovsmelding $id mangler rangering for ${v1.hmsnr}"),
+            iso8 = padIso8(v1.produkt?.isocode) ?: error("Behovsmelding $id mangler isocode for ${v1.hmsnr}"),
+            iso8Tittel = v1.produkt?.isotitle ?: error("Behovsmelding $id mangler isotitle for ${v1.hmsnr}"),
+            rangering = parseRangering(v1.produkt.postrank),
             delkontrakttittel = v1.produkt.aposttitle
                 ?: error("Behovsmelding $id mangler delkontrakttittel for ${v1.hmsnr}"),
             sortimentkategori = v1.produkt.kategori ?: error("v1.produkt.kategori (sortimentkategori) mangler"),
@@ -419,8 +429,8 @@ private fun begrunnelseLavereRangeringEllerIkkeTilsvarende(hm: Hjelpemiddel): Li
         return emptyList()
     }
     val label = if (hm.kanIkkeTilsvarende == true) {
-        val rangering = hm.produkt?.postrank?.toInt() ?: error("Klarte ikke parse rangering (postrank)")
-        if (rangering > 1) {
+        val rangering = parseRangering(hm.produkt?.postrank)
+        if (rangering != null && rangering > 1) {
             LokalisertTekst(nb = "Begrunnelse for lavere rangering", nn = "Grunngiving for lågare rangering")
         } else {
             LokalisertTekst(nb = "Kan ikke ha tilsvarende fordi", nn = "Kan ikkje ha tilsvarande fordi")
@@ -621,6 +631,16 @@ private fun rullestolinfo(hm: Hjelpemiddel): List<Opplysning> {
                         nb = "Har sittepute fra før",
                         nn = "Har sitjepute frå før",
                     )
+
+                    SitteputeValg.STANDARD_SITTEPUTE -> Tekst(
+                        nb = "Ønsker standard sittepute",
+                        nn = "Ynskjer standard sitjepute",
+                    )
+
+                    SitteputeValg.LEGGES_TIL_SEPARAT -> Tekst(
+                        nb = "Trykkavlastende sittepute legges til separat",
+                        nn = "Trykkavlastande sitjepute leggjast til separat",
+                    )
                 },
             ),
         )
@@ -807,16 +827,18 @@ fun seilEllerSele(hm: Hjelpemiddel): List<Opplysning> {
      * er derfor ikke relevant for post 9. Bør derfor fjernes helt for post 9. Skal vises for de andre postene.
      */
     val apostnrBadekarheis = "9"
-    if (hm.produkt?.kategori == "Personløftere og seil" && hm.produkt.apostnr != apostnrBadekarheis) {
+    if (hm.produkt?.kategori == "Personløftere og seil" &&
+        hm.produkt.apostnr != apostnrBadekarheis &&
+        hm.personløfterInfo?.harBehovForSeilEllerSele != null
+    ) {
         return opplysninger(
             ledetekst = LokalisertTekst(
                 nb = "Har bruker behov for seil eller sele",
                 nn = "Har brukar behov for segl eller sele",
             ),
-            tekst = when (hm.personløfterInfo?.harBehovForSeilEllerSele) {
+            tekst = when (hm.personløfterInfo.harBehovForSeilEllerSele) {
                 true -> LokalisertTekst("Ja")
                 false -> LokalisertTekst("Nei")
-                else -> error("hm.personløfterInfo?.harBehovForSeilEllerSele skal være satt for hjm ${hm.produkt}")
             },
         )
     }
@@ -1407,7 +1429,9 @@ fun ganghjelpemiddelInfo(hm: Hjelpemiddel): List<Opplysning> {
 
     val opplysninger = mutableListOf<Opplysning>()
 
-    if (hm.ganghjelpemiddelInfo.kanIkkeBrukeMindreAvansertGanghjelpemiddel == true) {
+    if (hm.ganghjelpemiddelInfo.kanIkkeBrukeMindreAvansertGanghjelpemiddel == true &&
+        hm.ganghjelpemiddelInfo.type != null
+    ) {
         opplysninger.add(
             Opplysning(
                 ledetekst = formidlerBekrefterAt,
@@ -1523,3 +1547,20 @@ private val dysfunksjoneltSøvnmønsterForklaring = LokalisertTekst(
     nb = "Med dysfunksjonelt søvnmønster menes: Varige og vesentlige problemer med å sovne, urolig nattesøvn, meget tidlig oppvåkning om morgenen og/eller dårlig søvnkvalitet som fører til nedsatt funksjon på dagtid. Den nedsatte funksjonen på dagtid må føre til problemer med å utføre dagliglivets nødvendige aktiviteter.",
     nn = "Med dysfunksjonelt søvnmønster siktar ein til: Varige og vesentlege problem med å sovna, uroleg nattesøvn, svært tidleg oppvakning om morgonen og/eller dårleg søvnkvalitet som fører til nedsett funksjon på dagtid. Den nedsette funksjonen på dagtid må føra til problem med å utføra dei nødvendige aktivitetane til dagleglivet.",
 )
+
+private fun padIso8(isocode: String?): Iso8? {
+    if (isocode == null) return null
+
+    if (isocode.length == 7) {
+        return Iso8(isocode.padStart(8, '0'))
+    }
+
+    return Iso8(isocode)
+}
+
+private fun parseRangering(rangering: String?): Int? {
+    if (rangering.isNullOrBlank()) {
+        return null
+    }
+    return rangering.toInt()
+}

@@ -182,7 +182,7 @@ data class Levering(
     // Oppfølgingsansvarlig
 
     @JsonProperty("opfRadioButton")
-    val oppfølgingsansvarlig: Oppfølgingsansvarlig,
+    val oppfølgingsansvarlig: Oppfølgingsansvarlig?,
 
     // Oppfølgingsansvarlig -> Annen person er ansvarlig
 
