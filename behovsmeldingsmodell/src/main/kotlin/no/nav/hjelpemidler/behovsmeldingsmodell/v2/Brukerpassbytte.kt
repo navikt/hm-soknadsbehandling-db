@@ -23,7 +23,6 @@ data class Brukerpassbytte(
     override val skjemaversjon: Int = 2,
     override val innsendingsdato: LocalDate,
     override val hjmBrukersFnr: Fødselsnummer,
-    override val innsendersFnr: Fødselsnummer = hjmBrukersFnr,
     override val prioritet: Prioritet = Prioritet.NORMAL,
 ) : BehovsmeldingBase {
     data class Hjelpemiddel(

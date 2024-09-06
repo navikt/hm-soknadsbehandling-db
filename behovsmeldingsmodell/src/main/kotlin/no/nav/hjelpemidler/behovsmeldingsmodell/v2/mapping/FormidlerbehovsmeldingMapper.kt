@@ -7,7 +7,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
-import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KanIkkeAvhjelpesMedEnklereÅrsak
@@ -50,10 +49,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 
-fun tilFormidlerbehovsmeldingV2(
-    v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding,
-    fnrInnsender: Fødselsnummer,
-): Formidlerbehovsmelding {
+fun tilFormidlerbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding): Formidlerbehovsmelding {
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
     return Formidlerbehovsmelding(
@@ -181,7 +177,6 @@ fun tilFormidlerbehovsmeldingV2(
 
         ),
         innsender = Innsender(
-            fnr = fnrInnsender,
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
             sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map { Iso6(it) }

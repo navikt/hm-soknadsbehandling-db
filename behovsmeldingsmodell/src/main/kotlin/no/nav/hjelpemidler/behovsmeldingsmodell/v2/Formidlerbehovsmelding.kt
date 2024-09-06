@@ -35,7 +35,6 @@ data class Formidlerbehovsmelding(
     override val innsendingsdato: LocalDate,
     override val skjemaversjon: Int = 2,
     override val hjmBrukersFnr: Fødselsnummer = bruker.fnr,
-    override val innsendersFnr: Fødselsnummer = innsender.fnr,
     override val prioritet: Prioritet = tilPrioritet(levering.hast),
 ) : BehovsmeldingBase
 
@@ -91,7 +90,6 @@ data class Levering(
 )
 
 data class Innsender(
-    val fnr: Fødselsnummer,
     val rolle: InnsenderRolle,
     val kurs: List<Godkjenningskurs>,
     val sjekketUtlånsoversiktForKategorier: Set<Iso6>,

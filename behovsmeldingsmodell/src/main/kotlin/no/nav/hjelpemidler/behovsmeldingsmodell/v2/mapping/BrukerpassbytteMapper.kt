@@ -40,7 +40,6 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
         id = v1.id,
         innsendingsdato = v1.dato,
         hjmBrukersFnr = fnr,
-        innsendersFnr = fnr,
         navn = Personnavn(fornavn, etternavn),
         folkeregistrertAdresse = folkeregistrertAdresse,
         annenUtleveringsadresse = annenUtleveringsadresse,

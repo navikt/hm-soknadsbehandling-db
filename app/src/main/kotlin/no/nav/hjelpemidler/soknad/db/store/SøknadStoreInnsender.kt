@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilFormidlerbehovsmeldingV2
@@ -170,7 +169,6 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 behovsmelding = try {
                     tilFormidlerbehovsmeldingV2(
                         it.json<Behovsmelding>("data"),
-                        Fødselsnummer(fnrInnsender),
                     )
                 } catch (e: Exception) {
                     logg.error(e) { "Mapping til BehovsmeldingV2 feilet. ID: ${it.uuid("soknads_id")}" }
