@@ -159,7 +159,7 @@ data class Levering(
     // Hjelpemiddelformidler
 
     @JsonProperty("hmfFornavn")
-    private val hjelpemiddelformidlerFornavn: String,
+    val hjelpemiddelformidlerFornavn: String,
     @JsonProperty("hmfEtternavn")
     val hjelpemiddelformidlerEtternavn: String,
     @JsonProperty("hmfArbeidssted")
