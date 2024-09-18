@@ -12,6 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
@@ -297,6 +298,7 @@ data class HjelpemiddelItem(
     val diverseInfo: Map<String, String> = emptyMap(),
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: List<Bruksarena>? = null,
+    val årsakForAntallEnum: ÅrsakForAntall?,
 )
 
 enum class Bruksarena {
