@@ -550,12 +550,12 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 },
             ),
         ) {
+            val behovsmeldingId = it.uuid("soknads_id")
             val data = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode()
 
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
             val validatedData = runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
-                val logId = UUID.randomUUID()
-                logg.error(cause) { "Kunne ikke tolke søknadsdata, har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $logId)" }
+                logg.error(cause) { "Kunne ikke tolke søknadsdata, har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
                 synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                     if (
                         hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
@@ -577,7 +577,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                                     
                                     Bør fikses ASAP.
                                     
-                                    Feilmelding: Søk etter UUID i logger: $logId
+                                    Feilmelding: Søk etter UUID i logger: $behovsmeldingId
                                 """.trimIndent(),
                             )
                         }
