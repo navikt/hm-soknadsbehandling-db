@@ -23,7 +23,6 @@ data class Bestillingsordningsjekk(
         val inneholderIkkeFritekst: Boolean,
         val kildeErPdl: Boolean,
         val harIkkeForMangeOrdrelinjer: Boolean,
-        val signaturtypeErIkkeBrukerbekreftelse: Boolean,
         val ingenProdukterErAlleredeUtlevert: Boolean,
         val brukerErTilknyttetBydelIOslo: Boolean?,
         val harIngenBytter: Boolean,
