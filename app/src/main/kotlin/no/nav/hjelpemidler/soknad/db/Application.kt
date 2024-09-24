@@ -14,8 +14,10 @@ import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
+import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
@@ -33,6 +35,8 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
  */
 @Suppress("unused")
 fun Application.module() {
+    TILLAT_SYNTETISKE_FØDSELSNUMRE = !Environment.current.isProd
+
     val database = Database(
         createDataSource(PostgreSQL) {
             envVarPrefix = "DB"
