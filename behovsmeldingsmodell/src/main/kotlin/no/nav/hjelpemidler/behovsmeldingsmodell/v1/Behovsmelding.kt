@@ -13,7 +13,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.BytteÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
-import no.nav.hjelpemidler.behovsmeldingsmodell.HarPersonnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
@@ -26,7 +25,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolBruksområde
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppreisningsstolLøftType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Organisasjon
-import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.PlasseringType
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeBehov
 import no.nav.hjelpemidler.behovsmeldingsmodell.PosisjoneringsputeForBarnBruk
@@ -37,10 +35,12 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.SitteputeValg
 import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
-import no.nav.hjelpemidler.behovsmeldingsmodell.lagPersonnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.lagVeiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.HarPersonnavn
+import no.nav.hjelpemidler.domain.person.Personnavn
+import no.nav.hjelpemidler.domain.person.lagPersonnavn
 import java.time.LocalDate
 import java.util.UUID
 
@@ -98,7 +98,7 @@ data class Bruker(
     val erInformertOmRettigheter: Boolean?,
     val borIPilotkommuneForHast: Boolean? = false,
 ) {
-    val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn)
+    val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn = etternavn)
     val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)
 }
 

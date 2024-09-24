@@ -1,10 +1,10 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping
 
-import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.BehovsmeldingBase
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
+import no.nav.hjelpemidler.domain.person.Personnavn
 
 fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): Brukerpassbytte {
     val fnr = v1.fnr ?: error("Brukerpassbytte ${v1.id} mangler fnr")
@@ -40,7 +40,7 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
         id = v1.id,
         innsendingsdato = v1.dato,
         hjmBrukersFnr = fnr,
-        navn = Personnavn(fornavn, etternavn),
+        navn = Personnavn(fornavn, etternavn = etternavn),
         folkeregistrertAdresse = folkeregistrertAdresse,
         annenUtleveringsadresse = annenUtleveringsadresse,
         hjelpemiddel = hjelpemiddel,

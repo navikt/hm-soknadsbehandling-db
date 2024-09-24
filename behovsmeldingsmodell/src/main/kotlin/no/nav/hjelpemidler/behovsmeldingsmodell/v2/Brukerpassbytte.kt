@@ -1,11 +1,11 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.Personnavn
 import java.time.LocalDate
 import java.util.UUID
 

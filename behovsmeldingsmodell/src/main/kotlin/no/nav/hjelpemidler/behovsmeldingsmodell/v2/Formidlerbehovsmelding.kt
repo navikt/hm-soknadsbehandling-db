@@ -9,7 +9,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
 import no.nav.hjelpemidler.behovsmeldingsmodell.OppfølgingsansvarligV2
-import no.nav.hjelpemidler.behovsmeldingsmodell.Personnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
@@ -19,6 +18,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.Personnavn
 import org.owasp.html.HtmlPolicyBuilder
 import java.time.LocalDate
 import java.util.UUID
