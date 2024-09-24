@@ -12,7 +12,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Bruksarena
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksområdeGanghjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.BytteÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
-import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.GanghjelpemiddelType
 import no.nav.hjelpemidler.behovsmeldingsmodell.HarPersonnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
@@ -41,6 +40,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.lagPersonnavn
 import no.nav.hjelpemidler.behovsmeldingsmodell.lagVeiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import java.time.LocalDate
 import java.util.UUID
 

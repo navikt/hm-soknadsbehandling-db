@@ -5,7 +5,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
 import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
-import no.nav.hjelpemidler.behovsmeldingsmodell.Fødselsnummer
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
@@ -19,6 +18,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import org.owasp.html.HtmlPolicyBuilder
 import java.time.LocalDate
 import java.util.UUID
