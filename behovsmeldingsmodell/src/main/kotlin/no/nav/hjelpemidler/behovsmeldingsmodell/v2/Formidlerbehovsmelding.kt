@@ -13,10 +13,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
-import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
+import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.Personnavn
 import org.owasp.html.HtmlPolicyBuilder

@@ -34,9 +34,9 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.SitteputeValg
 import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
-import no.nav.hjelpemidler.behovsmeldingsmodell.Veiadresse
-import no.nav.hjelpemidler.behovsmeldingsmodell.lagVeiadresse
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
+import no.nav.hjelpemidler.domain.geografi.Veiadresse
+import no.nav.hjelpemidler.domain.geografi.lagVeiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.HarPersonnavn
 import no.nav.hjelpemidler.domain.person.Personnavn
