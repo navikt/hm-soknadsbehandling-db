@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":behovsmeldingsmodell"))
 
     // DigiHoT
-    implementation(libs.hm.http) {
+    implementation(libs.hotlibs.http) {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
     }
     implementation(libs.ktor.client.apache)
@@ -26,10 +26,10 @@ dependencies {
     implementation(libs.bundles.jackson)
 
     // Database
-    implementation(libs.hm.database)
-    implementation(libs.hm.database) {
+    implementation(libs.hotlibs.database)
+    implementation(libs.hotlibs.database) {
         capabilities {
-            requireCapability("no.nav.hjelpemidler:hm-database-postgresql")
+            requireCapability("no.nav.hjelpemidler:database-postgresql")
         }
     }
 
@@ -60,9 +60,9 @@ dependencies {
     testImplementation(libs.bundles.ktor.server.test)
     testImplementation(libs.ktor.client.resources)
     testImplementation(libs.wiremock)
-    testImplementation(libs.hm.database) {
+    testImplementation(libs.hotlibs.database) {
         capabilities {
-            requireCapability("no.nav.hjelpemidler:hm-database-testcontainers")
+            requireCapability("no.nav.hjelpemidler:database-testcontainers")
         }
     }
 }

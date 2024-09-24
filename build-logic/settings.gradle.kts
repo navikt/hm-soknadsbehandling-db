@@ -1,4 +1,4 @@
-val hmKatalogVersion: String by settings
+val hotlibsKatalogVersion: String by settings
 
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nav.hjelpemidler:hm-katalog:$hmKatalogVersion")
+            from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
         }
     }
 }

@@ -1,4 +1,4 @@
-val hmKatalogVersion: String by settings
+val hotlibsKatalogVersion: String by settings
 
 pluginManagement {
     includeBuild("build-logic")
@@ -21,7 +21,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nav.hjelpemidler:hm-katalog:$hmKatalogVersion")
+            from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
         }
     }
 }
