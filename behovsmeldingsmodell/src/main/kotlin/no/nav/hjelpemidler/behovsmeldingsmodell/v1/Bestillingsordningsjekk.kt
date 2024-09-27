@@ -26,6 +26,7 @@ data class Bestillingsordningsjekk(
         val ingenProdukterErAlleredeUtlevert: Boolean,
         val brukerErTilknyttetBydelIOslo: Boolean?,
         val harIngenBytter: Boolean,
+        val brukerHarAdresseIOeBS: Boolean,
     )
 
     data class MetaInfo(
