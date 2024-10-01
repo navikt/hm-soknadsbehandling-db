@@ -1,6 +1,7 @@
 plugins {
     id("buildlogic.kotlin-library-conventions")
     `maven-publish`
+    `java-test-fixtures`
 }
 
 group = "no.nav.hjelpemidler"
@@ -20,7 +21,7 @@ dependencies {
      */
     implementation(libs.owasp.java.html.sanitizer)
 
-    testImplementation(libs.kotlin.test.junit5)
+    testImplementation(libs.bundles.test)
     testImplementation(libs.bundles.jackson)
 }
 

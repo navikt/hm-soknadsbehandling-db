@@ -40,6 +40,7 @@ import no.nav.hjelpemidler.domain.geografi.lagVeiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.HarPersonnavn
 import no.nav.hjelpemidler.domain.person.Personnavn
+import no.nav.hjelpemidler.domain.person.TilknyttetPerson
 import no.nav.hjelpemidler.domain.person.lagPersonnavn
 import java.time.LocalDate
 import java.util.UUID
@@ -80,7 +81,7 @@ data class Godkjenningskurs(
 
 data class Bruker(
     @JsonProperty("fnummer")
-    val fnr: Fødselsnummer,
+    override val fnr: Fødselsnummer,
     val fornavn: String,
     val etternavn: String,
     @JsonProperty("signatur")
@@ -97,9 +98,10 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
     val borIPilotkommuneForHast: Boolean? = false,
-) {
+) : TilknyttetPerson {
     val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn = etternavn)
     val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)
+    val kildeErPdl: Boolean @JsonIgnore get() = kilde == Brukerkilde.PDL
 }
 
 data class Kroppsmål(
@@ -292,6 +294,14 @@ data class Levering(
                 poststed = checkNotNull(utleveringPoststed),
             )
         }
+
+    val harFritekstUnderOppfølgingsansvarlig: Boolean
+        @JsonIgnore
+        get() = !oppfølgingsansvarligAnsvarFor.isNullOrBlank()
+
+    val harFritekstUnderLevering: Boolean
+        @JsonIgnore
+        get() = utleveringMerknad.isNotBlank()
 
     data class Hjelpemiddelformidler(
         override val navn: Personnavn,

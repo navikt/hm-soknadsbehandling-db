@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
 import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
@@ -19,6 +20,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.Personnavn
+import no.nav.hjelpemidler.domain.person.TilknyttetPerson
 import org.owasp.html.HtmlPolicyBuilder
 import java.time.LocalDate
 import java.util.UUID
@@ -39,7 +41,7 @@ data class Formidlerbehovsmelding(
 ) : BehovsmeldingBase
 
 data class Bruker(
-    val fnr: Fødselsnummer,
+    override val fnr: Fødselsnummer,
     val navn: Personnavn,
     val signaturtype: Signaturtype,
     val telefon: String,
@@ -48,7 +50,9 @@ data class Bruker(
     val brukernummer: String?,
     val kilde: Brukerkilde?,
     val legacyopplysninger: List<EnkelOpplysning>, // for visning av opplysninger som bare finnes i eldre behovsmeldinger
-)
+) : TilknyttetPerson {
+    val kildeErPdl: Boolean @JsonIgnore get() = kilde == Brukerkilde.PDL
+}
 
 data class Brukersituasjon(
     val bekreftedeVilkår: Set<BrukersituasjonVilkårV2>,
