@@ -166,14 +166,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 navnBruker = it.stringOrNull("navn_bruker"),
                 søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
-                behovsmelding = try {
-                    tilFormidlerbehovsmeldingV2(
-                        it.json<Behovsmelding>("data"),
-                    )
-                } catch (e: Exception) {
-                    logg.error(e) { "Mapping til BehovsmeldingV2 feilet. ID: ${it.uuid("soknads_id")}" }
-                    null
-                },
+                behovsmelding = tilFormidlerbehovsmeldingV2(it.json<Behovsmelding>("data")),
             )
         }
     }

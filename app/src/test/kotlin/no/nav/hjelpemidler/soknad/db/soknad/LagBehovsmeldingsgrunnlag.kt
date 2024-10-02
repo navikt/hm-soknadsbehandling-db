@@ -64,7 +64,11 @@ fun lagBehovsmeldingsgrunnlagDigital(
                           "kanIkkeTilsvarande": true,
                           "hjelpemiddelkategori": "Arbeidsstoler",
                           "produkt": {
-                            "postrank": "1"
+                            "postrank": "1",
+                            "isocode": "11111111",
+                            "isotitle": "Isotittel",
+                            "aposttitle": "Delkontrakt",
+                            "kategori": "Kategori"
                           },
                           "vilkarliste": [
                             {
