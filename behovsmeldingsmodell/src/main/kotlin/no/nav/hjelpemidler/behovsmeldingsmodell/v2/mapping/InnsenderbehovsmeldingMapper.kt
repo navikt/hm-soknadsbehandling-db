@@ -32,11 +32,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Bruker
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukersituasjon
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.EnkelOpplysning
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.HjelpemiddelProdukt
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemidler
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsender
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso8
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Levering
@@ -49,10 +49,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 
-fun tilFormidlerbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding): Formidlerbehovsmelding {
+fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding): Innsenderbehovsmelding {
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
-    return Formidlerbehovsmelding(
+    return Innsenderbehovsmelding(
         id = id,
         type = v1.behovsmeldingType,
         innsendingsdato = v1.søknad.dato ?: error("Behovsmelding $id mangler dato"),

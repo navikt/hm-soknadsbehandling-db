@@ -25,7 +25,7 @@ import org.owasp.html.HtmlPolicyBuilder
 import java.time.LocalDate
 import java.util.UUID
 
-data class Formidlerbehovsmelding(
+data class Innsenderbehovsmelding(
     val bruker: Bruker,
     val brukersituasjon: Brukersituasjon,
     val hjelpemidler: Hjelpemidler,

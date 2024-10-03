@@ -11,8 +11,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Formidlerbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilFormidlerbehovsmeldingV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.jsonMapper
@@ -36,7 +36,7 @@ class SøknadForBruker private constructor(
     var fagsakId: String?,
     var søknadType: String?,
     val valgteÅrsaker: List<String>,
-    val formidlerbehovsmelding: Formidlerbehovsmelding?,
+    val innsenderbehovsmelding: Innsenderbehovsmelding?,
 ) {
     companion object {
         fun new(
@@ -84,8 +84,8 @@ class SøknadForBruker private constructor(
                 fagsakId = fagsakId,
                 søknadType = søknadType,
                 valgteÅrsaker = valgteÅrsaker,
-                formidlerbehovsmelding = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> tilFormidlerbehovsmeldingV2(
+                innsenderbehovsmelding = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> tilInnsenderbehovsmeldingV2(
                         jsonMapper.treeToValue<Behovsmelding>(søknad),
                     )
 
@@ -127,7 +127,7 @@ class SøknadForBruker private constructor(
                 fagsakId,
                 søknadType,
                 valgteÅrsaker,
-                formidlerbehovsmelding = null,
+                innsenderbehovsmelding = null,
             )
     }
 }
