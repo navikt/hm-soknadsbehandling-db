@@ -37,4 +37,5 @@ fun lagLevering(
     utleveringPostnummer = null,
     utleveringPoststed = null,
     utleveringMerknad = utleveringMerknad,
+    hjelpemiddelformidlerKommunenavn = null,
 )

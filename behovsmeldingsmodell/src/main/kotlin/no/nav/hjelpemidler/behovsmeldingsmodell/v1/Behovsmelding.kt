@@ -180,6 +180,7 @@ data class Levering(
     val hjelpemiddelformidlerPoststed: String,
     @JsonProperty("hmfTreffesEnklest")
     val hjelpemiddelformidlerTreffesEnklest: String,
+    val hjelpemiddelformidlerKommunenavn: String?,
 
     // Oppfølgingsansvarlig
 
@@ -250,6 +251,7 @@ data class Levering(
             ),
             epost = hjelpemiddelformidlerEpost,
             treffesEnklest = hjelpemiddelformidlerTreffesEnklest,
+            kommunenavn = hjelpemiddelformidlerKommunenavn,
         )
 
     val annenOppfølgingsansvarlig: AnnenOppfølgingsansvarlig?
@@ -311,6 +313,7 @@ data class Levering(
         val adresse: Veiadresse,
         val epost: String,
         val treffesEnklest: String,
+        val kommunenavn: String?,
     ) : HarPersonnavn
 
     data class AnnenOppfølgingsansvarlig(
