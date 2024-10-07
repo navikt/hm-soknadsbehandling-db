@@ -148,14 +148,7 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
                     it.add(Funksjonsnedsettelser.HØRSEL)
                 }
             },
-            funksjonsbeskrivelse = when (v1.søknad.brukersituasjon.funksjonsbeskrivelse) {
-                null -> null
-                else -> Funksjonsbeskrivelse(
-                    innbyggersVarigeFunksjonsnedsettelse = v1.søknad.brukersituasjon.funksjonsbeskrivelse.innbyggersVarigeFunksjonsnedsettelse,
-                    diagnose = v1.søknad.brukersituasjon.funksjonsbeskrivelse.diagnose,
-                    beskrivelse = v1.søknad.brukersituasjon.funksjonsbeskrivelse.beskrivelse,
-                )
-            }
+            funksjonsbeskrivelse = v1.søknad.brukersituasjon.funksjonsbeskrivelse,
         ),
         levering = Levering(
             hjelpemiddelformidler = v1.søknad.levering.hjelpemiddelformidler,
