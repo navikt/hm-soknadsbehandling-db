@@ -26,6 +26,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad
@@ -147,6 +148,14 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
                     it.add(Funksjonsnedsettelser.HØRSEL)
                 }
             },
+            funksjonsbeskrivelse = when (v1.søknad.brukersituasjon.funksjonsbeskrivelse) {
+                null -> null
+                else -> Funksjonsbeskrivelse(
+                    innbyggersVarigeFunksjonsnedsettelse = v1.søknad.brukersituasjon.funksjonsbeskrivelse.innbyggersVarigeFunksjonsnedsettelse,
+                    diagnose = v1.søknad.brukersituasjon.funksjonsbeskrivelse.diagnose,
+                    beskrivelse = v1.søknad.brukersituasjon.funksjonsbeskrivelse.beskrivelse,
+                )
+            }
         ),
         levering = Levering(
             hjelpemiddelformidler = v1.søknad.levering.hjelpemiddelformidler,

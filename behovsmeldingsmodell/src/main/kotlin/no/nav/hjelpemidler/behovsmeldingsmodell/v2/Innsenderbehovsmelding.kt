@@ -15,6 +15,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
@@ -57,6 +58,7 @@ data class Bruker(
 data class Brukersituasjon(
     val bekreftedeVilkår: Set<BrukersituasjonVilkårV2>,
     val funksjonsnedsettelser: Set<Funksjonsnedsettelser>,
+    val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
 
 enum class Funksjonsnedsettelser {
