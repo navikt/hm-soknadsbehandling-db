@@ -180,8 +180,27 @@ private fun bruker(søknad: JsonNode): Bruker {
         kroppsmaal = kroppsmaal(brukerNode),
         brukernummer = brukerNode["brukernummer"]?.textValue(),
         bekreftedeVilkår = bekreftedeVilkår,
+        funksjonsbeskrivelse = tilFunksjonsbeskrivelse(brukerSituasjonNode["funksjonsbeskrivelse"]),
     )
 }
+
+fun tilFunksjonsbeskrivelse(funksjonsbeskrivelseNode: JsonNode?): Funksjonsbeskrivelse? {
+    if (funksjonsbeskrivelseNode == null) {
+        return null
+    }
+
+    return Funksjonsbeskrivelse(
+        innbyggersVarigeFunksjonsnedsettelse = when (funksjonsbeskrivelseNode["innbyggersVarigeFunksjonsnedsettelse"].textValue()) {
+            "ALDERDOMSSVEKKELSE" -> InnbyggersVarigeFunksjonsnedsettelse.ALDERDOMSSVEKKELSE
+            "ANNEN_VARIG_DIAGNOSE" -> InnbyggersVarigeFunksjonsnedsettelse.ANNEN_VARIG_DIAGNOSE
+            "UAVKLART" -> InnbyggersVarigeFunksjonsnedsettelse.UAVKLART
+            else -> throw RuntimeException("Ugyldig InnbyggersVarigeFunksjonsnedsettelse")
+        },
+        diagnose = funksjonsbeskrivelseNode["diagnose"]?.textValue(),
+        beskrivelse = funksjonsbeskrivelseNode["beskrivelse"].textValue(),
+    )
+}
+
 
 fun bruksarenaBruker(brukersituasjon: JsonNode): BruksarenaBruker {
     return when (brukersituasjon["bruksarenaErDagliglivet"]?.booleanValue()) {
@@ -619,7 +638,21 @@ class Bruker(
     val kroppsmaal: Kroppsmaal?,
     val brukernummer: String?,
     val bekreftedeVilkår: List<BrukersituasjonVilkår>,
+    val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
+
+data class Funksjonsbeskrivelse(
+    val innbyggersVarigeFunksjonsnedsettelse: InnbyggersVarigeFunksjonsnedsettelse,
+    val diagnose: String?,
+    val beskrivelse: String,
+)
+
+enum class InnbyggersVarigeFunksjonsnedsettelse {
+    ALDERDOMSSVEKKELSE,
+    ANNEN_VARIG_DIAGNOSE,
+    UAVKLART,
+}
+
 
 enum class BrukersituasjonVilkår {
     NEDSATT_FUNKSJON, // Bruker har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.

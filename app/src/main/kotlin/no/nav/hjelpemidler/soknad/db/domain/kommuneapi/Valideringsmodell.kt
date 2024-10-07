@@ -16,6 +16,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.domain.BrukersituasjonVilkår
 import no.nav.hjelpemidler.soknad.db.domain.Bruksarena
+import no.nav.hjelpemidler.soknad.db.domain.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.soknad.db.domain.HøyGrindValg
 import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
 import no.nav.hjelpemidler.soknad.db.domain.VarmehjelpemiddelInfo
@@ -188,6 +189,7 @@ data class Brukersituasjon(
     val praktiskeProblem: Boolean,
     val skalIkkeBrukesTilAndreFormaal: Boolean?, // Kun for bestiller
     val bekreftedeVilkår: List<BrukersituasjonVilkår>?,
+    val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

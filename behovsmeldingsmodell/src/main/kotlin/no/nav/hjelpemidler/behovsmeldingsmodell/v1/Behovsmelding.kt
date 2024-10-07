@@ -135,7 +135,22 @@ data class Brukersituasjon(
     @Deprecated("Erstattet med bekreftedeVilkår")
     @JsonProperty("skalIkkeBrukesTilAndreFormaal")
     val skalIkkeBrukesTilAndreFormål: Boolean?,
+
+    val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
+
+data class Funksjonsbeskrivelse(
+    val innbyggersVarigeFunksjonsnedsettelse: InnbyggersVarigeFunksjonsnedsettelse,
+    val diagnose: String?,
+    val beskrivelse: String,
+)
+
+enum class InnbyggersVarigeFunksjonsnedsettelse {
+    ALDERDOMSSVEKKELSE,
+    ANNEN_VARIG_DIAGNOSE,
+    UAVKLART,
+}
+
 
 data class Funksjonsnedsettelser(
     val bevegelse: Boolean,
