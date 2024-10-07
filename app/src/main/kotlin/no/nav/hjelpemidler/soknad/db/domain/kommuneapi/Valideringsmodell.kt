@@ -228,6 +228,7 @@ data class Levering(
     val hmfStilling: String,
     val hmfTelefon: String,
     val hmfTreffesEnklest: String,
+    val hjelpemiddelformidlerKommunenavn: String?,
     val merknadTilUtlevering: String,
     val opfAnsvarFor: String?,
     val opfArbeidssted: String?,
