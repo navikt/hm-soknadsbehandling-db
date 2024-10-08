@@ -9,10 +9,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
-import no.nav.hjelpemidler.soknad.db.domain.BruksarenaBruker
-import no.nav.hjelpemidler.soknad.db.domain.Funksjonsnedsettelse
-import no.nav.hjelpemidler.soknad.db.domain.LeveringTilleggsinfo
-import no.nav.hjelpemidler.soknad.db.domain.SitteputeValg
+import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Funksjonsnedsettelser
+import no.nav.hjelpemidler.domain.geografi.Veiadresse
+import no.nav.hjelpemidler.domain.person.Personnavn
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagPapir
@@ -22,8 +22,8 @@ import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class SøknadStoreTest {
     @Test
@@ -35,55 +35,53 @@ class SøknadStoreTest {
             søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrBruker = fnrBruker))
             val søknad = søknadStore.hentSøknad(søknadId)
 
-            assertEquals(fnrBruker, søknad?.søknadsdata?.bruker?.fnummer)
-            assertEquals("Fornavn", søknad?.søknadsdata?.bruker?.fornavn)
-            assertEquals("Etternavn", søknad?.søknadsdata?.bruker?.etternavn)
-            assertEquals("12345678", søknad?.søknadsdata?.bruker?.telefonNummer)
-            assertNull(søknad?.søknadsdata?.bruker?.adresse)
-            assertNull(søknad?.søknadsdata?.bruker?.postnummer)
-            assertEquals("poststed", søknad?.søknadsdata?.bruker?.poststed)
-            assertEquals("formidlerFornavn formidlerEtternavn", søknad?.søknadsdata?.formidler?.navn)
-            assertEquals("arbeidssted", søknad?.søknadsdata?.formidler?.arbeidssted)
-            assertEquals("stilling", søknad?.søknadsdata?.formidler?.stilling)
-            assertEquals("postadresse arbeidssted 9999 poststed", søknad?.søknadsdata?.formidler?.adresse)
-            assertEquals("12345678", søknad?.søknadsdata?.formidler?.telefon)
-            assertEquals("treffesEnklest", søknad?.søknadsdata?.formidler?.treffesEnklest)
-            assertEquals("formidler@kommune.no", søknad?.søknadsdata?.formidler?.epost)
-            assertNull(søknad?.søknadsdata?.oppfolgingsansvarlig)
-            assertEquals("Hjemme", søknad?.søknadsdata?.bruker?.boform)
-            assertEquals(BruksarenaBruker.DAGLIGLIVET, søknad?.søknadsdata?.bruker?.bruksarena)
+            assertEquals(fnrBruker, søknad?.innsenderbehovsmelding!!.bruker.fnr.value)
+            assertEquals("Fornavn", søknad.innsenderbehovsmelding.bruker.navn.fornavn)
+            assertEquals("Etternavn", søknad.innsenderbehovsmelding.bruker.navn.etternavn)
+            assertEquals("12345678", søknad.innsenderbehovsmelding.bruker.telefon)
+            assertEquals("adresseveien 2", søknad.innsenderbehovsmelding.bruker.veiadresse?.adresse)
+            assertEquals("1234", søknad.innsenderbehovsmelding.bruker.veiadresse?.postnummer)
+            assertEquals("poststed", søknad.innsenderbehovsmelding.bruker.veiadresse?.poststed)
             assertEquals(
-                listOf(Funksjonsnedsettelse.BEVEGELSE, Funksjonsnedsettelse.HØRSEL),
-                søknad?.søknadsdata?.bruker?.funksjonsnedsettelser,
+                Personnavn("formidlerFornavn", etternavn = "formidlerEtternavn"),
+                søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.navn,
+            )
+            assertEquals("arbeidssted", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.arbeidssted)
+            assertEquals("stilling", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.stilling)
+            assertEquals(
+                Veiadresse("postadresse arbeidssted", "9999", "poststed"),
+                søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.adresse,
+            )
+            assertEquals("12345678", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.telefon)
+            assertEquals("treffesEnklest", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.treffesEnklest)
+            assertEquals("formidler@kommune.no", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.epost)
+            assertNull(søknad.innsenderbehovsmelding.levering.annenOppfølgingsansvarlig)
+            assertTrue(søknad.innsenderbehovsmelding.bruker.legacyopplysninger.any { it.ledetekst.nb == "Boform" && it.innhold.nb == "Hjemme" })
+            assertTrue(søknad.innsenderbehovsmelding.bruker.legacyopplysninger.any { it.ledetekst.nb == "Bruksarena" && it.innhold.nb == "Dagliglivet" })
+            assertEquals(
+                setOf(Funksjonsnedsettelser.BEVEGELSE, Funksjonsnedsettelser.HØRSEL),
+                søknad.innsenderbehovsmelding.brukersituasjon.funksjonsnedsettelser,
             )
 
-            assertEquals(2, søknad?.søknadsdata?.hjelpemiddelTotalAntall)
-            assertEquals(1, søknad?.søknadsdata?.hjelpemidler?.size)
-            assertEquals(1, søknad?.søknadsdata?.hjelpemidler?.first()?.antall)
-            assertEquals("Hjelpemiddelnavn", søknad?.søknadsdata?.hjelpemidler?.first()?.navn)
-            assertEquals("beskrivelse", søknad?.søknadsdata?.hjelpemidler?.first()?.beskrivelse)
-            assertEquals("Arbeidsstoler", søknad?.søknadsdata?.hjelpemidler?.first()?.hjelpemiddelkategori)
-            assertEquals("123456", søknad?.søknadsdata?.hjelpemidler?.first()?.hmsNr)
-            assertEquals("Tilleggsinformasjon", søknad?.søknadsdata?.hjelpemidler?.first()?.tilleggsinformasjon)
-            assertEquals("1", søknad?.søknadsdata?.hjelpemidler?.first()?.rangering)
-            assertEquals(true, søknad?.søknadsdata?.hjelpemidler?.first()?.utlevertFraHjelpemiddelsentralen)
-            assertEquals(1, søknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.size)
-            assertEquals(
-                "Vilkår 1",
-                søknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.vilkaarTekst,
-            )
-            assertEquals(
-                "Tilleggsinfo",
-                søknad?.søknadsdata?.hjelpemidler?.first()?.vilkarliste?.first()?.tilleggsinfo,
-            )
-            assertEquals(1, søknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.size)
-            assertEquals("654321", søknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.hmsnr)
-            assertEquals("Tilbehør 1", søknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.navn)
-            assertEquals(1, søknad?.søknadsdata?.hjelpemidler?.first()?.tilbehorListe?.first()?.antall)
-            assertEquals("begrunnelse", søknad?.søknadsdata?.hjelpemidler?.first()?.begrunnelse)
-            assertEquals(true, søknad?.søknadsdata?.hjelpemidler?.first()?.kanIkkeTilsvarande)
+            assertEquals(2, søknad.innsenderbehovsmelding.hjelpemidler.totaltAntall)
+            assertEquals(1, søknad.innsenderbehovsmelding.hjelpemidler.hjelpemidler.size)
+            with(søknad.innsenderbehovsmelding.hjelpemidler.hjelpemidler.first()) {
+                assertEquals(1, antall)
+                assertEquals("Hjelpemiddelnavn", produkt.artikkelnavn)
+                assertEquals("Arbeidsstoler", produkt.sortimentkategori)
+                assertEquals("123456", produkt.hmsArtNr)
+                assertTrue(opplysninger.any { it.ledetekst.nb == "Kommentar" && it.innhold.first().fritekst == "Tilleggsinformasjon" })
+                assertEquals(1, produkt.rangering)
+                assertEquals(true, utlevertinfo.alleredeUtlevertFraHjelpemiddelsentralen)
+                assertTrue(opplysninger.any { it.ledetekst.nb == "Behov" && it.innhold.first().fritekst == "Tilleggsinfo" })
+                assertEquals(1, tilbehør.size)
+                assertEquals("654321", tilbehør.first().hmsArtNr)
+                assertEquals("Tilbehør 1", tilbehør.first().navn)
+                assertEquals(1, tilbehør.first().antall)
+                assertTrue(opplysninger.any { it.ledetekst.nb == "Kan ikke ha tilsvarende fordi" && it.innhold.first().fritekst == "begrunnelse" })
+            }
 
-            assertNull(søknad?.søknadsdata?.levering?.adresse)
+            assertNull(søknad.innsenderbehovsmelding.levering.annenUtleveringsadresse)
 
             assertEquals(true, søknad?.er_digital)
         }
@@ -219,11 +217,12 @@ class SøknadStoreTest {
                 ),
             )
             val hentSoknad = søknadStore.hentSøknad(søknadId)
-            assertEquals(fnrBruker, hentSoknad!!.søknadsdata!!.bruker.fnummer)
+            assertEquals(fnrBruker, hentSoknad!!.innsenderbehovsmelding!!.bruker.fnr.value)
             assertEquals(true, hentSoknad.er_digital)
-            assertEquals(
-                LeveringTilleggsinfo.UTLEVERING_KALENDERAPP,
-                hentSoknad.søknadsdata!!.levering.tilleggsinfo.first(),
+            assertTrue(
+                hentSoknad.innsenderbehovsmelding!!.levering.automatiskUtledetTilleggsinfo.contains(
+                    LeveringTilleggsinfo.UTLEVERING_KALENDERAPP,
+                ),
             )
         }
     }
@@ -454,20 +453,29 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.lagreBehovsmelding(mockSøknadMedRullestol(søknadId))
             val søknad = søknadStore.hentSøknad(søknadId)
+            val hjelpemiddel = søknad!!.innsenderbehovsmelding!!.hjelpemidler.hjelpemidler.first()
 
-            assertNotNull(søknad?.søknadsdata?.bruker?.kroppsmaal)
-            assertEquals(176, søknad?.søknadsdata?.bruker?.kroppsmaal?.hoyde)
-            assertEquals(99, søknad?.søknadsdata?.bruker?.kroppsmaal?.kroppsvekt)
-            assertEquals(23, søknad?.søknadsdata?.bruker?.kroppsmaal?.legglengde)
-            assertEquals(56, søknad?.søknadsdata?.bruker?.kroppsmaal?.laarlengde)
-            assertEquals(23, søknad?.søknadsdata?.bruker?.kroppsmaal?.setebredde)
-
-            assertNotNull(søknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo)
-            assertEquals(
-                SitteputeValg.TrengerSittepute,
-                søknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.sitteputeValg,
+            assertEquals(5, hjelpemiddel.opplysninger.size)
+            assertTrue(
+                hjelpemiddel.opplysninger.any {
+                    it.ledetekst.nb == "Bil" &&
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Rullestolen skal brukes som sete i bil"
+                },
             )
-            assertEquals(true, søknad?.søknadsdata?.hjelpemidler?.first()?.rullestolInfo?.skalBrukesIBil)
+
+            assertTrue(
+                hjelpemiddel.opplysninger.any {
+                    it.ledetekst.nb == "Kroppsmål" &&
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Setebredde: 23 cm, legglengde: 23 cm, lårlengde: 56 cm, høyde: 176 cm, kroppsvekt: 99 kg."
+                },
+            )
+
+            assertTrue(
+                hjelpemiddel.opplysninger.any {
+                    it.ledetekst.nb == "Sittepute" &&
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Bruker skal ha sittepute"
+                },
+            )
         }
     }
 }

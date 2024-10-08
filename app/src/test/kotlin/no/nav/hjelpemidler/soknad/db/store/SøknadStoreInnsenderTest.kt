@@ -49,7 +49,7 @@ class SøknadStoreInnsenderTest {
                 .hentSøknadForInnsender(fnrFormidler, søknadId, InnsenderRolle.FORMIDLER)
                 .shouldNotBeNull {
                     this.søknadId shouldBe søknadId
-                    this.søknadsdata.shouldNotBeNull()
+                    this.behovsmelding.shouldNotBeNull()
                 }
         }
     }
