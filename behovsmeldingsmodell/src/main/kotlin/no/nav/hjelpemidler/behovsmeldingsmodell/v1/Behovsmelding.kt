@@ -98,6 +98,7 @@ data class Bruker(
     val kroppsmål: Kroppsmål?,
     val erInformertOmRettigheter: Boolean?,
     val borIPilotkommuneForHast: Boolean? = false,
+    val borIPilotkommuneForFunksjonsbeskrivelse: Boolean? = false,
 ) : TilknyttetPerson {
     val navn: Personnavn @JsonIgnore get() = lagPersonnavn(fornavn, etternavn = etternavn)
     val veiadresse: Veiadresse? @JsonIgnore get() = lagVeiadresse(adresse, postnummer, poststed)
