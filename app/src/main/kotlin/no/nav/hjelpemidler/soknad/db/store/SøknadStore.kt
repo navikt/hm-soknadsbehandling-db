@@ -157,7 +157,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
                     søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
-                    kommunenavn = it.stringOrNull("kommunenavn"),
                     fnrBruker = it.string("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),

@@ -36,6 +36,8 @@ fun lagBehovsmeldingsgrunnlagDigital(
                       "signatur": "FULLMAKT",
                       "etternavn": "Etternavn",
                       "telefonNummer": "12345678",
+                      "adresse": "adresseveien 2",
+                      "postnummer": "1234",
                       "poststed": "poststed",
                       "kommunenummer": "9999",
                       "kroppsmaal": {}
@@ -55,7 +57,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                         {
                           "uniqueKey": "1",
                           "hmsNr": "123456",
-                          "beskrivelse": "beskrivelse",
+                          "beskrivelse": "Hjelpemiddelnavn",
                           "begrunnelsen": "begrunnelse",
                           "antall": 1,
                           "navn": "Hjelpemiddelnavn",
@@ -68,7 +70,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                             "isocode": "11111111",
                             "isotitle": "Isotittel",
                             "aposttitle": "Delkontrakt",
-                            "kategori": "Kategori"
+                            "kategori": "Arbeidsstoler"
                           },
                           "vilkarliste": [
                             {

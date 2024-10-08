@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.store
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
@@ -13,7 +12,6 @@ import no.nav.hjelpemidler.database.enum
 import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
-import no.nav.hjelpemidler.soknad.db.domain.Søknadsdata
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.LocalDateTime
 import java.util.Date
@@ -164,7 +162,6 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 fullmakt = it.boolean("fullmakt"),
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
-                søknadsdata = Søknadsdata(it.json<JsonNode>("data"), null),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 behovsmelding = tilInnsenderbehovsmeldingV2(it.json<Behovsmelding>("data")),
             )
@@ -181,7 +178,6 @@ class SøknadForInnsender(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val navnBruker: String?,
-    val søknadsdata: Søknadsdata? = null,
     val valgteÅrsaker: List<String>,
     val behovsmelding: Innsenderbehovsmelding? = null,
 )
