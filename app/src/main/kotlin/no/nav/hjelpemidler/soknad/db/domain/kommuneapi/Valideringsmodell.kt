@@ -13,6 +13,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
@@ -184,6 +185,7 @@ data class Brukersituasjon(
     val praktiskeProblem: Boolean,
     val skalIkkeBrukesTilAndreFormaal: Boolean?, // Kun for bestiller
     val bekreftedeVilkår: List<BrukersituasjonVilkår>?,
+    val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
