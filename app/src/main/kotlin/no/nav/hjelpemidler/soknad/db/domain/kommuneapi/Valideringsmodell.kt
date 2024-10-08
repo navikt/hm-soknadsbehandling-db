@@ -13,7 +13,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.rolle.Næringskode
@@ -203,6 +202,18 @@ enum class BrukersituasjonVilkår {
     VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1, // Bruker har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut. Hjelpemiddelet skal ikke brukes til korttidsutlån eller til andre formål.
     KAN_IKKE_LOESES_MED_ENKLERE_HJELPEMIDLER_V1, // Innbyggers behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.
     I_STAND_TIL_AA_BRUKE_HJELEPMIDLENE_V1, // Innbyggeren vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.
+}
+
+data class Funksjonsbeskrivelse(
+    val innbyggersVarigeFunksjonsnedsettelse: InnbyggersVarigeFunksjonsnedsettelse,
+    val diagnose: String?,
+    val beskrivelse: String,
+)
+
+enum class InnbyggersVarigeFunksjonsnedsettelse {
+    ALDERDOMSSVEKKELSE,
+    ANNEN_VARIG_DIAGNOSE,
+    UAVKLART,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
