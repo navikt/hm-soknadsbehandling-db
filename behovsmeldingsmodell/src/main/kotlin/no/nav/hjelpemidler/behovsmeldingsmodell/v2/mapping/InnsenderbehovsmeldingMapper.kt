@@ -38,6 +38,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.HjelpemiddelProdukt
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemidler
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsender
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.InnsenderbehovsmeldingMetadata
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso8
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Levering
@@ -187,6 +188,9 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
         hjelpemidler = Hjelpemidler(
             totaltAntall = v1.søknad.hjelpemidler.totaltAntall,
             hjelpemidler = v1.søknad.hjelpemidler.hjelpemidler.map { tilHjelpemiddelV2(it, v1.søknad) },
+        ),
+        metadata = InnsenderbehovsmeldingMetadata(
+            bestillingsordningsjekk = v1.bestillingsordningsjekk,
         ),
     )
 }

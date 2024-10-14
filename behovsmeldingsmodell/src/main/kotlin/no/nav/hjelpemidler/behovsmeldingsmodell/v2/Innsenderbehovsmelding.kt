@@ -14,6 +14,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bestillingsordningsjekk
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
@@ -33,6 +34,8 @@ data class Innsenderbehovsmelding(
     val levering: Levering,
     val innsender: Innsender,
 
+    val metadata: InnsenderbehovsmeldingMetadata,
+
     override val id: UUID,
     override val type: BehovsmeldingType,
     override val innsendingsdato: LocalDate,
@@ -40,6 +43,10 @@ data class Innsenderbehovsmelding(
     override val hjmBrukersFnr: Fødselsnummer = bruker.fnr,
     override val prioritet: Prioritet = tilPrioritet(levering.hast),
 ) : BehovsmeldingBase
+
+data class InnsenderbehovsmeldingMetadata(
+    val bestillingsordningsjekk: Bestillingsordningsjekk?,
+)
 
 data class Bruker(
     override val fnr: Fødselsnummer,
