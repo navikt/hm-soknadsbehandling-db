@@ -26,7 +26,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad

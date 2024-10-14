@@ -100,7 +100,15 @@ data class Levering(
      * Inneholder ekstra informasjon som automatisk er utledet. Dvs. det er ikke noe formidler har svart på (direkte).
      */
     val automatiskUtledetTilleggsinfo: Set<LeveringTilleggsinfo> = emptySet(),
-)
+) {
+    val harFritekstUnderOppfølgingsansvarlig: Boolean
+        @JsonIgnore
+        get() = !annenOppfølgingsansvarlig?.ansvarFor.isNullOrBlank()
+
+    val harFritekstUnderLevering: Boolean
+        @JsonIgnore
+        get() = utleveringMerknad.isNotBlank()
+}
 
 data class Innsender(
     val rolle: InnsenderRolle,

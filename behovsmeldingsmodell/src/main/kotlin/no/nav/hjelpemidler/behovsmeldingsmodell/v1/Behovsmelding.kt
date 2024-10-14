@@ -152,7 +152,6 @@ enum class InnbyggersVarigeFunksjonsnedsettelse {
     UAVKLART,
 }
 
-
 data class Funksjonsnedsettelser(
     val bevegelse: Boolean,
     val kognisjon: Boolean,
