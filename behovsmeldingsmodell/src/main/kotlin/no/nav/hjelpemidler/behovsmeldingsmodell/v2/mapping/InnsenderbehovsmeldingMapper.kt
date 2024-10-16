@@ -99,7 +99,8 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
             },
         ),
         brukersituasjon = Brukersituasjon(
-            bekreftedeVilkår = tilBrukersituasjonVilkårV2(v1.søknad),
+            bekreftedeVilkår = tilBrukersituasjonVilkårV2(v1.søknad).map { it.vilkårtype }.toSet(), // TODO: Fjernes når alle apper har byttet til vilkår
+            vilkår = tilBrukersituasjonVilkårV2(v1.søknad),
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
                     it.add(Funksjonsnedsettelser.BEVEGELSE)

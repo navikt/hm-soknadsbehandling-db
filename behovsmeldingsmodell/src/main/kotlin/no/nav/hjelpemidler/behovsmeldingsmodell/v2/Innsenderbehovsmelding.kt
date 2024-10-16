@@ -64,7 +64,9 @@ data class Bruker(
 }
 
 data class Brukersituasjon(
-    val bekreftedeVilkår: Set<BrukersituasjonVilkårV2>,
+    @Deprecated("Bruk vilkår som også inneholder visningstekst")
+    val bekreftedeVilkår: Set<BrukersituasjonVilkårtype>,
+    val vilkår: Set<BrukersituasjonVilkårV2>,
     val funksjonsnedsettelser: Set<Funksjonsnedsettelser>,
     val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
