@@ -3,9 +3,10 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
-import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
+import no.nav.hjelpemidler.behovsmeldingsmodell.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
@@ -68,11 +69,10 @@ data class Brukersituasjon(
     val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
 
-enum class Funksjonsnedsettelser {
-    BEVEGELSE,
-    KOGNISJON,
-    HØRSEL,
-}
+data class BrukersituasjonVilkårV2 (
+    val vilkårtype: BrukersituasjonVilkårtype,
+    val tekst: LokalisertTekst,
+)
 
 data class Levering(
     val hjelpemiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,

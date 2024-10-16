@@ -104,7 +104,7 @@ enum class BrukersituasjonVilkår {
     I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
 }
 
-enum class BrukersituasjonVilkårV2 {
+enum class BrukersituasjonVilkårtype {
 
     @Deprecated("Ikke lenger et valg i hm-soknad")
     NEDSATT_FUNKSJON,
@@ -119,6 +119,12 @@ enum class BrukersituasjonVilkårV2 {
     VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
     KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1,
     I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
+}
+
+enum class Funksjonsnedsettelser {
+    BEVEGELSE,
+    KOGNISJON,
+    HØRSEL,
 }
 
 enum class LeveringTilleggsinfo {
