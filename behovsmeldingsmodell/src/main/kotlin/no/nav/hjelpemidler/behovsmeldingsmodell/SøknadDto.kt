@@ -16,7 +16,6 @@ data class SøknadDto(
     val fnrInnsender: String?,
     val fnrBruker: String,
     val navnBruker: String,
-    val kommunenavn: String?,
     val journalpostId: String?,
     val oppgaveId: String?,
     val digital: Boolean,

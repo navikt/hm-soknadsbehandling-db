@@ -50,7 +50,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.fnr_innsender,
                        soknad.fnr_bruker,
                        soknad.navn_bruker,
-                       soknad.kommunenavn,
                        soknad.journalpostid,
                        soknad.oppgaveid,
                        soknad.er_digital,
@@ -95,7 +94,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.journalpostid,
                        soknad.data,
                        soknad.created,
-                       soknad.kommunenavn,
                        soknad.fnr_bruker,
                        soknad.updated,
                        soknad.er_digital,
@@ -365,9 +363,9 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, kommunenavn, er_digital,
+                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, er_digital,
                                        soknad_gjelder)
-                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, :kommunenavn, TRUE, :soknadGjelder)
+                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, TRUE, :soknadGjelder)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
@@ -376,7 +374,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 "navnBruker" to grunnlag.navnBruker,
                 "fnrInnsender" to grunnlag.fnrInnsender,
                 "data" to pgJsonbOf(grunnlag.behovsmelding),
-                "kommunenavn" to grunnlag.kommunenavn,
                 "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
             ),
         ).actualRowCount

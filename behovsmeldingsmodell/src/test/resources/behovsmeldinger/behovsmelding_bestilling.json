@@ -166,7 +166,6 @@
     }
   },
   "status": "ENDELIG_JOURNALFØRT",
-  "kommunenavn": null,
   "er_digital": true,
   "soknadGjelder": "Bestilling av: varslingshjelpemiddel"
 }

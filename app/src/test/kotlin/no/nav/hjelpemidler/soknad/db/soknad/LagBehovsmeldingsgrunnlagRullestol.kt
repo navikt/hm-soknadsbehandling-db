@@ -18,7 +18,6 @@ fun mockSøknadMedRullestol(
     fnrBruker = fnrBruker,
     navnBruker = "Fornavn Etternavn",
     fnrInnsender = lagFødselsnummer(),
-    kommunenavn = null,
     behovsmelding = readMap(
         """
             {

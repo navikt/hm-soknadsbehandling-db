@@ -169,7 +169,6 @@
     "behovsmeldingType": "BYTTE"
   },
   "status": "INNSENDT_FULLMAKT_IKKE_PÅKREVD",
-  "kommunenavn": null,
   "er_digital": true,
   "soknadGjelder": "Bytte av: sittepute"
 }

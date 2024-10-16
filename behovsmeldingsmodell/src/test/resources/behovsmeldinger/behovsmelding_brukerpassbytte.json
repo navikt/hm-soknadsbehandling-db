@@ -28,7 +28,6 @@
     "behovsmeldingType": "BRUKERPASSBYTTE"
   },
   "status": "BRUKERPASSBYTTE_INNSENDT",
-  "kommunenavn": null,
   "er_digital": true,
   "soknadGjelder": "Bytte av: stokk"
 }

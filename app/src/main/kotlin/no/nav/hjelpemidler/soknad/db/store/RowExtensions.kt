@@ -29,7 +29,6 @@ fun Row.tilSøknad(): SøknadDto {
         fnrInnsender = stringOrNull("fnr_innsender"),
         fnrBruker = string("fnr_bruker"),
         navnBruker = string("navn_bruker"),
-        kommunenavn = stringOrNull("kommunenavn"),
         journalpostId = stringOrNull("journalpostid"),
         oppgaveId = stringOrNull("oppgaveid"),
         digital = boolean("er_digital"),

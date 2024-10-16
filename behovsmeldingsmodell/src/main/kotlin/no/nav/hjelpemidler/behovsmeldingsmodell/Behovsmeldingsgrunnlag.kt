@@ -32,7 +32,6 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
         override val fnrBruker: String,
         override val navnBruker: String,
         val fnrInnsender: String?,
-        val kommunenavn: String?,
         @JsonAlias("soknad")
         val behovsmelding: Map<String, Any?>, // JsonNode
         @JsonAlias("soknadGjelder")

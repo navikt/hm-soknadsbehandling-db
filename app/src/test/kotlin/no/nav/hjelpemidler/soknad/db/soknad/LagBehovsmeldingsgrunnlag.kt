@@ -21,7 +21,6 @@ fun lagBehovsmeldingsgrunnlagDigital(
         fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
         fnrInnsender = fnrInnsender,
-        kommunenavn = "TEST",
         behovsmelding = readMap(
             """
                 {

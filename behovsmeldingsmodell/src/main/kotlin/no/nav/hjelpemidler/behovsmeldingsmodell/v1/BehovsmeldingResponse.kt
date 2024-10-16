@@ -15,7 +15,6 @@ data class BehovsmeldingResponse(
     @JsonAlias("soknad")
     val behovsmelding: Behovsmelding,
     val status: BehovsmeldingStatus,
-    val kommunenavn: String?,
     @JsonAlias("er_digital")
     val erDigital: Boolean,
     @JsonAlias("soknadGjelder")
