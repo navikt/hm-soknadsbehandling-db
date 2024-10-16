@@ -140,7 +140,7 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-            ),
+        ),
         innsender = Innsender(
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
@@ -161,72 +161,74 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
     val navn = v1.bruker.navn.toString()
     fun nedsattFunksjonTekst() = LokalisertTekst(
         nb = "$navn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.",
-        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut."
+        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut.",
     )
 
     fun størreBehovTekst() = LokalisertTekst(
         nb = "Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av NAV.",
-        nn = "Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av NAV."
+        nn = "Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av NAV.",
     )
 
     fun praktiskeProblemTekst() = LokalisertTekst(
         nb = "Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og $navn vil være i stand til å bruke det.",
-        nn = "Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og $navn vil vera i stand til å bruka det."
+        nn = "Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og $navn vil vera i stand til å bruka det.",
     )
 
     fun praktiskeProblemerIDagliglivetTekst() = LokalisertTekst(
         nb = "Hjelpemiddelet er nødvendig for å avhjelpe praktiske problemer i dagliglivet, eller for å bli pleid i hjemmet.",
-        nn = "Hjelpemiddelet er naudsynt for å avhjelpa praktiske problem i dagleglivet, eller for å bli pleidd i heimen."
+        nn = "Hjelpemiddelet er naudsynt for å avhjelpa praktiske problem i dagleglivet, eller for å bli pleidd i heimen.",
     )
 
     fun vesentligOgVarigNedsattFunksjonsevneTekst() = LokalisertTekst(
         nb = "$navn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut. Hjelpemiddelet skal ikke brukes til korttidsutlån eller til andre formål.",
-        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut. Hjelpemiddelet skal ikkje brukast til korttidsutlån eller til andre formål."
+        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut. Hjelpemiddelet skal ikkje brukast til korttidsutlån eller til andre formål.",
     )
 
     fun kanIkkeLøsesMedEnklereHjelpemidlerTekst() = LokalisertTekst(
         nb = "$navn sitt behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.",
-        nn = "$navn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av NAV."
+        nn = "$navn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av NAV.",
     )
 
     fun iStandTilÅBrukeHjelpemidleneTekst() = LokalisertTekst(
         nb = "$navn vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.",
-        nn = "$navn vil vera i stand til å bruka hjelpemidla. Eg har ansvaret for at hjelpemidla blir leverte, og at nødvendig opplæring, tilpassing og montering blir gjord."
+        nn = "$navn vil vera i stand til å bruka hjelpemidla. Eg har ansvaret for at hjelpemidla blir leverte, og at nødvendig opplæring, tilpassing og montering blir gjord.",
     )
 
     return v1.brukersituasjon.bekreftedeVilkår.map { vilkår ->
         when (vilkår) {
             BrukersituasjonVilkår.NEDSATT_FUNKSJON -> BrukersituasjonVilkårV2(
                 BrukersituasjonVilkårtype.NEDSATT_FUNKSJON,
-                nedsattFunksjonTekst()
+                nedsattFunksjonTekst(),
             )
 
             BrukersituasjonVilkår.STØRRE_BEHOV -> BrukersituasjonVilkårV2(
                 BrukersituasjonVilkårtype.STØRRE_BEHOV,
-                størreBehovTekst()
+                størreBehovTekst(),
             )
 
             BrukersituasjonVilkår.PRAKTISKE_PROBLEM -> BrukersituasjonVilkårV2(
                 BrukersituasjonVilkårtype.PRAKTISKE_PROBLEM,
-                praktiskeProblemTekst()
+                praktiskeProblemTekst(),
             )
 
             BrukersituasjonVilkår.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1 -> BrukersituasjonVilkårV2(
-                BrukersituasjonVilkårtype.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1, praktiskeProblemerIDagliglivetTekst()
+                BrukersituasjonVilkårtype.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
+                praktiskeProblemerIDagliglivetTekst(),
             )
 
             BrukersituasjonVilkår.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1 -> BrukersituasjonVilkårV2(
                 BrukersituasjonVilkårtype.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
-                vesentligOgVarigNedsattFunksjonsevneTekst()
+                vesentligOgVarigNedsattFunksjonsevneTekst(),
             )
 
             BrukersituasjonVilkår.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1 -> BrukersituasjonVilkårV2(
                 BrukersituasjonVilkårtype.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1,
-                kanIkkeLøsesMedEnklereHjelpemidlerTekst()
+                kanIkkeLøsesMedEnklereHjelpemidlerTekst(),
             )
 
             BrukersituasjonVilkår.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1 -> BrukersituasjonVilkårV2(
-                BrukersituasjonVilkårtype.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1, iStandTilÅBrukeHjelpemidleneTekst()
+                BrukersituasjonVilkårtype.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
+                iStandTilÅBrukeHjelpemidleneTekst(),
             )
         }
     }.toMutableSet().also {
@@ -237,31 +239,31 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
                 it.add(
                     BrukersituasjonVilkårV2(
                         BrukersituasjonVilkårtype.VESENTLIG_OG_VARIG_NEDSATT_FUNKSJONSEVNE_V1,
-                        vesentligOgVarigNedsattFunksjonsevneTekst()
-                    )
+                        vesentligOgVarigNedsattFunksjonsevneTekst(),
+                    ),
                 )
                 if (v1.brukersituasjon.størreBehov == true) {
                     it.add(
                         BrukersituasjonVilkårV2(
                             BrukersituasjonVilkårtype.KAN_IKKE_LØSES_MED_ENKLERE_HJELPEMIDLER_V1,
-                            kanIkkeLøsesMedEnklereHjelpemidlerTekst()
-                        )
+                            kanIkkeLøsesMedEnklereHjelpemidlerTekst(),
+                        ),
                     )
                 }
                 if (v1.brukersituasjon.praktiskeProblem == true) {
                     it.add(
                         BrukersituasjonVilkårV2(
                             BrukersituasjonVilkårtype.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
-                            iStandTilÅBrukeHjelpemidleneTekst()
-                        )
+                            iStandTilÅBrukeHjelpemidleneTekst(),
+                        ),
                     )
                 }
                 if (v1.brukersituasjon.bruksarenaErDagliglivet == true) {
                     it.add(
                         BrukersituasjonVilkårV2(
                             BrukersituasjonVilkårtype.PRAKTISKE_PROBLEMER_I_DAGLIGLIVET_V1,
-                            praktiskeProblemerIDagliglivetTekst()
-                        )
+                            praktiskeProblemerIDagliglivetTekst(),
+                        ),
                     )
                 }
             } else {
@@ -276,8 +278,8 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
                     it.add(
                         BrukersituasjonVilkårV2(
                             BrukersituasjonVilkårtype.PRAKTISKE_PROBLEM,
-                            praktiskeProblemTekst()
-                        )
+                            praktiskeProblemTekst(),
+                        ),
                     )
                 }
             }
@@ -460,7 +462,7 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
 
-                    )
+                )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
                     nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
@@ -821,7 +823,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 
@@ -841,7 +843,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-                ),
+            ),
         )
     }
 

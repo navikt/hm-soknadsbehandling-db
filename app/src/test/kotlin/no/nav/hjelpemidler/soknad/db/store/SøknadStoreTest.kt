@@ -9,8 +9,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Funksjonsnedsettelser
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Personnavn
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer

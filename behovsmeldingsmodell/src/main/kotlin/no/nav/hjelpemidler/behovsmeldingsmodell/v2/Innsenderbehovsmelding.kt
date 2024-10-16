@@ -69,7 +69,7 @@ data class Brukersituasjon(
     val funksjonsbeskrivelse: Funksjonsbeskrivelse?,
 )
 
-data class BrukersituasjonVilkårV2 (
+data class BrukersituasjonVilkårV2(
     val vilkårtype: BrukersituasjonVilkårtype,
     val tekst: LokalisertTekst,
 )
