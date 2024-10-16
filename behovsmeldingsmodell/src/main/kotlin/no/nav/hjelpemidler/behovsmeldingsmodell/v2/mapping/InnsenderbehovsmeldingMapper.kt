@@ -99,7 +99,6 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
             },
         ),
         brukersituasjon = Brukersituasjon(
-            bekreftedeVilkår = tilBrukersituasjonVilkårV2(v1.søknad).map { it.vilkårtype }.toSet(), // TODO: Fjernes når alle apper har byttet til vilkår
             vilkår = tilBrukersituasjonVilkårV2(v1.søknad),
             funksjonsnedsettelser = mutableSetOf<Funksjonsnedsettelser>().also {
                 if (v1.søknad.brukersituasjon.funksjonsnedsettelser.bevegelse) {
@@ -159,10 +158,11 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
 }
 
 fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
-    val navn = v1.bruker.navn.toString()
+    val innbyggernavn = v1.bruker.navn.toString()
+    val innsendernavn = v1.levering.hjelpemiddelformidler.navn.toString()
     fun nedsattFunksjonTekst() = LokalisertTekst(
-        nb = "$navn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.",
-        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut.",
+        nb = "$innbyggernavn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.",
+        nn = "$innbyggernavn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut.",
     )
 
     fun størreBehovTekst() = LokalisertTekst(
@@ -171,8 +171,8 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
     )
 
     fun praktiskeProblemTekst() = LokalisertTekst(
-        nb = "Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og $navn vil være i stand til å bruke det.",
-        nn = "Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og $navn vil vera i stand til å bruka det.",
+        nb = "Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og $innbyggernavn vil være i stand til å bruke det.",
+        nn = "Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og $innbyggernavn vil vera i stand til å bruka det.",
     )
 
     fun praktiskeProblemerIDagliglivetTekst() = LokalisertTekst(
@@ -181,18 +181,18 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
     )
 
     fun vesentligOgVarigNedsattFunksjonsevneTekst() = LokalisertTekst(
-        nb = "$navn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut. Hjelpemiddelet skal ikke brukes til korttidsutlån eller til andre formål.",
-        nn = "$navn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut. Hjelpemiddelet skal ikkje brukast til korttidsutlån eller til andre formål.",
+        nb = "$innbyggernavn har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut. Hjelpemiddelet skal ikke brukes til korttidsutlån eller til andre formål.",
+        nn = "$innbyggernavn har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut. Hjelpemiddelet skal ikkje brukast til korttidsutlån eller til andre formål.",
     )
 
     fun kanIkkeLøsesMedEnklereHjelpemidlerTekst() = LokalisertTekst(
-        nb = "$navn sitt behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.",
-        nn = "$navn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av NAV.",
+        nb = "$innbyggernavn sitt behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.",
+        nn = "$innbyggernavn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av NAV.",
     )
 
     fun iStandTilÅBrukeHjelpemidleneTekst() = LokalisertTekst(
-        nb = "$navn vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.",
-        nn = "$navn vil vera i stand til å bruka hjelpemidla. Eg har ansvaret for at hjelpemidla blir leverte, og at nødvendig opplæring, tilpassing og montering blir gjord.",
+        nb = "$innbyggernavn vil være i stand til å bruke hjelpemidlene. $innsendernavn har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.",
+        nn = "$innbyggernavn vil vera i stand til å bruka hjelpemidla. $innsendernavn har ansvaret for at hjelpemidla blir leverte, og at nødvendig opplæring, tilpassing og montering blir gjord.",
     )
 
     return v1.brukersituasjon.bekreftedeVilkår.map { vilkår ->
