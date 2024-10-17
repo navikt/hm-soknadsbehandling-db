@@ -177,6 +177,10 @@ data class Opplysning(
         ledetekst = ledetekst,
         innhold = Tekst(innhold),
     )
+
+    init {
+        sanitize(ledetekst)
+    }
 }
 
 data class EnkelOpplysning(
@@ -202,21 +206,17 @@ data class Tekst(
             (forhåndsdefinertTekst != null && fritekst == null) ||
                 (forhåndsdefinertTekst == null && fritekst != null),
         ) { "Én, og bare én, av forhåndsdefinertTekst eller fritekst må ha verdi. Mottok forhåndsdefinertTekst <$forhåndsdefinertTekst> og fritekst <$fritekst>" }
+
+        sanitize(begrepsforklaring)
+        sanitize(forhåndsdefinertTekst)
     }
 }
-
-private val htmlPolicy = HtmlPolicyBuilder().allowElements("em", "strong").toFactory()
 
 data class LokalisertTekst(
     val nb: String,
     val nn: String,
 ) {
     constructor(norsk: String) : this(nb = norsk, nn = norsk) // For enkle tekster som er like på begge målformer
-
-    init {
-        require(nb == htmlPolicy.sanitize(nb)) { "Ugyldig HTML i nb" }
-        require(nn == htmlPolicy.sanitize(nn)) { "Ugyldig HTML i nn" }
-    }
 }
 
 data class Varsel(
@@ -230,3 +230,11 @@ enum class Varseltype {
 }
 
 private fun tilPrioritet(hast: Hast?): Prioritet = if (hast != null) Prioritet.HAST else Prioritet.NORMAL
+
+private val htmlPolicy = HtmlPolicyBuilder().allowElements("em", "strong").toFactory()
+
+private fun sanitize(tekst: LokalisertTekst?) {
+    if (tekst == null) return
+    require(tekst.nb == htmlPolicy.sanitize(tekst.nb)) { "Ugyldig HTML i nb" }
+    require(tekst.nn == htmlPolicy.sanitize(tekst.nn)) { "Ugyldig HTML i nn" }
+}
