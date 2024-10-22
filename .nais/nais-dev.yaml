@@ -44,6 +44,7 @@ spec:
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
         - application: hm-oppgave-sink
+        - application: hm-saksfordeling
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp

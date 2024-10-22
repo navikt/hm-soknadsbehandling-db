@@ -63,3 +63,15 @@ class Søknader {
         }
     }
 }
+
+/**
+ * V2 av @Resource("/soknad") som benytter v2 av datamodellen (Innsenderbehovsmelding)
+ */
+@Resource("/behovsmelding")
+class Behovsmelding {
+    @Resource("/{behovsmeldingId}")
+    class BehovsmeldingId(
+        @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
+        val parent: Behovsmelding = Behovsmelding(),
+    )
+}

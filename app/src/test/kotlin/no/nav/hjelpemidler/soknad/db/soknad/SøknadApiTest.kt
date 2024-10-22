@@ -22,6 +22,9 @@ class SøknadApiTest {
             this.søknadId shouldBe søknadId
             this.status shouldBe grunnlag.status
         }
+        finnBehovsmelding(søknadId).shouldNotBeNull {
+            this.id shouldBe søknadId
+        }
         finnSak<HotsakSak>(søknadId).shouldBeNull()
     }
 

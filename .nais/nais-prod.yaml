@@ -42,6 +42,7 @@ spec:
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
         - application: hm-oppgave-sink
+        - application: hm-saksfordeling
     outbound:
       rules:
         - application: hm-grunndata-search

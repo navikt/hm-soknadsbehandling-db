@@ -7,6 +7,8 @@ import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
@@ -67,6 +69,18 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             """.trimIndent(),
             mapOf("soknadId" to søknadId),
             Row::tilSøknad,
+        )
+    }
+
+    fun finnInnsenderbehovsmelding(behovsmeldingId: UUID): Innsenderbehovsmelding? {
+        return tx.singleOrNull(
+            """
+                SELECT soknad.data
+                FROM v1_soknad AS soknad
+                WHERE soknad.soknads_id = :behovsmeldingId
+            """.trimIndent(),
+            mapOf("behovsmeldingId" to behovsmeldingId),
+            { tilInnsenderbehovsmeldingV2(it.json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data")) },
         )
     }
 

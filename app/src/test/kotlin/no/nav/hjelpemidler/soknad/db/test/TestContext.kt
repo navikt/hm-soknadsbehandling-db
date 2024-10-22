@@ -19,6 +19,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
@@ -26,6 +27,7 @@ import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
+import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
@@ -111,6 +113,12 @@ class TestContext(
         val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<SøknadDto?>()
+    }
+
+    suspend fun finnBehovsmelding(søknadId: SøknadId): Innsenderbehovsmelding? {
+        val response = client.get(Behovsmelding.BehovsmeldingId(søknadId))
+        response shouldHaveStatus HttpStatusCode.OK
+        return response.body<Innsenderbehovsmelding?>()
     }
 
     suspend inline fun <reified T : Fagsak> finnSak(søknadId: SøknadId): T? {

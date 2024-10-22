@@ -41,6 +41,15 @@ fun Route.søknadApi(
         call.respondNullable(HttpStatusCode.OK, søknad)
     }
 
+    get<Behovsmelding.BehovsmeldingId> {
+        val behovsmeldingId = it.behovsmeldingId
+        val behovsmelding = transaction { søknadStore.finnInnsenderbehovsmelding(behovsmeldingId) }
+        if (behovsmelding == null) {
+            logg.info { "Fant ikke behovsmelding med behovsmeldingId: $behovsmeldingId" }
+        }
+        call.respondNullable(HttpStatusCode.OK, behovsmelding)
+    }
+
     put<Søknader.SøknadId.Journalpost> {
         data class Journalpost(val journalpostId: String)
 
