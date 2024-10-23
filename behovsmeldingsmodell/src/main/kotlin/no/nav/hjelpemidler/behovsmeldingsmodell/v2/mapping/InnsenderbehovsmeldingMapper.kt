@@ -301,6 +301,7 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
             delkontrakttittel = v1.produkt.aposttitle
                 ?: error("Behovsmelding $id mangler delkontrakttittel for ${v1.hmsnr}"),
             sortimentkategori = v1.produkt.kategori ?: error("v1.produkt.kategori (sortimentkategori) mangler"),
+            delkontraktId = v1.produkt.apostid,
         ),
         tilbehør = (v1.tilbehør ?: emptyList()).map {
             Tilbehør(

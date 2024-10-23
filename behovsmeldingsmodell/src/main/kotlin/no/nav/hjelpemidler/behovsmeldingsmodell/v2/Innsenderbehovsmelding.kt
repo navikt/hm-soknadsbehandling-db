@@ -108,6 +108,10 @@ data class Levering(
     val harFritekstUnderLevering: Boolean
         @JsonIgnore
         get() = utleveringMerknad.isNotBlank()
+
+    val alleHjelpemidlerErAlleredeUtlevert: Boolean
+        @JsonIgnore
+        get() = utleveringsmåte == null || utleveringsmåte == UtleveringsmåteV2.ALLEREDE_UTLEVERT_AV_NAV
 }
 
 data class Innsender(
@@ -139,6 +143,7 @@ data class HjelpemiddelProdukt(
     val iso8Tittel: String,
     val delkontrakttittel: String,
     val sortimentkategori: String, // fra digithot-sortiment
+    val delkontraktId: String?, // Brukt av hm-saksfordeling for å sortere til Gosys.
 
     /*
     null -> ikke på rammeavtale
