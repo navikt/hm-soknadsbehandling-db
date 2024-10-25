@@ -116,6 +116,7 @@ data class Levering(
 
 data class Innsender(
     val rolle: InnsenderRolle,
+    val erKommunaltAnsatt: Boolean?,
     val kurs: List<Godkjenningskurs>,
     val sjekketUtlånsoversiktForKategorier: Set<Iso6>,
 )

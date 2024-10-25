@@ -143,6 +143,7 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
         ),
         innsender = Innsender(
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
+            erKommunaltAnsatt = v1.søknad.innsender?.erKommunaltAnsatt,
             kurs = v1.søknad.innsender?.godkjenningskurs ?: emptyList(),
             sjekketUtlånsoversiktForKategorier = v1.søknad.innsender?.tjenestligeBehovForUtlånsoversikt?.map { Iso6(it) }
                 ?.toSet() ?: emptySet(),
