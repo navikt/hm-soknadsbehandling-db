@@ -106,6 +106,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                     },
                     "innsender": {
                       "somRolle": "FORMIDLER",
+                      "erKommunaltAnsatt": true,
                       "organisasjoner": [
                         {
                           "navn": "STORÅS OG HESSENG",
