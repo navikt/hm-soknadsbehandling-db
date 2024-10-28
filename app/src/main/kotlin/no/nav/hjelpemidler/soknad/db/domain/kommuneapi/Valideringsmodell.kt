@@ -90,6 +90,7 @@ data class Innsender(
     val godkjenningskurs: List<GodkjenningsKurs>?,
     val organisasjoner: List<Organisasjon>?,
     val somRolle: InnsenderRolle,
+    val erKommunaltAnsatt: Boolean?,
     val tjenestligeBehovForUtlånsoversikt: Set<String> = emptySet(),
 )
 
