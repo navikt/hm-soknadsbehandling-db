@@ -151,7 +151,7 @@ data class Innsender(
     val rolle: InnsenderRolle,
     val erKommunaltAnsatt: Boolean?,
     val kurs: List<Godkjenningskurs>,
-    val sjekketUtlånsoversiktForKategorier: Set<Iso6>,
+    val sjekketUtlånsoversiktForKategorier: Set<String>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -176,7 +176,7 @@ data class Hjelpemiddel(
 data class HjelpemiddelProdukt(
     val hmsArtNr: String,
     val artikkelnavn: String,
-    val iso8: Iso8,
+    val iso8: String,
     val iso8Tittel: String,
     val delkontrakttittel: String,
     val sortimentkategori: String, // fra digithot-sortiment
@@ -262,12 +262,6 @@ data class Veiadresse(
     val postnummer: String,
     val poststed: String,
 )
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class Iso6(private val value: String)
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class Iso8(private val value: String)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 enum class Hasteårsak {
