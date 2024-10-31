@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.collections.enumSetOf
@@ -28,8 +29,8 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApiV2
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import java.math.BigInteger
@@ -38,6 +39,8 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v1.Behovsmelding as BehovsmeldingKommuneApi
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding as InnsenderbehovsmeldingKommuneApi
 
 private val logg = KotlinLogging.logger {}
 
@@ -80,7 +83,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 WHERE soknad.soknads_id = :behovsmeldingId
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId),
-            { tilInnsenderbehovsmeldingV2(it.json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data")) },
+            { tilInnsenderbehovsmeldingV2(it.json<Behovsmelding>("data")) },
         )
     }
 
@@ -573,8 +576,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             val data = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode()
 
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
-            val validatedData = runCatching { Behovsmelding.fraJsonNode(data) }.getOrElse { cause ->
-                logg.error(cause) { "Kunne ikke tolke søknadsdata, har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
+            val validatedData = runCatching { BehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
+                logg.error(cause) { "Kunne ikke tolke søknadsdata (v1), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
                 synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
                     if (
                         hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
@@ -592,7 +595,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                                 slackIconEmoji(":this-is-fine-fire:"),
                                 if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
                                 """
-                                    Datamodellen for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/Valideringsmodell.kt|Valideringsmodell.kt>.
+                                    Datamodellen (v1) for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/app/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/v1/Valideringsmodell.kt|Valideringsmodell.kt>.
                                     
                                     Bør fikses ASAP.
                                     
@@ -619,6 +622,133 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             val filteredData = validatedData.filtrerForKommuneApiet()
 
             SøknadForKommuneApi(
+                fnrBruker = it.string("fnr_bruker"),
+                navnBruker = it.string("navn_bruker"),
+                fnrInnsender = it.stringOrNull("fnr_innsender"),
+                soknadId = it.uuid("soknads_id"),
+                soknad = filteredData,
+                soknadGjelder = it.stringOrNull("soknad_gjelder"),
+                opprettet = it.localDateTime("created"),
+            )
+        }
+    }
+
+    private var hentSoknaderForKommuneApietSistRapportertSlackV2 = LocalDateTime.now().minusHours(2)
+    fun hentSøknaderForKommuneApietV2(
+        kommunenummer: String,
+        nyereEnn: UUID?,
+        nyereEnnTidsstempel: Long?,
+    ): List<SøknadForKommuneApiV2> {
+        val extraWhere1 =
+            if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
+        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
+
+        val statement = Sql(
+            """
+                SELECT fnr_bruker,
+                       navn_bruker,
+                       fnr_innsender,
+                       soknads_id,
+                       data,
+                       soknad_gjelder,
+                       created
+                FROM v1_soknad
+                WHERE
+                  -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
+                  data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
+                  -- Sjekk at brukeren det søkes om bor i samme kommune
+                  AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
+                  -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet hvis de
+                  -- var sendt inn før 30/10/24 (da vi åpnet opp for bestillinger fra kommunalt ansatte)
+                  AND (
+                      data -> 'soknad' -> 'innsender' ->> 'somRolle' = 'FORMIDLER'
+                      OR created > '2024-10-30'
+                  )
+                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender (etter introduksjon av felt)
+                  AND (
+                      created < '2024-10-26'
+                      OR data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
+                  )
+                  -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
+                  AND created > NOW() - '7 days'::INTERVAL
+                  -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
+                  AND er_digital
+                  -- Videre filtrering basert på kommunens filtre
+                  $extraWhere1
+                  $extraWhere2
+                ORDER BY CREATED ASC
+            """.trimIndent(),
+        )
+
+        return tx.list(
+            statement,
+            mapOf(
+                "kommunenummer" to kommunenummer,
+                "kommunenummerJson" to pgJsonbOf(listOf(mapOf("kommunenummer" to kommunenummer))),
+                "nyereEnn" to nyereEnn,
+                "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
+                    LocalDateTime.ofInstant(
+                        Instant.ofEpochSecond(nyereEnnTidsstempel),
+                        ZoneId.systemDefault(),
+                    )
+                },
+            ),
+        ) {
+            val behovsmeldingId = it.uuid("soknads_id")
+            val soknadV1 = it.json<Behovsmelding>("DATA")
+
+            // Konverter v1 til v2, gjør om til json slik at vi kan verifisere at datamodellen ikke har endret seg uten at
+            // validaeringsmodellen har vært fikset
+            val soknadV2 = tilInnsenderbehovsmeldingV2(soknadV1)
+            val data = jsonMapper.valueToTree<JsonNode>(soknadV2)
+
+            // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
+            val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
+                logg.error(cause) { "Kunne ikke tolke søknadsdata (v2), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
+                synchronized(hentSoknaderForKommuneApietSistRapportertSlackV2) {
+                    if (
+                        hentSoknaderForKommuneApietSistRapportertSlackV2.isBefore(
+                            LocalDateTime.now().minusHours(1),
+                        ) &&
+                        hentSoknaderForKommuneApietSistRapportertSlackV2.hour >= 8 &&
+                        hentSoknaderForKommuneApietSistRapportertSlackV2.hour < 16 &&
+                        hentSoknaderForKommuneApietSistRapportertSlackV2.dayOfWeek < DayOfWeek.SATURDAY &&
+                        !Environment.current.tier.isLocal
+                    ) {
+                        hentSoknaderForKommuneApietSistRapportertSlackV2 = LocalDateTime.now()
+                        runBlocking(Dispatchers.IO) {
+                            slackClient.sendMessage(
+                                "hm-soknadsbehandling-db",
+                                slackIconEmoji(":this-is-fine-fire:"),
+                                if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
+                                """
+                                    Datamodellen (v2) for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/app/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/v2/Valideringsmodell.kt|Valideringsmodell.kt>.
+                                    
+                                    Bør fikses ASAP.
+                                    
+                                    Feilmelding: Søk etter UUID i logger: $behovsmeldingId
+                                """.trimIndent(),
+                            )
+                        }
+                    }
+                }
+                return@list null
+            }
+
+            // Ekstra sikkerhetssjekker
+            if (soknadV1.søknad?.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
+                // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
+                error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
+            }
+
+            if (validatedData.bruker.kommunenummer != kommunenummer) {
+                error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
+            }
+
+            // Filtrer ut ikke-relevante felter
+            val filteredData = validatedData.filtrerForKommuneApiet()
+
+            SøknadForKommuneApiV2(
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.string("navn_bruker"),
                 fnrInnsender = it.stringOrNull("fnr_innsender"),

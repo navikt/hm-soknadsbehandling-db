@@ -20,6 +20,7 @@ fun Route.kommuneApi(transaction: Transaction) {
             val kommunenummer: String,
             val nyereEnn: UUID?,
             val nyereEnnTidsstempel: Long?,
+            val nyDatamodell: Boolean?,
         ) {
             fun isValid() = kommunenummer.isNotEmpty() && (kommunenummer.toIntOrNull()?.let { it in 0..9999 } ?: false)
         }
@@ -30,15 +31,28 @@ fun Route.kommuneApi(transaction: Transaction) {
             return@post
         }
 
-        logg.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer}" }
-        val søknader = transaction {
-            søknadStore.hentSøknaderForKommuneApiet(
-                kommunenummer = request.kommunenummer,
-                nyereEnn = request.nyereEnn,
-                nyereEnnTidsstempel = request.nyereEnnTidsstempel,
-            )
+        val nyDatamodell = request.nyDatamodell ?: false
+
+        logg.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer} (nyDatamodell=$nyDatamodell)" }
+        if (!nyDatamodell) {
+            val søknader = transaction {
+                søknadStore.hentSøknaderForKommuneApiet(
+                    kommunenummer = request.kommunenummer,
+                    nyereEnn = request.nyereEnn,
+                    nyereEnnTidsstempel = request.nyereEnnTidsstempel,
+                )
+            }
+            call.respond(søknader)
+        } else {
+            val søknader = transaction {
+                søknadStore.hentSøknaderForKommuneApietV2(
+                    kommunenummer = request.kommunenummer,
+                    nyereEnn = request.nyereEnn,
+                    nyereEnnTidsstempel = request.nyereEnnTidsstempel,
+                )
+            }
+            call.respond(søknader)
         }
-        call.respond(søknader)
     }
 }
 
