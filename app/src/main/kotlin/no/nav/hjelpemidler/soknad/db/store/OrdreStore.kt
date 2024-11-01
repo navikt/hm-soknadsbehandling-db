@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
@@ -10,7 +10,7 @@ import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 
 class OrdreStore(private val tx: JdbcOperations) : Store {
-    fun lagre(søknadId: SøknadId, ordrelinje: Ordrelinje): Int {
+    fun lagre(søknadId: BehovsmeldingId, ordrelinje: Ordrelinje): Int {
         return tx.update(
             """
                 INSERT INTO v1_oebs_data (soknads_id, oebs_id, fnr_bruker, serviceforespoersel, ordrenr, ordrelinje, delordrelinje,
@@ -38,7 +38,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         ).actualRowCount
     }
 
-    fun ordreSisteDøgn(søknadId: SøknadId): HarOrdre {
+    fun ordreSisteDøgn(søknadId: BehovsmeldingId): HarOrdre {
         val result = tx.list(
             """
                 SELECT hjelpemiddeltype
@@ -55,7 +55,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         )
     }
 
-    fun harOrdre(søknadId: SøknadId): HarOrdre {
+    fun harOrdre(søknadId: BehovsmeldingId): HarOrdre {
         val result = tx.list(
             """
                 SELECT hjelpemiddeltype
@@ -71,7 +71,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         )
     }
 
-    fun finnOrdreForSøknad(søknadId: SøknadId): List<SøknadForBrukerOrdrelinje> {
+    fun finnOrdreForSøknad(søknadId: BehovsmeldingId): List<SøknadForBrukerOrdrelinje> {
         return tx.list(
             """
                 SELECT artikkelnr,
@@ -96,7 +96,7 @@ class OrdreStore(private val tx: JdbcOperations) : Store {
         }
     }
 
-    fun finnOrdreForSøknad2(søknadId: SøknadId): List<Ordrelinje> {
+    fun finnOrdreForSøknad2(søknadId: BehovsmeldingId): List<Ordrelinje> {
         return tx.list(
             """
                 SELECT soknads_id,

@@ -74,4 +74,10 @@ class Behovsmelding {
         @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
         val parent: Behovsmelding = Behovsmelding(),
     )
+
+    @Resource("/{behovsmeldingId}/metadata")
+    class BehovsmeldingMetadata(
+        @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
+        val parent: Behovsmelding = Behovsmelding(),
+    )
 }

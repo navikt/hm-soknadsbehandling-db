@@ -11,11 +11,11 @@ import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
@@ -101,7 +101,7 @@ class TestContext(
         return grunnlag
     }
 
-    suspend fun oppdaterStatus(søknadId: SøknadId, status: BehovsmeldingStatus) {
+    suspend fun oppdaterStatus(søknadId: BehovsmeldingId, status: BehovsmeldingStatus) {
         client
             .put(Søknader.SøknadId.Status(søknadId)) {
                 setBody(Statusendring(status = status, valgteÅrsaker = null, begrunnelse = null))
@@ -109,26 +109,26 @@ class TestContext(
             .expect(HttpStatusCode.OK, 1)
     }
 
-    suspend fun finnSøknad(søknadId: SøknadId, inkluderData: Boolean = false): SøknadDto? {
+    suspend fun finnSøknad(søknadId: BehovsmeldingId, inkluderData: Boolean = false): SøknadDto? {
         val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<SøknadDto?>()
     }
 
-    suspend fun finnBehovsmelding(søknadId: SøknadId): Innsenderbehovsmelding? {
+    suspend fun finnBehovsmelding(søknadId: BehovsmeldingId): Innsenderbehovsmelding? {
         val response = client.get(Behovsmelding.BehovsmeldingId(søknadId))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<Innsenderbehovsmelding?>()
     }
 
-    suspend inline fun <reified T : Fagsak> finnSak(søknadId: SøknadId): T? {
+    suspend inline fun <reified T : Fagsak> finnSak(søknadId: BehovsmeldingId): T? {
         val response = client.get(Søknader.SøknadId.Sak(søknadId))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<T?>()
     }
 
     suspend fun oppdaterJournalpostId(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         journalpostId: String,
     ) {
         client
@@ -138,7 +138,7 @@ class TestContext(
             .expect(HttpStatusCode.OK, 1)
     }
 
-    suspend fun oppdaterOppgaveId(søknadId: SøknadId, oppgaveId: String) {
+    suspend fun oppdaterOppgaveId(søknadId: BehovsmeldingId, oppgaveId: String) {
         client
             .put(Søknader.SøknadId.Oppgave(søknadId)) {
                 setBody(mapOf("oppgaveId" to oppgaveId))
@@ -147,7 +147,7 @@ class TestContext(
     }
 
     suspend fun lagreSakstilknytning(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         sakstilknytning: Sakstilknytning,
     ) {
         client
@@ -158,7 +158,7 @@ class TestContext(
     }
 
     suspend fun lagreVedtaksresultat(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         vedtaksresultat: Vedtaksresultat,
     ) {
         client

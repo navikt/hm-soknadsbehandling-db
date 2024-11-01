@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.database.JdbcOperations
@@ -12,7 +12,7 @@ import java.util.UUID
 class InfotrygdStore(private val tx: JdbcOperations) : Store {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
     fun lagKnytningMellomSakOgSøknad(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         sakId: InfotrygdSakId,
         fnrBruker: String,
     ): Int =
@@ -53,7 +53,7 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
         ),
     ).actualRowCount
 
-    fun finnSak(søknadId: SøknadId): InfotrygdSak? {
+    fun finnSak(søknadId: BehovsmeldingId): InfotrygdSak? {
         return tx.singleOrNull(
             """
                 SELECT soknads_id,

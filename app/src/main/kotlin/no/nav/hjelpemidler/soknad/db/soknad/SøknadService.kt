@@ -1,10 +1,10 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
@@ -47,14 +47,14 @@ class SøknadService(private val transaction: Transaction) {
         }
     }
 
-    suspend fun finnSak(søknadId: SøknadId): Fagsak? {
+    suspend fun finnSak(søknadId: BehovsmeldingId): Fagsak? {
         return transaction {
             hotsakStore.finnSak(søknadId) ?: infotrygdStore.finnSak(søknadId)
         }
     }
 
     suspend fun lagreSakstilknytning(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         sakstilknytning: Sakstilknytning,
     ): Int {
         logg.info { "Knytter sakId: ${sakstilknytning.sakId} til søknadId: $søknadId, system: ${sakstilknytning.system}" }
@@ -75,7 +75,7 @@ class SøknadService(private val transaction: Transaction) {
     }
 
     suspend fun lagreVedtaksresultat(
-        søknadId: SøknadId,
+        søknadId: BehovsmeldingId,
         vedtaksresultat: Vedtaksresultat,
     ): Int {
         val nyStatus = BehovsmeldingStatus.fraVedtaksresultat(vedtaksresultat)

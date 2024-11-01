@@ -2,9 +2,9 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
@@ -16,7 +16,7 @@ import java.util.Date
 import java.util.UUID
 
 class SøknadForBruker private constructor(
-    val søknadId: SøknadId,
+    val søknadId: BehovsmeldingId,
     val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
     val datoOpprettet: Date,
