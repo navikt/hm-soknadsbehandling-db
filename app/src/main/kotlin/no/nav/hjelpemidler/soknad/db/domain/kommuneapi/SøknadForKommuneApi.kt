@@ -15,12 +15,12 @@ data class SøknadForKommuneApi(
     val opprettet: LocalDateTime,
 )
 
-data class SøknadForKommuneApiV2(
+data class BehovsmeldingForKommuneApi(
     val fnrBruker: String,
     val navnBruker: String,
     val fnrInnsender: String?,
-    val soknadId: UUID,
-    val soknad: Innsenderbehovsmelding,
-    val soknadGjelder: String?,
+    val behovsmeldingId: UUID,
+    val behovsmelding: Innsenderbehovsmelding,
+    val behovsmeldingGjelder: String?,
     val opprettet: LocalDateTime,
 )

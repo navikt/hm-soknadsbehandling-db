@@ -45,7 +45,7 @@ fun Route.kommuneApi(transaction: Transaction) {
             call.respond(søknader)
         } else {
             val søknader = transaction {
-                søknadStore.hentSøknaderForKommuneApietV2(
+                søknadStore.hentBehovsmeldingerForKommuneApiet(
                     kommunenummer = request.kommunenummer,
                     nyereEnn = request.nyereEnn,
                     nyereEnnTidsstempel = request.nyereEnnTidsstempel,

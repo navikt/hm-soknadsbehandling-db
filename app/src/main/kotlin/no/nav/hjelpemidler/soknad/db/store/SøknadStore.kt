@@ -30,8 +30,8 @@ import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApiV2
 import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import java.math.BigInteger
@@ -649,12 +649,12 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         }
     }
 
-    private var hentSoknaderForKommuneApietSistRapportertSlackV2 = LocalDateTime.now().minusHours(2)
-    fun hentSøknaderForKommuneApietV2(
+    private var hentBehovsmeldingerForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
+    fun hentBehovsmeldingerForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
         nyereEnnTidsstempel: Long?,
-    ): List<SøknadForKommuneApiV2> {
+    ): List<BehovsmeldingForKommuneApi> {
         val extraWhere1 =
             if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
         val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
@@ -721,17 +721,17 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
             val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
                 logg.error(cause) { "Kunne ikke tolke søknadsdata (v2), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
-                synchronized(hentSoknaderForKommuneApietSistRapportertSlackV2) {
+                synchronized(hentBehovsmeldingerForKommuneApietSistRapportertSlack) {
                     if (
-                        hentSoknaderForKommuneApietSistRapportertSlackV2.isBefore(
+                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.isBefore(
                             LocalDateTime.now().minusHours(1),
                         ) &&
-                        hentSoknaderForKommuneApietSistRapportertSlackV2.hour >= 8 &&
-                        hentSoknaderForKommuneApietSistRapportertSlackV2.hour < 16 &&
-                        hentSoknaderForKommuneApietSistRapportertSlackV2.dayOfWeek < DayOfWeek.SATURDAY &&
+                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.hour >= 8 &&
+                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.hour < 16 &&
+                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
                         !Environment.current.tier.isLocal
                     ) {
-                        hentSoknaderForKommuneApietSistRapportertSlackV2 = LocalDateTime.now()
+                        hentBehovsmeldingerForKommuneApietSistRapportertSlack = LocalDateTime.now()
                         runBlocking(Dispatchers.IO) {
                             slackClient.sendMessage(
                                 "hm-soknadsbehandling-db",
@@ -764,13 +764,13 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             // Filtrer ut ikke-relevante felter
             val filteredData = validatedData.filtrerForKommuneApiet()
 
-            SøknadForKommuneApiV2(
+            BehovsmeldingForKommuneApi(
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.string("navn_bruker"),
                 fnrInnsender = it.stringOrNull("fnr_innsender"),
-                soknadId = it.uuid("soknads_id"),
-                soknad = filteredData,
-                soknadGjelder = it.stringOrNull("soknad_gjelder"),
+                behovsmeldingId = it.uuid("soknads_id"),
+                behovsmelding = filteredData,
+                behovsmeldingGjelder = it.stringOrNull("soknad_gjelder"),
                 opprettet = it.localDateTime("created"),
             )
         }
