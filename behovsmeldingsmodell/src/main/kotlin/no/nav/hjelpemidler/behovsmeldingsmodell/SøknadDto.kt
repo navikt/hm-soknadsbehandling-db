@@ -1,5 +1,7 @@
 package no.nav.hjelpemidler.behovsmeldingsmodell
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import java.time.Instant
 import java.util.UUID
 
@@ -24,3 +26,10 @@ data class SøknadDto(
     val statusEndret: Instant,
     val data: Map<String, Any?>,
 ) : TilknyttetSøknad
+
+data class InnsenderbehovsmeldingMetadataDto(
+    override val behovsmeldingId: BehovsmeldingId,
+    val innsenderbehovsmelding: Innsenderbehovsmelding,
+    val fnrInnsender: Fødselsnummer,
+    val behovsmeldingGjelder: String?,
+) : TilknyttetBehovsmelding

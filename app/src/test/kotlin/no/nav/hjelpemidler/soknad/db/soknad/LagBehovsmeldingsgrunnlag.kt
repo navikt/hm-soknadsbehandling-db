@@ -1,15 +1,15 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.time.LocalDate
 
 fun lagBehovsmeldingsgrunnlagDigital(
-    søknadId: SøknadId = lagSøknadId(),
+    søknadId: BehovsmeldingId = lagSøknadId(),
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
     fnrInnsender: String = lagFødselsnummer(),
@@ -126,7 +126,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
 }
 
 fun lagBehovsmeldingsgrunnlagPapir(
-    søknadId: SøknadId = lagSøknadId(),
+    søknadId: BehovsmeldingId = lagSøknadId(),
     status: BehovsmeldingStatus = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
     fnrBruker: String = lagFødselsnummer(),
 ): Behovsmeldingsgrunnlag.Papir {

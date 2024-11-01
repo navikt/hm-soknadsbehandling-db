@@ -27,7 +27,7 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
     val digital: Boolean
 
     data class Digital(
-        override val søknadId: SøknadId,
+        override val søknadId: BehovsmeldingId,
         override val status: BehovsmeldingStatus,
         override val fnrBruker: String,
         override val navnBruker: String,
@@ -42,7 +42,7 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
     }
 
     data class Papir(
-        override val søknadId: SøknadId,
+        override val søknadId: BehovsmeldingId,
         override val status: BehovsmeldingStatus,
         override val fnrBruker: String,
         override val navnBruker: String,

@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
-import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadId
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.database.JdbcOperations
@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 class HotsakStore(private val tx: JdbcOperations) : Store {
-    fun lagKnytningMellomSakOgSøknad(søknadId: SøknadId, sakId: HotsakSakId): Int =
+    fun lagKnytningMellomSakOgSøknad(søknadId: BehovsmeldingId, sakId: HotsakSakId): Int =
         tx.update(
             """
                 INSERT INTO v1_hotsak_data (soknads_id, saksnummer)
@@ -41,7 +41,7 @@ class HotsakStore(private val tx: JdbcOperations) : Store {
         ),
     ).actualRowCount
 
-    fun finnSak(søknadId: SøknadId): HotsakSak? {
+    fun finnSak(søknadId: BehovsmeldingId): HotsakSak? {
         return tx.singleOrNull(
             """
                 SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato, created
