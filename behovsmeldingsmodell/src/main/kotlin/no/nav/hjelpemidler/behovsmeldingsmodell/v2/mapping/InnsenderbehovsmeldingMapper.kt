@@ -167,8 +167,8 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
     )
 
     fun størreBehovTekst() = LokalisertTekst(
-        nb = "Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av NAV.",
-        nn = "Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av NAV.",
+        nb = "Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av Nav.",
+        nn = "Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av Nav.",
     )
 
     fun praktiskeProblemTekst() = LokalisertTekst(
@@ -187,8 +187,8 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
     )
 
     fun kanIkkeLøsesMedEnklereHjelpemidlerTekst() = LokalisertTekst(
-        nb = "$innbyggernavn sitt behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av NAV.",
-        nn = "$innbyggernavn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av NAV.",
+        nb = "$innbyggernavn sitt behov kan ikke løses med enklere og rimeligere hjelpemidler, eller ved andre tiltak som ikke dekkes av Nav.",
+        nn = "$innbyggernavn sitt behov kan ikkje løysast med enklare og rimelegare hjelpemiddel, eller ved andre tiltak som ikkje blir dekt av Nav.",
     )
 
     fun iStandTilÅBrukeHjelpemidleneTekst() = LokalisertTekst(
@@ -381,8 +381,8 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
         varsler.add(
             Varsel(
                 LokalisertTekst(
-                    nb = "Standard glidelaken og trekklaken byttes av NAV til å passe $bredde cm bredde.",
-                    nn = "Standard glidelaken og trekklaken blir bytt av NAV til å passa $bredde cm breidd.",
+                    nb = "Standard glidelaken og trekklaken byttes av Nav til å passe $bredde cm bredde.",
+                    nn = "Standard glidelaken og trekklaken blir bytt av Nav til å passa $bredde cm breidd.",
                 ),
                 Varseltype.INFO,
             ),
@@ -393,8 +393,8 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
         varsler.add(
             Varsel(
                 LokalisertTekst(
-                    nb = "Før hjelpemiddelsentralen kan behandle saken må det være laget en plan for hjelpemiddelbruken. NAV må innhente opplysninger.",
-                    nn = "Før hjelpemiddelsentralen kan behandla saka må det vera laga ein plan for hjelpemiddelbruken. NAV må innhenta opplysningar.",
+                    nb = "Før hjelpemiddelsentralen kan behandle saken må det være laget en plan for hjelpemiddelbruken. Nav må innhente opplysninger.",
+                    nn = "Før hjelpemiddelsentralen kan behandla saka må det vera laga ein plan for hjelpemiddelbruken. Nav må innhenta opplysningar.",
                 ),
                 Varseltype.INFO,
             ),
@@ -1014,8 +1014,8 @@ fun varmehjelpemiddelinfo(hm: Hjelpemiddel): List<Opplysning> {
         return opplysninger(
             ledetekst = LokalisertTekst(nb = "Opplysninger fra lege", nn = "Opplysningar frå lege"),
             tekst = Tekst(
-                nb = "Det er automatisk sjekket at NAV har opplysninger fra lege fra før, eller at opplysningene oppbevares i kommunen",
-                nn = "Det er automatisk sjekka at NAV har opplysningar frå lege frå før, eller at opplysningane blir oppbevarte i kommunen",
+                nb = "Det er automatisk sjekket at Nav har opplysninger fra lege fra før, eller at opplysningene oppbevares i kommunen",
+                nn = "Det er automatisk sjekka at Nav har opplysningar frå lege frå før, eller at opplysningane blir oppbevarte i kommunen",
             ),
         )
     }
@@ -1408,8 +1408,8 @@ fun diverseinfo(hm: Hjelpemiddel): List<Opplysning> {
             Opplysning(
                 ledetekst = formidlerBekrefterAt,
                 innhold = Tekst(
-                    nb = "Sitteputen skal kun brukes i en rullestol som er utlånt fra NAV.",
-                    nn = "Sitjeputa skal berre brukast i ein rullestol som er utlånt frå NAV.",
+                    nb = "Sitteputen skal kun brukes i en rullestol som er utlånt fra Nav.",
+                    nn = "Sitjeputa skal berre brukast i ein rullestol som er utlånt frå Nav.",
                 ),
             ),
         )
