@@ -292,6 +292,7 @@ fun tilBrukersituasjonVilkårV2(v1: Søknad): Set<BrukersituasjonVilkårV2> {
 fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemiddel {
     val id = søknad.id
     return no.nav.hjelpemidler.behovsmeldingsmodell.v2.Hjelpemiddel(
+        hjelpemiddelId = v1.uniqueKey,
         antall = v1.antall,
         produkt = HjelpemiddelProdukt(
             hmsArtNr = v1.hmsnr,
