@@ -124,7 +124,7 @@ data class Innsender(
 data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
     val totaltAntall: Int,
-)
+) : Iterable<Hjelpemiddel> by hjelpemidler
 
 data class Hjelpemiddel(
     val antall: Int,

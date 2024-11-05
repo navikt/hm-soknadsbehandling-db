@@ -165,7 +165,7 @@ data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
     @JsonProperty("hjelpemiddelTotaltAntall")
     val totaltAntall: Int,
-) {
+) : Iterable<Hjelpemiddel> by hjelpemidler {
     val påkrevdeGodkjenningskurs: List<HjelpemiddelProdukt.PåkrevdGodkjenningskurs>
         @JsonIgnore get() = hjelpemidler
             .mapNotNull { it.produkt?.påkrevdGodkjenningskurs }
