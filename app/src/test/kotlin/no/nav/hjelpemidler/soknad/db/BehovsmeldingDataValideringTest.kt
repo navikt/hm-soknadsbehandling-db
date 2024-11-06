@@ -53,7 +53,7 @@ class BehovsmeldingDataValideringTest {
                       "hmfEtternavn": "Kronjuvel",
                       "opfAnsvarFor": "",
                       "opfEtternavn": "",
-                      "hmfArbeidssted": "NAV Oslo",
+                      "hmfArbeidssted": "Nav Oslo",
                       "hmfPostadresse": "Oslo Kommune",
                       "opfArbeidssted": "",
                       "opfRadioButton": "Hjelpemiddelformidler",
