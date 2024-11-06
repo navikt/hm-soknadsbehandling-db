@@ -410,6 +410,39 @@ fun varsler(hm: Hjelpemiddel): List<Varsel> {
         varsler.add(Varsel(over26År, Varseltype.WARNING))
     }
 
+    if (hm.produkt?.påkrevdGodkjenningskurs != null) {
+        val kurs =
+            hm.produkt.påkrevdGodkjenningskurs.tittel?.lowercase() ?: error("påkrevdGodkjenningskurs.tittel er null")
+        val erVerifisert =
+            hm.produkt.påkrevdGodkjenningskurs.formidlersGjennomføring == no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt.FormidlersGjennomføringAvKurs.GODKJENNINGSKURS_DB
+        val erERS =
+            hm.produkt.påkrevdGodkjenningskurs.kursId == no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt.KursId.ELEKTRISK_RULLESTOL.id
+
+        if (!erVerifisert) {
+            if (erERS) {
+                varsler.add(
+                    Varsel(
+                        LokalisertTekst(
+                            nb = "Kommunal formidler har svart at godkjenningskurs $kurs (del 1 og del 2) er gjennomført. Dokumentasjon av kurs sjekkes i behandling av saken.",
+                            nn = "Kommunal formidlar har svart at godkjenningskurs $kurs (del 1 og del 2) er gjennomført. Dokumentasjon av kurs blir sjekka i behandling av saka.",
+                        ),
+                        Varseltype.WARNING,
+                    ),
+                )
+            } else {
+                varsler.add(
+                    Varsel(
+                        LokalisertTekst(
+                            nb = "Kommunal formidler har svart at godkjenningskurs $kurs er gjennomført. Dokumentasjon av kurs sjekkes i behandling av saken.",
+                            nn = "Kommunal formidlar har svart at godkjenningskurs $kurs er gjennomført. Dokumentasjon av kurs blir sjekka i behandling av saka.",
+                        ),
+                        Varseltype.WARNING,
+                    ),
+                )
+            }
+        }
+    }
+
     return varsler
 }
 
@@ -465,7 +498,6 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                         nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
                         nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
                     ),
-
                 )
 
                 Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
@@ -547,9 +579,10 @@ private fun påkrevdeGodkjenningskurs(hm: Hjelpemiddel): List<Opplysning> {
         hm.produkt.påkrevdGodkjenningskurs.formidlersGjennomføring == no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt.FormidlersGjennomføringAvKurs.GODKJENNINGSKURS_DB
     val erERS =
         hm.produkt.påkrevdGodkjenningskurs.kursId == no.nav.hjelpemidler.behovsmeldingsmodell.HjelpemiddelProdukt.KursId.ELEKTRISK_RULLESTOL.id
-    return opplysninger(
-        ledetekst = LokalisertTekst("Krav om kurs"),
-        tekst = if (erVerifisert) {
+    return if (erVerifisert) {
+        opplysninger(
+            ledetekst = LokalisertTekst("Krav om kurs"),
+            tekst =
             if (erERS) {
                 Tekst(
                     nb = "Det er dokumentert at innsender har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs $kurs.",
@@ -560,21 +593,11 @@ private fun påkrevdeGodkjenningskurs(hm: Hjelpemiddel): List<Opplysning> {
                     nb = "Det er dokumentert at innsender har fullført og bestått godkjenningskurs $kurs.",
                     nn = "Det er dokumentert at innsendar har fullført og bestått godkjenningskurs $kurs.",
                 )
-            }
-        } else {
-            if (erERS) {
-                Tekst(
-                    nb = "Kommunal formidler har svart at godkjenningskurs $kurs (del 1 og del 2) er gjennomført. Dokumentasjon av kurs sjekkes i behandling av saken.",
-                    nn = "Kommunal formidlar har svart at godkjenningskurs $kurs (del 1 og del 2) er gjennomført. Dokumentasjon av kurs blir sjekka i behandling av saka.",
-                )
-            } else {
-                Tekst(
-                    nb = "Kommunal formidler har svart at godkjenningskurs $kurs er gjennomført. Dokumentasjon av kurs sjekkes i behandling av saken.",
-                    nn = "Kommunal formidlar har svart at godkjenningskurs $kurs er gjennomført. Dokumentasjon av kurs blir sjekka i behandling av saka.",
-                )
-            }
-        },
-    )
+            },
+        )
+    } else {
+        emptyList() // blir lagt inn som varsel i stedet
+    }
 }
 
 private fun ersMedKabin(hm: Hjelpemiddel): List<Opplysning> {
@@ -1501,7 +1524,10 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
             ledetekst = LokalisertTekst("Trekk"),
             innhold = when (hm.oppreisningsstolInfo.annetTrekkKanBenyttes) {
                 true -> Tekst(nb = "Stol i annet trekk kan benyttes", nn = "Stol i anna trekk kan nyttast")
-                false -> Tekst(nb = "Stol i annet trekk kan ikke benyttes", nn = "Stol i anna trekk kan ikkje nyttast")
+                false -> Tekst(
+                    nb = "Stol i annet trekk kan ikke benyttes",
+                    nn = "Stol i anna trekk kan ikkje nyttast",
+                )
             },
         ),
     )
