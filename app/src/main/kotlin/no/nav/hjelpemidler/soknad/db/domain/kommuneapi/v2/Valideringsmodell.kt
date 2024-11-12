@@ -162,6 +162,13 @@ data class Hjelpemidler(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemiddel(
+    /**
+     * Tilfeldig genrerert id for å unikt kunne identifisere hjelpemidler,
+     * feks. dersom det er lagt til flere innslag med samme hmsArtNr.
+     * For gamle saker: hjelpemiddelId = hjelpemiddel.produkt.stockid + new Date().getTime()
+     * For nye saker (etter ca 2024-11-05): hjelpemiddelId = UUID()
+     */
+    val hjelpemiddelId: String,
     val antall: Int,
     val produkt: HjelpemiddelProdukt,
     val tilbehør: List<Tilbehør>,
