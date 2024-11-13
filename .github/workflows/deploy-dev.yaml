@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - funksjonsbeskrivelse
+      - v2-datamodell-for-kommuneapiet
 
 jobs:
   build:

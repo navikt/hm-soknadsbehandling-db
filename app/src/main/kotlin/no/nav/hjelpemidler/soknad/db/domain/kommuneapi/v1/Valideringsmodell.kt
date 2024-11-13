@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.domain.kommuneapi
+package no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v1
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonInclude
