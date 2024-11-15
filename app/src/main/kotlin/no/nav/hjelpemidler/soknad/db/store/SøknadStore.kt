@@ -552,17 +552,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                   data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
                   -- Sjekk at brukeren det søkes om bor i samme kommune
                   AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
-                  -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet hvis de
-                  -- var sendt inn før 30/10/24 (da vi åpnet opp for bestillinger fra kommunalt ansatte)
-                  AND (
-                      data -> 'soknad' -> 'innsender' ->> 'somRolle' = 'FORMIDLER'
-                      OR created > '2024-10-30'
-                  )
-                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender (etter introduksjon av felt)
-                  AND (
-                      created < '2024-10-26'
-                      OR data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
-                  )
+                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
+                  AND data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
                   -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
                   AND created > NOW() - '7 days'::INTERVAL
                   -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
@@ -674,17 +665,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                   data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
                   -- Sjekk at brukeren det søkes om bor i samme kommune
                   AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
-                  -- Bare søknader/bestillinger sendt inn av formidlere kan kvitteres tilbake på dette tidspunktet hvis de
-                  -- var sendt inn før 30/10/24 (da vi åpnet opp for bestillinger fra kommunalt ansatte)
-                  AND (
-                      data -> 'soknad' -> 'innsender' ->> 'somRolle' = 'FORMIDLER'
-                      OR created > '2024-10-30'
-                  )
-                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender (etter introduksjon av felt)
-                  AND (
-                      created < '2024-10-26'
-                      OR data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
-                  )
+                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
+                  AND data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
                   -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
                   AND created > NOW() - '7 days'::INTERVAL
                   -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
