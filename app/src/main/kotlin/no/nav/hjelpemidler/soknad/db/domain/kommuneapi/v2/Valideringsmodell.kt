@@ -117,7 +117,7 @@ data class BrukersituasjonVilkårV2(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemiddelformidler(
-    val navn: String,
+    val navn: Personnavn,
     val arbeidssted: String,
     val stilling: String,
     val telefon: String,
