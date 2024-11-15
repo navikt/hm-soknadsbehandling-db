@@ -50,7 +50,7 @@ data class Innsenderbehovsmelding(
     val levering: Levering,
     val innsender: Innsender?,
 
-    val metadata: InnsenderbehovsmeldingMetadata,
+    val metadata: InnsenderbehovsmeldingMetadata?,
 
     override val id: UUID,
     override val type: BehovsmeldingType,
@@ -60,9 +60,7 @@ data class Innsenderbehovsmelding(
     override val prioritet: Prioritet,
 ) : BehovsmeldingBase {
     fun filtrerForKommuneApiet() = this.copy(
-        metadata = metadata.copy(
-            bestillingsordningsjekk = null,
-        ),
+        metadata = null,
         innsender = null,
     )
 
@@ -88,7 +86,7 @@ data class Innsenderbehovsmelding(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class InnsenderbehovsmeldingMetadata(
-    val bestillingsordningsjekk: Bestillingsordningsjekk?,
+    val bestillingsordningsjekk: Bestillingsordningsjekk,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -118,11 +116,38 @@ data class BrukersituasjonVilkårV2(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+data class Hjelpemiddelformidler(
+    val navn: String,
+    val arbeidssted: String,
+    val stilling: String,
+    val telefon: String,
+    val adresse: Veiadresse,
+    val epost: String,
+    val treffesEnklest: String,
+    val kommunenavn: String?,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AnnenOppfølgingsansvarlig(
+    val navn: Personnavn,
+    val arbeidssted: String,
+    val stilling: String,
+    val telefon: String,
+    val ansvarFor: String,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class AnnenKontaktperson(
+    val navn: Personnavn,
+    val telefon: String,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class Levering(
-    val hjelpemiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,
+    val hjelpemiddelformidler: Hjelpemiddelformidler,
 
     val oppfølgingsansvarlig: OppfølgingsansvarligV2,
-    val annenOppfølgingsansvarlig: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenOppfølgingsansvarlig?,
+    val annenOppfølgingsansvarlig: AnnenOppfølgingsansvarlig?,
 
     /**
      * utleveringsmåte == null -> formidler har ikke fått spm om utlevering fordi det ikke er behov for denne infoen.
@@ -134,7 +159,7 @@ data class Levering(
 
     // utleveringKontaktperson == null => alle hjm. er allerede utlevert
     val utleveringKontaktperson: KontaktpersonV2?,
-    val annenKontaktperson: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenKontaktperson?,
+    val annenKontaktperson: AnnenKontaktperson?,
 
     val utleveringMerknad: String,
 
@@ -210,11 +235,9 @@ data class Tilbehør(
 data class Utlevertinfo(
     val alleredeUtlevertFraHjelpemiddelsentralen: Boolean,
     val utleverttype: UtlevertTypeV2?,
-    val overførtFraBruker: Brukernummer?,
+    val overførtFraBruker: String?,
     val annenKommentar: String?,
 )
-
-typealias Brukernummer = String
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Opplysning(
