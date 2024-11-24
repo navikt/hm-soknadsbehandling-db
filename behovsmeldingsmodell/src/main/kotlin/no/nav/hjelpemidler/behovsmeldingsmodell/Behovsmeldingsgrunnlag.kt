@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 
 /**
  * Grunnlag for lagring av behovsmelding.
@@ -36,6 +37,10 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
         val behovsmelding: Map<String, Any?>, // JsonNode
         @JsonAlias("soknadGjelder")
         val behovsmeldingGjelder: String?,
+        /**
+         * I overgangsfase vil vi kunne motta både behovsmelding og behvosmeldingV2
+         */
+        val behovsmeldingV2: Innsenderbehovsmelding? = null,
     ) : Behovsmeldingsgrunnlag {
         override val kilde: Kilde = Kilde.DIGITAL
         override val digital: Boolean = true
