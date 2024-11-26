@@ -462,7 +462,7 @@ class SøknadStoreTest {
             assertTrue(
                 hjelpemiddel.opplysninger.any {
                     it.ledetekst.nb == "Kroppsmål" &&
-                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Setebredde: 23 cm, legglengde: 23 cm, lårlengde: 56 cm, høyde: 176 cm, kroppsvekt: 99 kg."
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Setebredde: 23 cm, lårlengde: 56 cm, legglengde: 23 cm, høyde: 176 cm, kroppsvekt: 99 kg."
                 },
             )
 
