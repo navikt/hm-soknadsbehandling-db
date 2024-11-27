@@ -86,7 +86,7 @@ data class Innsenderbehovsmelding(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class InnsenderbehovsmeldingMetadata(
-    val bestillingsordningsjekk: Bestillingsordningsjekk,
+    val bestillingsordningsjekk: Bestillingsordningsjekk?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
