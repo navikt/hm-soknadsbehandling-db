@@ -932,8 +932,8 @@ fun kroppsmål(hm: Hjelpemiddel, kroppsmål: Kroppsmål?): List<Opplysning> {
         ledetekst = LokalisertTekst("Kroppsmål"),
         tekst = with(kroppsmål) {
             Tekst(
-                nb = "Setebredde: $setebredde cm, legglengde: $legglengde cm, lårlengde: $lårlengde cm, høyde: $høyde cm, kroppsvekt: $kroppsvekt kg.",
-                nn = "Setebredde: $setebredde cm, legglengde: $legglengde cm, lårlengde: $lårlengde cm, høgde: $høyde cm, kroppsvekt: $kroppsvekt kg.",
+                nb = "Setebredde: $setebredde cm, lårlengde: $lårlengde cm, legglengde: $legglengde cm, høyde: $høyde cm, kroppsvekt: $kroppsvekt kg.",
+                nn = "Setebredde: $setebredde cm, lårlengde: $lårlengde cm, legglengde: $legglengde cm, høgde: $høyde cm, kroppsvekt: $kroppsvekt kg.",
             )
         },
     )

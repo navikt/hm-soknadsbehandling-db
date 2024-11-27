@@ -443,7 +443,7 @@ class SøknadStoreTest {
     }
 
     @Test
-    fun `Kroppsmål og rullestolinfo blir hentet ut`() = databaseTest {
+    fun `Rullestolinfo blir hentet ut`() = databaseTest {
         val søknadId = lagSøknadId()
 
         testTransaction {
@@ -461,15 +461,30 @@ class SøknadStoreTest {
 
             assertTrue(
                 hjelpemiddel.opplysninger.any {
-                    it.ledetekst.nb == "Kroppsmål" &&
-                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Setebredde: 23 cm, legglengde: 23 cm, lårlengde: 56 cm, høyde: 176 cm, kroppsvekt: 99 kg."
+                    it.ledetekst.nb == "Sittepute" &&
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Bruker skal ha sittepute"
                 },
             )
+        }
+    }
+
+    @Test
+    fun `Kroppsmål vises i riktig rekkefølge`() = databaseTest {
+        /**
+         * Det er viktig at kroppsmål vises i riktig rekkefølge: setebredde -> lårlengde -> legglengde,
+         * fordi dette sitter på automatikk i fingrene til saksbehandlerene. Dersom vi plutselig endrer
+         * på rekkefølgen så kan de fort taste feil uten å tenke over dette.
+         */
+        val søknadId = lagSøknadId()
+        testTransaction {
+            søknadStore.lagreBehovsmelding(mockSøknadMedRullestol(søknadId))
+            val søknad = søknadStore.hentSøknad(søknadId)
+            val hjelpemiddel = søknad!!.innsenderbehovsmelding!!.hjelpemidler.hjelpemidler.first()
 
             assertTrue(
                 hjelpemiddel.opplysninger.any {
-                    it.ledetekst.nb == "Sittepute" &&
-                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Bruker skal ha sittepute"
+                    it.ledetekst.nb == "Kroppsmål" &&
+                        it.innhold.first().forhåndsdefinertTekst!!.nb == "Setebredde: 23 cm, lårlengde: 56 cm, legglengde: 23 cm, høyde: 176 cm, kroppsvekt: 99 kg."
                 },
             )
         }
