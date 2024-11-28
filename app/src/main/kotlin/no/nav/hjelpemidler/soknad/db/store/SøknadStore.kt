@@ -47,6 +47,7 @@ private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
     fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): SøknadDto? {
+        // TODO finn ut hvor denne brukes og returner ny modell.
         return tx.singleOrNull(
             """
                 SELECT soknad.soknads_id,
@@ -79,24 +80,25 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
     fun finnInnsenderbehovsmelding(behovsmeldingId: UUID): Innsenderbehovsmelding? {
         return tx.singleOrNull(
             """
-                SELECT soknad.data
-                FROM v1_soknad AS soknad
-                WHERE soknad.soknads_id = :behovsmeldingId
+                SELECT data, data_v2
+                FROM v1_soknad
+                WHERE soknads_id = :behovsmeldingId
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId),
-            { tilInnsenderbehovsmeldingV2(it.json<Behovsmelding>("data")) },
+            Row::tilInnsenderbehovsmelding,
         )
     }
 
     fun finnInnsenderbehovsmeldingDto(behovsmeldingId: UUID): InnsenderbehovsmeldingMetadataDto? {
         return tx.singleOrNull(
             """
-                SELECT  soknad.soknads_id,
-                        soknad.data,
-                        soknad.fnr_innsender,
-                        soknad.soknad_gjelder
-                FROM v1_soknad AS soknad
-                WHERE soknad.soknads_id = :behovsmeldingId
+                SELECT  soknads_id,
+                        data,
+                        data_v2,
+                        fnr_innsender,
+                        soknad_gjelder
+                FROM v1_soknad
+                WHERE soknads_id = :behovsmeldingId
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId),
             Row::tilInnsenderbehovsmeldingMetadataDto,
@@ -126,6 +128,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
                        soknad.journalpostid,
                        soknad.data,
+                       soknad.data_v2,
                        soknad.created,
                        soknad.fnr_bruker,
                        soknad.updated,
@@ -187,7 +190,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                    behovsmeldingJson = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                    behovsmeldingJsonV2 = it.jsonOrNull<JsonNode>("data_v2"),
                     fnrBruker = it.string("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),
@@ -255,7 +259,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 """
                     UPDATE v1_soknad
                     SET updated = NOW(),
-                        data    = NULL
+                        data    = NULL,
+                        data_v2 = NULL
                     WHERE soknads_id = :soknadId
                 """.trimIndent(),
                 mapOf("soknadId" to søknadId),
@@ -357,7 +362,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
+                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(), // TODO hent fra data_v2
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
@@ -396,9 +401,9 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, er_digital,
+                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, data_v2, er_digital,
                                        soknad_gjelder)
-                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, TRUE, :soknadGjelder)
+                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, :dataV2, TRUE, :soknadGjelder)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
@@ -407,6 +412,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 "navnBruker" to grunnlag.navnBruker,
                 "fnrInnsender" to grunnlag.fnrInnsender,
                 "data" to pgJsonbOf(grunnlag.behovsmelding),
+                "dataV2" to pgJsonbOf(grunnlag.behovsmeldingV2),
                 "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
             ),
         ).actualRowCount
@@ -429,6 +435,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         ).actualRowCount
     }
 
+    // TODO -> kan denne slettes?
     fun hentInitieltDatasettForForslagsmotorTilbehør(): List<ForslagsmotorTilbehørHjelpemidler> {
         val statement = Sql(
             """
@@ -657,6 +664,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        fnr_innsender,
                        soknads_id,
                        data,
+                       data_v2,
                        soknad_gjelder,
                        created
                 FROM v1_soknad
@@ -697,8 +705,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
 
             // Konverter v1 til v2, gjør om til json slik at vi kan verifisere at datamodellen ikke har endret seg uten at
             // validaeringsmodellen har vært fikset
-            val soknadV2 = tilInnsenderbehovsmeldingV2(soknadV1)
-            val data = jsonMapper.valueToTree<JsonNode>(soknadV2)
+            val data: JsonNode = it.jsonOrNull<JsonNode>("DATA_V2")
+                ?: jsonMapper.valueToTree<JsonNode>(tilInnsenderbehovsmeldingV2(soknadV1))
 
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
             val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
