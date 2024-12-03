@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
@@ -9,6 +10,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.enum
@@ -17,6 +19,8 @@ import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.sak.tilVedtak
+
+private val log = KotlinLogging.logger {}
 
 fun Row.tilBehovsmeldingType(columnLabel: String = "behovsmeldingType"): BehovsmeldingType =
     enumOrNull<BehovsmeldingType>(columnLabel) ?: BehovsmeldingType.SØKNAD
@@ -43,12 +47,15 @@ fun Row.tilSøknad(): SøknadDto {
     )
 }
 
+fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding {
+    return jsonOrNull<Innsenderbehovsmelding>("data_v2")
+        ?: tilInnsenderbehovsmeldingV2(json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data"))
+}
+
 fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDto {
     return InnsenderbehovsmeldingMetadataDto(
         behovsmeldingId = tilSøknadId(),
-        innsenderbehovsmelding = tilInnsenderbehovsmeldingV2(
-            json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data"),
-        ),
+        innsenderbehovsmelding = tilInnsenderbehovsmelding(),
         fnrInnsender = Fødselsnummer(string("fnr_innsender")),
         behovsmeldingGjelder = string("soknad_gjelder"),
     )

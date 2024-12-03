@@ -40,7 +40,8 @@ class SøknadForBruker private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            søknad: JsonNode,
+            behovsmeldingJson: JsonNode,
+            behovsmeldingJsonV2: JsonNode?,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
             fnrBruker: String,
@@ -62,7 +63,7 @@ class SøknadForBruker private constructor(
                 fnrBruker = fnrBruker,
                 brukerpassbyttedata = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(søknad["brukerpassbytte"])
+                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(behovsmeldingJson["brukerpassbytte"])
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
@@ -71,9 +72,11 @@ class SøknadForBruker private constructor(
                 søknadType = søknadType,
                 valgteÅrsaker = valgteÅrsaker,
                 innsenderbehovsmelding = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> tilInnsenderbehovsmeldingV2(
-                        jsonMapper.treeToValue<Behovsmelding>(søknad),
-                    )
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE ->
+                        behovsmeldingJsonV2?.let { jsonMapper.treeToValue<Innsenderbehovsmelding>(it) }
+                            ?: tilInnsenderbehovsmeldingV2(
+                                jsonMapper.treeToValue<Behovsmelding>(behovsmeldingJson),
+                            )
 
                     BehovsmeldingType.BRUKERPASSBYTTE -> null
                 },

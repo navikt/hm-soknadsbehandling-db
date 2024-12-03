@@ -3,13 +3,10 @@ package no.nav.hjelpemidler.soknad.db.store
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
@@ -111,6 +108,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                        soknad.created,
                        soknad.updated,
                        soknad.data,
+                       soknad.data_v2,
                        soknad.fnr_bruker,
                        soknad.navn_bruker,
                        status.status,
@@ -163,7 +161,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
-                behovsmelding = tilInnsenderbehovsmeldingV2(it.json<Behovsmelding>("data")),
+                behovsmelding = it.tilInnsenderbehovsmelding(),
             )
         }
     }
