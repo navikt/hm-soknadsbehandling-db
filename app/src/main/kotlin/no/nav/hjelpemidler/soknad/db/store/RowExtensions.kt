@@ -48,8 +48,8 @@ fun Row.tilSøknad(): SøknadDto {
 }
 
 fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding {
-    return jsonOrNull<Innsenderbehovsmelding>("data_v2")?.also { log.info { "Hentet innsenderbehovsmelding fra DATA_V2" } }
-        ?: tilInnsenderbehovsmeldingV2(json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data")).also { log.info { "Mappet innsenderbehovsmelding fra DATA" } }
+    return jsonOrNull<Innsenderbehovsmelding>("data_v2")
+        ?: tilInnsenderbehovsmeldingV2(json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data"))
 }
 
 fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDto {
