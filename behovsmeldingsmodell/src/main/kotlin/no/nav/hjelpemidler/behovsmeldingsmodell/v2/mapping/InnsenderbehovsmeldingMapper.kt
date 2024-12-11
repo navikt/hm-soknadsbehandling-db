@@ -528,8 +528,8 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
                 )
 
                 Bruksarena.INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK -> Tekst(
-                    nb = "På institusjon som sykehjem eller barnebolig, og hjelpemiddelet skal kun være til pesonlig bruk.",
-                    nn = "På institusjon som sjukeheim eller barnebustad, og hjelpemiddelet skal berre vera til pesonlig bruk.",
+                    nb = "På institusjon som sykehjem eller barnebolig, og hjelpemiddelet skal kun være til personlig bruk.",
+                    nn = "På institusjon som sjukeheim eller barnebustad, og hjelpemiddelet skal berre vera til personlig bruk.",
                 )
             }
         },
