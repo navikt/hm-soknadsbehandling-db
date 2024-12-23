@@ -60,7 +60,6 @@ class TestContext(
     fun tokenXUser(ident: String? = null) {
         every { tokenXUserFactory.createTokenXUser(any()) } returns TokenXUser(
             ident = ident ?: "12345678910",
-            loginLevel = 3,
             levelOfAssurance = LevelOfAssurance.SUBSTANTIAL,
             tokenExpirationTime = Instant.now().plusSeconds(60),
             jwt = lagJwt(),
