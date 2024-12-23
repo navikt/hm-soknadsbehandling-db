@@ -8,7 +8,7 @@ import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
@@ -18,6 +18,7 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
@@ -42,8 +43,14 @@ fun Application.module() {
             envVarPrefix = "DB"
         },
     )
-    environment.monitor.subscribe(ApplicationStarted) { database.migrate() }
-    environment.monitor.subscribe(ApplicationStopping) { database.close() }
+    monitor.subscribe(ApplicationStarted) {
+        database.migrate()
+        monitor.unsubscribe(ApplicationStarted) {}
+    }
+    monitor.subscribe(ApplicationStopping) {
+        database.close()
+        monitor.unsubscribe(ApplicationStopping) {}
+    }
 
     val grunndataClient = GrunndataClient()
 

@@ -4,8 +4,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.time.LocalDate
 
 fun lagBehovsmeldingsgrunnlagDigital(
@@ -21,7 +21,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
         fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
         fnrInnsender = fnrInnsender,
-        behovsmelding = readMap(
+        behovsmelding = jsonToValue(
             """
                 {
                   "id": "$søknadId",

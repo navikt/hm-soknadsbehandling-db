@@ -14,14 +14,13 @@ import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
-import no.nav.hjelpemidler.soknad.db.jsonMapper
 import no.nav.hjelpemidler.soknad.db.store.testDatabase
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 
 fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
     val database = testDatabase.apply { migrate() }
     val context = TestContext(
-        createHttpClient(client.engine, jsonMapper) {
+        createHttpClient(client.engine) {
             install(Resources)
             install(RewriteUrl)
             defaultRequest {

@@ -13,12 +13,12 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Personnavn
+import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagPapir
 import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import no.nav.hjelpemidler.soknad.db.soknad.mockSøknadMedRullestol
-import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -100,7 +100,7 @@ class SøknadStoreTest {
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = fnrInnsender,
                     søknadId = søknadId,
-                    behovsmelding = readMap(
+                    behovsmelding = jsonToValue(
                         """
                                 {
                                   "fnrBruker": "$fnrBruker",

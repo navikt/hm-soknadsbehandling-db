@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.server.application.call
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond

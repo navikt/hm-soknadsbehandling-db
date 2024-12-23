@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.soknad
 import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import no.nav.hjelpemidler.domain.id.UUIDSerializer
+import no.nav.hjelpemidler.serialization.UUIDSerializer
 import java.util.UUID
 
 @Resource("/soknad")

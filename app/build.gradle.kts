@@ -17,6 +17,7 @@ dependencies {
         exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
     }
     implementation(libs.ktor.client.apache)
+    implementation(libs.hotlibs.kafka)
 
     // Ktor Server
     implementation(libs.bundles.ktor.server)
@@ -37,9 +38,6 @@ dependencies {
     implementation(libs.azure.validation)
     implementation(libs.tokendings.exchange)
     implementation(libs.tokenx.validation)
-
-    // Kafka
-    implementation(libs.kafka.clients)
 
     // Logging
     implementation(libs.kotlin.logging)

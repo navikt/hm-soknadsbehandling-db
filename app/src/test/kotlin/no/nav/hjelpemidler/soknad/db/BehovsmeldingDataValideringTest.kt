@@ -3,17 +3,18 @@ package no.nav.hjelpemidler.soknad.db
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.string.shouldNotContain
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.serialization.jackson.jsonToTree
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v1.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
-import no.nav.hjelpemidler.soknad.db.test.readTree
 import org.junit.jupiter.api.Test
 
 class BehovsmeldingDataValideringTest {
     @Test
     fun `Validering av en normal søknad i dagens format`() {
         val søknadId = lagSøknadId()
-        val node = readTree(
+        val node = jsonToTree(
             """
                 {
                   "id": "$søknadId",

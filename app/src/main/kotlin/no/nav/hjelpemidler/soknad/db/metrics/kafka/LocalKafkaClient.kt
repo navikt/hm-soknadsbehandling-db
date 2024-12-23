@@ -1,7 +1,11 @@
 package no.nav.hjelpemidler.soknad.db.metrics.kafka
 
-class LocalKafkaClient : KafkaClient {
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger {}
+
+object LocalKafkaClient : KafkaClient {
     override fun hendelseOpprettet(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
-        println("hendelseOpprettet: $measurement, <${toEventString(measurement, fields, tags)}>")
+        log.info { "hendelseOpprettet: $measurement, <${toEventString(measurement, fields, tags)}>" }
     }
 }

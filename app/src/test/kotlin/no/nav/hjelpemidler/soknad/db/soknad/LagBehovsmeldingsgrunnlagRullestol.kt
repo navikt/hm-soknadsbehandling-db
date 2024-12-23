@@ -2,8 +2,8 @@ package no.nav.hjelpemidler.soknad.db.soknad
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.test.readMap
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -18,7 +18,7 @@ fun mockSøknadMedRullestol(
     fnrBruker = fnrBruker,
     navnBruker = "Fornavn Etternavn",
     fnrInnsender = lagFødselsnummer(),
-    behovsmelding = readMap(
+    behovsmelding = jsonToValue(
         """
             {
               "soknad": {
