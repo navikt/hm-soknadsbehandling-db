@@ -89,13 +89,13 @@ class TestContext(
         coEvery { rolleClient.hentRolle(any()) } throws RuntimeException(melding)
     }
 
-    suspend inline fun lagreBehovsmelding(): Behovsmeldingsgrunnlag.Digital {
+    suspend fun lagreBehovsmelding(): Behovsmeldingsgrunnlag.Digital {
         return lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital())
     }
 
-    suspend inline fun <reified T : Behovsmeldingsgrunnlag> lagreBehovsmelding(grunnlag: T, rowUpdated: Int = 1): T {
+    suspend fun <T : Behovsmeldingsgrunnlag> lagreBehovsmelding(grunnlag: T, rowUpdated: Int = 1): T {
         client
-            .post(Søknader()) { setBody(grunnlag) }
+            .post(Søknader()) { setBody<Behovsmeldingsgrunnlag>(grunnlag) }
             .expect(HttpStatusCode.Created, rowUpdated)
         return grunnlag
     }
@@ -120,10 +120,10 @@ class TestContext(
         return response.body<Innsenderbehovsmelding?>()
     }
 
-    suspend inline fun <reified T : Fagsak> finnSak(søknadId: BehovsmeldingId): T? {
+    suspend fun finnSak(søknadId: BehovsmeldingId): Fagsak? {
         val response = client.get(Søknader.SøknadId.Sak(søknadId))
         response shouldHaveStatus HttpStatusCode.OK
-        return response.body<T?>()
+        return response.body<Fagsak?>()
     }
 
     suspend fun oppdaterJournalpostId(
