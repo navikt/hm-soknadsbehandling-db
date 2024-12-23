@@ -6,11 +6,11 @@ import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.accept
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import no.nav.hjelpemidler.http.createHttpClient
+import no.nav.hjelpemidler.http.jackson
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
@@ -20,19 +20,16 @@ import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
     val database = testDatabase.apply { migrate() }
     val context = TestContext(
-        createHttpClient(client.engine) {
+        createClient {
             install(Resources)
             install(RewriteUrl)
+            jackson(jsonMapper)
             defaultRequest {
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
             }
         },
     )
-
-    environment {
-        config = MapApplicationConfig()
-    }
 
     application {
         felles()
