@@ -6,8 +6,8 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import java.util.UUID
@@ -25,7 +25,7 @@ class SøknadApiTest {
         finnBehovsmelding(søknadId).shouldNotBeNull {
             this.id shouldBe søknadId
         }
-        finnSak(søknadId).shouldBeNull()
+        finnSak<HotsakSak>(søknadId).shouldBeNull()
     }
 
     @Test
@@ -37,11 +37,10 @@ class SøknadApiTest {
             this.søknadId shouldBe søknadId
             this.status shouldBe grunnlag.status
         }
-        finnSak(søknadId)
-            .shouldBeInstanceOf<InfotrygdSak> {
-                it.sakId shouldBe sakstilknytning.sakId
-                it.fnrBruker shouldBe sakstilknytning.fnrBruker
-            }
+        finnSak<InfotrygdSak>(søknadId).shouldNotBeNull {
+            this.sakId shouldBe sakstilknytning.sakId
+            this.fnrBruker shouldBe sakstilknytning.fnrBruker
+        }
     }
 
     @Test
