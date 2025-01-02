@@ -87,8 +87,6 @@ spec:
   env:
     - name: PORT
       value: "8080"
-    - name: KTOR_ENV
-      value: production
     - name: KAFKA_TOPIC
       value: teamdigihot.hm-soknadsbehandling-v1
     - name: GRUNNDATA_API_URL

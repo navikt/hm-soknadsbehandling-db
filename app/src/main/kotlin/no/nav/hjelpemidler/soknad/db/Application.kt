@@ -8,6 +8,8 @@ import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.path
@@ -29,12 +31,10 @@ import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import org.slf4j.event.Level
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main() {
+    embeddedServer(Netty, Configuration.PORT, module = Application::module).start(wait = true)
+}
 
-/**
- * Brukes i application.conf.
- */
-@Suppress("unused")
 fun Application.module() {
     TILLAT_SYNTETISKE_FØDSELSNUMRE = !Environment.current.isProd
 
