@@ -10,8 +10,7 @@ plugins {
 val libs = the<LibrariesForLibs>()
 
 dependencies {
-    implementation(platform(libs.kotlin.bom))
-    implementation(libs.kotlin.stdlib)
+    implementation(platform(libs.hotlibs.platform))
 }
 
 java {
@@ -20,9 +19,24 @@ java {
     }
 }
 
-tasks.test {
-    environment("NAIS_CLUSTER_NAME", "test")
-    useJUnitPlatform()
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useKotlinTest(libs.versions.kotlin.asProvider())
+            dependencies {
+                implementation(libs.hotlibs.test)
+            }
+
+            targets.all {
+                testTask {
+                    environment(
+                        "NAIS_CLUSTER_NAME" to "test",
+                    )
+                }
+            }
+        }
+    }
 }
 
 spotless {
