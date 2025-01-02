@@ -6,7 +6,7 @@ plugins {
 
 application {
     applicationName = "hm-soknadsbehandling-db"
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("no.nav.hjelpemidler.soknad.db.ApplicationKt")
 }
 
 dependencies {
