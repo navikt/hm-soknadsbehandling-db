@@ -22,6 +22,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
+            version("ktor", "3.0.0")
         }
     }
 }
