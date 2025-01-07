@@ -11,7 +11,6 @@ val libs = the<LibrariesForLibs>()
 
 dependencies {
     implementation(platform(libs.hotlibs.platform))
-    implementation(enforcedPlatform(libs.ktor.bom))
 }
 
 java {
