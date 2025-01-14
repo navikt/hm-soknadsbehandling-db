@@ -29,8 +29,7 @@ class TestDatabase(private val dataSource: DataSource) : Transaction by Database
         dataSource.migrate { createRole("cloudsqliamuser") }
     }
 
-    suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T =
-        transactionAsync(dataSource, strict = true) {
-            Database.StoreProvider(it, mockk(relaxed = true)).block(it)
-        }
+    suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T = transactionAsync(dataSource, strict = true) {
+        Database.StoreProvider(it, mockk(relaxed = true)).block(it)
+    }
 }

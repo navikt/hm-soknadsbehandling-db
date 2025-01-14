@@ -43,6 +43,8 @@ spotless {
     kotlin {
         ktlint().editorConfigOverride(
             mapOf(
+                "ktlint_code_style" to "intellij_idea",
+                "ktlint_standard_function-expression-body" to "disabled",
                 "ktlint_standard_max-line-length" to "disabled",
                 "ktlint_standard_value-argument-comment" to "disabled",
                 "ktlint_standard_value-parameter-comment" to "disabled",

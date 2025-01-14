@@ -10,22 +10,21 @@ import java.util.UUID
 interface KafkaClient {
     fun hendelseOpprettet(measurement: String, fields: Map<String, Any>, tags: Map<String, String>)
 
-    fun toEventString(measurement: String, fields: Map<String, Any>, tags: Map<String, String>): String =
-        jsonMapper.writeValueAsString(
-            mapOf(
-                "eventId" to UUID.randomUUID(),
-                "eventName" to "hm-bigquery-sink-hendelse",
-                "schemaId" to "hendelse_v2",
-                "payload" to mapOf(
-                    "opprettet" to LocalDateTime.now(),
-                    "navn" to measurement,
-                    "kilde" to "hm-soknadsbehandling-db",
-                    "data" to fields.mapValues { it.value.toString() }
-                        .plus(tags)
-                        .filterKeys { it != "counter" },
-                ),
+    fun toEventString(measurement: String, fields: Map<String, Any>, tags: Map<String, String>): String = jsonMapper.writeValueAsString(
+        mapOf(
+            "eventId" to UUID.randomUUID(),
+            "eventName" to "hm-bigquery-sink-hendelse",
+            "schemaId" to "hendelse_v2",
+            "payload" to mapOf(
+                "opprettet" to LocalDateTime.now(),
+                "navn" to measurement,
+                "kilde" to "hm-soknadsbehandling-db",
+                "data" to fields.mapValues { it.value.toString() }
+                    .plus(tags)
+                    .filterKeys { it != "counter" },
             ),
-        )
+        ),
+    )
 }
 
 fun createKafkaClient(): KafkaClient = when (Environment.current) {

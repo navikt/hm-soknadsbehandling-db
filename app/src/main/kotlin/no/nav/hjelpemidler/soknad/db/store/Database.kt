@@ -12,13 +12,14 @@ import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
-class Database(private val dataSource: DataSource) : Transaction, Closeable {
+class Database(private val dataSource: DataSource) :
+    Transaction,
+    Closeable {
     private val slackClient = slack(engine = Apache.create())
 
-    override suspend operator fun <T> invoke(block: StoreProvider.() -> T): T =
-        transactionAsync(dataSource, strict = true) {
-            StoreProvider(it, slackClient).block()
-        }
+    override suspend operator fun <T> invoke(block: StoreProvider.() -> T): T = transactionAsync(dataSource, strict = true) {
+        StoreProvider(it, slackClient).block()
+    }
 
     fun migrate() {
         logg.info { "Migrerer databasen..." }

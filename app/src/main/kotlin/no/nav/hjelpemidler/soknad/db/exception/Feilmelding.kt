@@ -55,11 +55,9 @@ data class Feilmelding(
 }
 
 private class HttpStatusCodeSerializer : StdSerializer<HttpStatusCode>(HttpStatusCode::class.java) {
-    override fun serialize(value: HttpStatusCode, generator: JsonGenerator, provider: SerializerProvider) =
-        generator.writeNumber(value.value)
+    override fun serialize(value: HttpStatusCode, generator: JsonGenerator, provider: SerializerProvider) = generator.writeNumber(value.value)
 }
 
 private class HttpStatusCodeDeserializer : StdDeserializer<HttpStatusCode>(HttpStatusCode::class.java) {
-    override fun deserialize(parser: JsonParser, context: DeserializationContext): HttpStatusCode =
-        HttpStatusCode.fromValue(parser.intValue)
+    override fun deserialize(parser: JsonParser, context: DeserializationContext): HttpStatusCode = HttpStatusCode.fromValue(parser.intValue)
 }

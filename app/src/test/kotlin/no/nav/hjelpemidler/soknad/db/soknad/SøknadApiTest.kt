@@ -101,12 +101,11 @@ class SøknadApiTest {
     }
 
     @Test
-    fun `Skal ikke lagre papirsøknad hvis søknad er lagret allerede med samme fnr og journalpostId`() =
-        testApplication {
-            val grunnlag = lagBehovsmeldingsgrunnlagPapir()
-            lagreBehovsmelding(grunnlag, 1)
-            lagreBehovsmelding(grunnlag, 0)
-        }
+    fun `Skal ikke lagre papirsøknad hvis søknad er lagret allerede med samme fnr og journalpostId`() = testApplication {
+        val grunnlag = lagBehovsmeldingsgrunnlagPapir()
+        lagreBehovsmelding(grunnlag, 1)
+        lagreBehovsmelding(grunnlag, 0)
+    }
 
     @Test
     fun `Skal hente søknad`() = testApplication {

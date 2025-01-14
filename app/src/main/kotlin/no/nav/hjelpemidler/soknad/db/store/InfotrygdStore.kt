@@ -15,21 +15,20 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
         søknadId: BehovsmeldingId,
         sakId: InfotrygdSakId,
         fnrBruker: String,
-    ): Int =
-        tx.update(
-            """
+    ): Int = tx.update(
+        """
                 INSERT INTO v1_infotrygd_data (soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr)
                 VALUES (:soknadId, :fnrBruker, :trygdekontornummer, :saksblokk, :saksnummer)
                 ON CONFLICT DO NOTHING
-            """.trimIndent(),
-            mapOf(
-                "soknadId" to søknadId,
-                "fnrBruker" to fnrBruker,
-                "trygdekontornummer" to sakId.trygdekontornummer,
-                "saksblokk" to sakId.saksblokk,
-                "saksnummer" to sakId.saksnummer,
-            ),
-        ).actualRowCount
+        """.trimIndent(),
+        mapOf(
+            "soknadId" to søknadId,
+            "fnrBruker" to fnrBruker,
+            "trygdekontornummer" to sakId.trygdekontornummer,
+            "saksblokk" to sakId.saksblokk,
+            "saksnummer" to sakId.saksnummer,
+        ),
+    ).actualRowCount
 
     // Vedtaksresultat vil bli gitt av Infotrygd-poller som har oversikt over søknadId, fnr og fagsakId
     fun lagreVedtaksresultat(

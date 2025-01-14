@@ -16,7 +16,6 @@ val jsonMapper: JsonMapper = jacksonMapperBuilder()
     .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
     .build()
 
-inline fun <reified T : Any> JsonMapper.readResource(name: String): T =
-    assertNotNull(javaClass.getResourceAsStream(name), "$name var null").use {
-        jsonMapper.readValue<T>(it)
-    }
+inline fun <reified T : Any> JsonMapper.readResource(name: String): T = assertNotNull(javaClass.getResourceAsStream(name), "$name var null").use {
+    jsonMapper.readValue<T>(it)
+}

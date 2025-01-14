@@ -98,25 +98,24 @@ class SøknadForBruker private constructor(
             fagsakId: String?,
             søknadType: String?,
             valgteÅrsaker: List<String>,
-        ) =
-            SøknadForBruker(
-                søknadId = søknadId,
-                behovsmeldingType = behovsmeldingType,
-                journalpostId = journalpostId,
-                datoOpprettet = datoOpprettet,
-                datoOppdatert = datoOppdatert,
-                status = status,
-                fullmakt = fullmakt,
-                fnrBruker = fnrBruker,
-                brukerpassbyttedata = null,
-                er_digital = er_digital,
-                soknadGjelder = soknadGjelder,
-                ordrelinjer = ordrelinjer,
-                fagsakId = fagsakId,
-                søknadType = søknadType,
-                valgteÅrsaker = valgteÅrsaker,
-                innsenderbehovsmelding = null,
-            )
+        ) = SøknadForBruker(
+            søknadId = søknadId,
+            behovsmeldingType = behovsmeldingType,
+            journalpostId = journalpostId,
+            datoOpprettet = datoOpprettet,
+            datoOppdatert = datoOppdatert,
+            status = status,
+            fullmakt = fullmakt,
+            fnrBruker = fnrBruker,
+            brukerpassbyttedata = null,
+            er_digital = er_digital,
+            soknadGjelder = soknadGjelder,
+            ordrelinjer = ordrelinjer,
+            fagsakId = fagsakId,
+            søknadType = søknadType,
+            valgteÅrsaker = valgteÅrsaker,
+            innsenderbehovsmelding = null,
+        )
     }
 }
 

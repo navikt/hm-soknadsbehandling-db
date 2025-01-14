@@ -38,14 +38,11 @@ fun Application.feilmelding() {
     }
 }
 
-suspend fun ApplicationCall.feilmelding(feilmelding: Feilmelding) =
-    respond(feilmelding.status, feilmelding)
+suspend fun ApplicationCall.feilmelding(feilmelding: Feilmelding) = respond(feilmelding.status, feilmelding)
 
-suspend fun ApplicationCall.feilmelding(status: HttpStatusCode, message: String? = null) =
-    feilmelding(Feilmelding(call = this, status = status, message = message))
+suspend fun ApplicationCall.feilmelding(status: HttpStatusCode, message: String? = null) = feilmelding(Feilmelding(call = this, status = status, message = message))
 
-suspend fun ApplicationCall.feilmelding(cause: Throwable, status: HttpStatusCode, message: String? = null) =
-    feilmelding(Feilmelding(call = this, cause = cause, status = status, message = message))
+suspend fun ApplicationCall.feilmelding(cause: Throwable, status: HttpStatusCode, message: String? = null) = feilmelding(Feilmelding(call = this, cause = cause, status = status, message = message))
 
 val Throwable?.melding get() = this?.message ?: "Ukjent feil"
 

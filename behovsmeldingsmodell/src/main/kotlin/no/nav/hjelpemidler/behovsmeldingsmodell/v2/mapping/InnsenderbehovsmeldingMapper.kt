@@ -345,30 +345,29 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
     )
 }
 
-fun opplysninger(hm: Hjelpemiddel, søknad: Søknad): List<Opplysning> =
-    listOf(
-        utlevertinfo(hm),
-        bruksarena(hm),
-        trykksårforebygging(hm),
-        begrunnelseLavereRangeringEllerIkkeTilsvarende(hm),
-        påkrevdeGodkjenningskurs(hm),
-        ersMedKabin(hm),
-        årsakForAntall(hm),
-        rullestolinfo(hm),
-        tilleggsinformasjon(hm),
-        ersInfo(hm),
-        kroppsmål(hm, søknad.bruker.kroppsmål),
-        seilEllerSele(hm),
-        appinfo(hm),
-        varmehjelpemiddelinfo(hm),
-        sengeinfo(hm),
-        elektriskVendesystemInfo(hm),
-        posisjoneringssysteminfo(hm),
-        posisjoneringsputerForBarnInfo(hm),
-        diverseinfo(hm),
-        oppreisningsstolInfo(hm),
-        ganghjelpemiddelInfo(hm),
-    ).flatten()
+fun opplysninger(hm: Hjelpemiddel, søknad: Søknad): List<Opplysning> = listOf(
+    utlevertinfo(hm),
+    bruksarena(hm),
+    trykksårforebygging(hm),
+    begrunnelseLavereRangeringEllerIkkeTilsvarende(hm),
+    påkrevdeGodkjenningskurs(hm),
+    ersMedKabin(hm),
+    årsakForAntall(hm),
+    rullestolinfo(hm),
+    tilleggsinformasjon(hm),
+    ersInfo(hm),
+    kroppsmål(hm, søknad.bruker.kroppsmål),
+    seilEllerSele(hm),
+    appinfo(hm),
+    varmehjelpemiddelinfo(hm),
+    sengeinfo(hm),
+    elektriskVendesystemInfo(hm),
+    posisjoneringssysteminfo(hm),
+    posisjoneringsputerForBarnInfo(hm),
+    diverseinfo(hm),
+    oppreisningsstolInfo(hm),
+    ganghjelpemiddelInfo(hm),
+).flatten()
 
 fun varsler(hm: Hjelpemiddel): List<Varsel> {
     val varsler = mutableListOf<Varsel>()
@@ -1656,8 +1655,7 @@ private fun opplysninger(ledetekst: LokalisertTekst, tekster: List<Tekst>) = lis
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
 
-private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) =
-    listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 

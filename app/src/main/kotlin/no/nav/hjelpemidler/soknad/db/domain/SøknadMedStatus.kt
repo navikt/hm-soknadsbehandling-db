@@ -32,20 +32,19 @@ class SøknadMedStatus private constructor(
             er_digital: Boolean,
             soknadGjelder: String?,
             valgteÅrsaker: List<String>,
-        ) =
-            SøknadMedStatus(
-                soknadId,
-                behovsmeldingType,
-                journalpostId,
-                datoOpprettet,
-                datoOppdatert,
-                status,
-                fullmakt,
-                null,
-                er_digital,
-                soknadGjelder,
-                valgteÅrsaker,
-            )
+        ) = SøknadMedStatus(
+            soknadId,
+            behovsmeldingType,
+            journalpostId,
+            datoOpprettet,
+            datoOppdatert,
+            status,
+            fullmakt,
+            null,
+            er_digital,
+            soknadGjelder,
+            valgteÅrsaker,
+        )
 
         fun newSøknadMedFormidlernavn(
             soknadId: UUID,
@@ -59,20 +58,19 @@ class SøknadMedStatus private constructor(
             er_digital: Boolean,
             soknadGjelder: String?,
             valgteÅrsaker: List<String>,
-        ) =
-            SøknadMedStatus(
-                soknadId,
-                behovsmeldingType,
-                journalpostId,
-                datoOpprettet,
-                datoOppdatert,
-                status,
-                fullmakt,
-                formidlerNavn(søknad, behovsmeldingType),
-                er_digital,
-                soknadGjelder,
-                valgteÅrsaker,
-            )
+        ) = SøknadMedStatus(
+            soknadId,
+            behovsmeldingType,
+            journalpostId,
+            datoOpprettet,
+            datoOppdatert,
+            status,
+            fullmakt,
+            formidlerNavn(søknad, behovsmeldingType),
+            er_digital,
+            soknadGjelder,
+            valgteÅrsaker,
+        )
     }
 }
 

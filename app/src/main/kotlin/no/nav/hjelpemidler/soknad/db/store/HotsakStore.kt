@@ -10,18 +10,17 @@ import java.time.LocalDate
 import java.util.UUID
 
 class HotsakStore(private val tx: JdbcOperations) : Store {
-    fun lagKnytningMellomSakOgSøknad(søknadId: BehovsmeldingId, sakId: HotsakSakId): Int =
-        tx.update(
-            """
+    fun lagKnytningMellomSakOgSøknad(søknadId: BehovsmeldingId, sakId: HotsakSakId): Int = tx.update(
+        """
                 INSERT INTO v1_hotsak_data (soknads_id, saksnummer)
                 VALUES (:soknadId, :sakId)
                 ON CONFLICT DO NOTHING
-            """.trimIndent(),
-            mapOf(
-                "soknadId" to søknadId,
-                "sakId" to sakId,
-            ),
-        ).actualRowCount
+        """.trimIndent(),
+        mapOf(
+            "soknadId" to søknadId,
+            "sakId" to sakId,
+        ),
+    ).actualRowCount
 
     fun lagreVedtaksresultat(
         søknadId: UUID,

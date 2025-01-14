@@ -22,11 +22,9 @@ import no.nav.hjelpemidler.soknad.db.sak.tilVedtak
 
 private val log = KotlinLogging.logger {}
 
-fun Row.tilBehovsmeldingType(columnLabel: String = "behovsmeldingType"): BehovsmeldingType =
-    enumOrNull<BehovsmeldingType>(columnLabel) ?: BehovsmeldingType.SØKNAD
+fun Row.tilBehovsmeldingType(columnLabel: String = "behovsmeldingType"): BehovsmeldingType = enumOrNull<BehovsmeldingType>(columnLabel) ?: BehovsmeldingType.SØKNAD
 
-fun Row.tilSøknadId(columnLabel: String = "soknads_id"): BehovsmeldingId =
-    uuid(columnLabel)
+fun Row.tilSøknadId(columnLabel: String = "soknads_id"): BehovsmeldingId = uuid(columnLabel)
 
 fun Row.tilSøknad(): SøknadDto {
     return SøknadDto(

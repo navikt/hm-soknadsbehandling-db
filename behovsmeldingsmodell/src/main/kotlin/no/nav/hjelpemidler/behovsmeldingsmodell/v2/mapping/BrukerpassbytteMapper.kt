@@ -50,5 +50,4 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
     )
 }
 
-fun tilBehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): BehovsmeldingBase =
-    tilBrukerpassbytteV2(v1)
+fun tilBehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte): BehovsmeldingBase = tilBrukerpassbytteV2(v1)
