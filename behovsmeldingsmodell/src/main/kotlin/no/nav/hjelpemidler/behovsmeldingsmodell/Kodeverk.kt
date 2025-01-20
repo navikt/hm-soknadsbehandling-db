@@ -57,6 +57,7 @@ enum class Signaturtype {
     FRITAK_FRA_FULLMAKT,
     IKKE_INNHENTET_FORDI_BYTTE,
     IKKE_INNHENTET_FORDI_BRUKERPASSBYTTE,
+    IKKE_INNHENTET_FORDI_KUN_TILBEHØR,
 }
 
 enum class Brukerkilde {
