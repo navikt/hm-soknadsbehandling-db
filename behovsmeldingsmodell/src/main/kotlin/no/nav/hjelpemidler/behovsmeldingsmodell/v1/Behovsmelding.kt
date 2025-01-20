@@ -163,6 +163,8 @@ data class Funksjonsnedsettelser(
 data class Hjelpemidler(
     @JsonProperty("hjelpemiddelListe")
     val hjelpemidler: List<Hjelpemiddel>,
+    @JsonProperty("tilbehørListe")
+    val tilbehør: List<Tilbehør> = emptyList(),
     @JsonProperty("hjelpemiddelTotaltAntall")
     val totaltAntall: Int,
 ) : Iterable<Hjelpemiddel> by hjelpemidler {

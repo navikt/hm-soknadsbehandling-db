@@ -123,6 +123,7 @@ data class Innsender(
 
 data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
+    val tilbehør: List<Tilbehør> = emptyList(),
     val totaltAntall: Int,
 ) : Iterable<Hjelpemiddel> by hjelpemidler
 
