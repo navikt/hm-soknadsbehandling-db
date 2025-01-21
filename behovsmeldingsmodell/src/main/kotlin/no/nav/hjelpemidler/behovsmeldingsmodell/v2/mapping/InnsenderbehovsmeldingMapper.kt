@@ -140,7 +140,7 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-        ),
+            ),
         innsender = Innsender(
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             erKommunaltAnsatt = v1.søknad.innsender?.erKommunaltAnsatt,
@@ -306,12 +306,24 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
             delkontraktId = v1.produkt.apostid,
         ),
         tilbehør = (v1.tilbehør ?: emptyList()).map {
+            val opplysninger = mutableListOf<Opplysning>()
+            if (!it.begrunnelse.isNullOrEmpty()) {
+                opplysninger.add(
+                    Opplysning(
+                        ledetekst = LokalisertTekst(
+                            nb = "Begrunnelse for tilbehøret",
+                            nn = "Grunngiving for tilbehøyret"
+                        ), innhold = Tekst(fritekst = it.begrunnelse)
+                    )
+                )
+            }
             Tilbehør(
                 hmsArtNr = it.hmsnr,
                 navn = it.navn,
                 antall = it.antall!!,
                 begrunnelse = it.begrunnelse,
                 fritakFraBegrunnelseÅrsak = it.fritakFraBegrunnelseÅrsak,
+                opplysninger = opplysninger,
             )
         },
         bytter = v1.bytter,
@@ -849,7 +861,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -869,7 +881,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -1655,7 +1667,8 @@ private fun opplysninger(ledetekst: LokalisertTekst, tekster: List<Tekst>) = lis
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
 
-private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) = listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) =
+    listOf(Opplysning(ledetekst, Tekst(tekst)))
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 
