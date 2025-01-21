@@ -168,6 +168,7 @@ data class Tilbehør(
     val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
+    val opplysninger: List<Opplysning> = emptyList()
 )
 
 data class Utlevertinfo(
