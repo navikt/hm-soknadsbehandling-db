@@ -1,14 +1,15 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Testcontainers
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.database.createRole
 import no.nav.hjelpemidler.database.migrate
 import no.nav.hjelpemidler.database.transactionAsync
-import no.nav.hjelpemidler.database.withDatabaseContext
 import javax.sql.DataSource
 
 val testDatabase by lazy {
@@ -25,7 +26,7 @@ fun databaseTest(test: suspend TestDatabase.() -> Unit) = runTest {
 }
 
 class TestDatabase(private val dataSource: DataSource) : Transaction by Database(dataSource) {
-    suspend fun migrate(): Unit = withDatabaseContext {
+    suspend fun migrate(): Unit = withContext(Dispatchers.IO) {
         dataSource.migrate { createRole("cloudsqliamuser") }
     }
 
