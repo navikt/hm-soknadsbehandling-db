@@ -139,6 +139,7 @@ data class Bruker(
     val brukernummer: String?,
     val borIPilotkommuneForHast: Boolean? = false,
     val borIPilotkommuneForFunksjonsbeskrivelse: Boolean? = false,
+    val borIPilotkommuneForKunTilbehør: Boolean? = false,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

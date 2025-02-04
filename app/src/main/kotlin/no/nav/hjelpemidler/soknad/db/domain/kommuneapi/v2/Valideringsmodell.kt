@@ -182,7 +182,7 @@ data class Innsender(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
-    val tilbehør: List<Tilbehør>,
+    val tilbehør: List<Tilbehør>? = emptyList(),
     val totaltAntall: Int,
 )
 
