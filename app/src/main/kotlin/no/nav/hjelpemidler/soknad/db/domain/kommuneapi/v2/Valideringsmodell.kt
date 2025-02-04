@@ -231,6 +231,7 @@ data class Tilbehør(
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
     val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
+    val opplysninger: List<Opplysning>?,
 )
 
 data class SkalBrukesMed (
