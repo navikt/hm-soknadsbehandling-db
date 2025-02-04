@@ -182,6 +182,7 @@ data class Innsender(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
+    val tilbehør: List<Tilbehør>,
     val totaltAntall: Int,
 )
 
@@ -229,7 +230,17 @@ data class Tilbehør(
     val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
+    val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
 )
+
+data class SkalBrukesMed (
+    val type: SkalBrukesMedType
+)
+
+enum class SkalBrukesMedType {
+    HJELPEMIDDEL_I_INNSENDT_SAK,
+    HJELPEMIDDEL_I_UTLÅN,
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Utlevertinfo(

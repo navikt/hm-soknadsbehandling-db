@@ -221,6 +221,7 @@ enum class InnbyggersVarigeFunksjonsnedsettelse {
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Hjelpemidler(
     val hjelpemiddelListe: List<HjelpemiddelItem>,
+    val tilbehørListe: List<Tilbehor> = emptyList(),
     val hjelpemiddelTotaltAntall: Int,
 )
 
@@ -574,7 +575,18 @@ data class Tilbehor(
     val brukAvForslagsmotoren: BrukAvForslagsmotoren?,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
+    val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
 )
+
+data class SkalBrukesMed (
+    val type: SkalBrukesMedType
+)
+
+enum class SkalBrukesMedType {
+    HJELPEMIDDEL_I_INNSENDT_SAK,
+    HJELPEMIDDEL_I_UTLÅN,
+}
+
 
 enum class AutomatiskGenerertTilbehor {
     Sittepute,
