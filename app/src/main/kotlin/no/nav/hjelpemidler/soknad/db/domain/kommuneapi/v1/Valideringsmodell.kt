@@ -579,15 +579,14 @@ data class Tilbehor(
     val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
 )
 
-data class SkalBrukesMed (
-    val type: SkalBrukesMedType
+data class SkalBrukesMed(
+    val type: SkalBrukesMedType,
 )
 
 enum class SkalBrukesMedType {
     HJELPEMIDDEL_I_INNSENDT_SAK,
     HJELPEMIDDEL_I_UTLÅN,
 }
-
 
 enum class AutomatiskGenerertTilbehor {
     Sittepute,

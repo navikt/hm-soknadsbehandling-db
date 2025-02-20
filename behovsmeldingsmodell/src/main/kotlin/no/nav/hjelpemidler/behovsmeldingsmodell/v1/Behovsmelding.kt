@@ -559,11 +559,11 @@ data class Tilbehør(
     val brukAvForslagsmotoren: BrukAvForslagsmotoren?,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
-    val skalBrukesMed: SkalBrukesMed? // For frittstående tilbehør
+    val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
 )
 
-data class SkalBrukesMed (
-    val type: SkalBrukesMedType
+data class SkalBrukesMed(
+    val type: SkalBrukesMedType,
 )
 
 enum class SkalBrukesMedType {

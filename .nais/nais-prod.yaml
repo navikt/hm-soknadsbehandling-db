@@ -73,6 +73,13 @@ spec:
           - name: hm-soknadsbehandling-db-v3-prod
             envVarPrefix: DB
         cascadingDelete: false
+        flags:
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write"
+          - name: "pgaudit.log_parameter"
+            value: "on"
     bigQueryDatasets:
       - name: hm_soknadsbehandling_v1_dataset_prod
         permission: READWRITE

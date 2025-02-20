@@ -234,8 +234,8 @@ data class Tilbehør(
     val opplysninger: List<Opplysning>?,
 )
 
-data class SkalBrukesMed (
-    val type: SkalBrukesMedType
+data class SkalBrukesMed(
+    val type: SkalBrukesMedType,
 )
 
 enum class SkalBrukesMedType {
