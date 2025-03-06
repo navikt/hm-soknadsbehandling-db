@@ -9,7 +9,6 @@ metadata:
 spec:
   image: {{ image }}
   envFrom:
-    - secret: hm-influxdb-secret
     - secret: hm-slack-hook
   kafka:
     pool: nav-prod

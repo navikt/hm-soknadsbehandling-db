@@ -21,7 +21,7 @@ private val logg = KotlinLogging.logger {}
 
 class Metrics(
     private val transaction: Transaction,
-    private val influxDB: InfluxDB = InfluxDB(),
+    private val bigQuery: BigQueryClient = BigQueryClient(),
 ) {
     init {
         Timer("metrics", true).schedule(
@@ -116,7 +116,7 @@ class Metrics(
                         metricFieldName.plus("-papir")
                     }
 
-                influxDB.registerElapsedTime(finalMetricFieldName, timeDifference)
+                bigQuery.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
             logg.error(e) { "Feil ved sending av tid mellom status-metrikker" }
@@ -127,7 +127,7 @@ class Metrics(
         try {
             val antallByStatus = transaction { søknadStore.tellStatuser() }
             if (antallByStatus.isNotEmpty()) {
-                influxDB.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, antallByStatus)
+                bigQuery.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, antallByStatus)
             }
         } catch (e: Exception) {
             logg.error(e) { "Feil ved sending antall per status metrikker." }

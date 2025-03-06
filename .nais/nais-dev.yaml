@@ -11,7 +11,6 @@ spec:
   ingresses:
     - https://hm-soknadsbehandling-db.intern.dev.nav.no
   envFrom:
-    - secret: hm-influxdb-secret
     - secret: hm-slack-hook
   kafka:
     pool: nav-dev
