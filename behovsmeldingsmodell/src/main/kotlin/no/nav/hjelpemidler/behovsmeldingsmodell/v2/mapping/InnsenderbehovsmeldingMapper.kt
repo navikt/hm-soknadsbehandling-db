@@ -97,6 +97,7 @@ fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.
                     )
                 }
             },
+            borIPilotkommuneForKunTilbehør = v1.søknad.bruker.borIPilotkommuneForKunTilbehør,
         ),
         brukersituasjon = Brukersituasjon(
             vilkår = tilBrukersituasjonVilkårV2(v1.søknad),
