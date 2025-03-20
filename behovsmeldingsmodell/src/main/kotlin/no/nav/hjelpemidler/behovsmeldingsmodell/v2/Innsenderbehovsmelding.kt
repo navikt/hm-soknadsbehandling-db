@@ -59,7 +59,6 @@ data class Bruker(
     val brukernummer: String?,
     val kilde: Brukerkilde?,
     val legacyopplysninger: List<EnkelOpplysning>, // for visning av opplysninger som bare finnes i eldre behovsmeldinger
-    val borIPilotkommuneForKunTilbehør: Boolean?,
 ) : TilknyttetPerson {
     val kildeErPdl: Boolean @JsonIgnore get() = kilde == Brukerkilde.PDL
 }
