@@ -560,6 +560,7 @@ data class Tilbehør(
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
     val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
+    val erPåAktivRammeavtale: Boolean?,
 )
 
 data class SkalBrukesMed(

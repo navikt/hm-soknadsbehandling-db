@@ -232,6 +232,7 @@ data class Tilbehør(
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
     val skalBrukesMed: SkalBrukesMed?, // For frittstående tilbehør
     val opplysninger: List<Opplysning>?,
+    val saksbehandlingvarsel: List<Varsel>?,
 )
 
 data class SkalBrukesMed(
