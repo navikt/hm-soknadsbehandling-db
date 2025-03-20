@@ -312,7 +312,6 @@ fun tilHjelpemiddelV2(v1: Hjelpemiddel, søknad: Søknad): no.nav.hjelpemidler.b
                 antall = it.antall!!,
                 begrunnelse = it.begrunnelse,
                 fritakFraBegrunnelseÅrsak = it.fritakFraBegrunnelseÅrsak,
-                erPåAktivRammeavtale = it.erPåAktivRammeavtale,
             )
         },
         bytter = v1.bytter,
