@@ -126,6 +126,8 @@ enum class Funksjonsnedsettelser {
     BEVEGELSE,
     KOGNISJON,
     HØRSEL,
+    SYN,
+    KOMMUNIKASJON,
 }
 
 enum class LeveringTilleggsinfo {
