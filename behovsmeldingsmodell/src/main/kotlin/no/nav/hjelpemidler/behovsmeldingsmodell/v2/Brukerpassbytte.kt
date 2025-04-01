@@ -6,6 +6,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.Personnavn
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -22,6 +23,7 @@ data class Brukerpassbytte(
     override val type: BehovsmeldingType = BehovsmeldingType.BRUKERPASSBYTTE,
     override val skjemaversjon: Int = 2,
     override val innsendingsdato: LocalDate,
+    override val innsendingstidspunkt: Instant? = null,
     override val hjmBrukersFnr: Fødselsnummer,
     override val prioritet: Prioritet = Prioritet.NORMAL,
 ) : BehovsmeldingBase {

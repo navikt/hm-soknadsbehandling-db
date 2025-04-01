@@ -12,6 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.configuration.Environment
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -37,6 +38,7 @@ interface BehovsmeldingBase {
     val id: UUID
     val type: BehovsmeldingType
     val innsendingsdato: LocalDate
+    val innsendingstidspunkt: Instant?
     val prioritet: Prioritet
     val hjmBrukersFnr: Fødselsnummer
     val skjemaversjon: Int
@@ -55,6 +57,7 @@ data class Innsenderbehovsmelding(
     override val id: UUID,
     override val type: BehovsmeldingType,
     override val innsendingsdato: LocalDate,
+    override val innsendingstidspunkt: Instant? = null,
     override val skjemaversjon: Int,
     override val hjmBrukersFnr: Fødselsnummer,
     override val prioritet: Prioritet,

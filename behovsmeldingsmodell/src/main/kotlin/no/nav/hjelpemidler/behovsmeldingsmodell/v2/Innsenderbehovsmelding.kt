@@ -25,6 +25,7 @@ import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.Personnavn
 import no.nav.hjelpemidler.domain.person.TilknyttetPerson
 import org.owasp.html.HtmlPolicyBuilder
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
@@ -40,6 +41,7 @@ data class Innsenderbehovsmelding(
     override val id: UUID,
     override val type: BehovsmeldingType,
     override val innsendingsdato: LocalDate,
+    override val innsendingstidspunkt: Instant? = null,
     override val skjemaversjon: Int = 2,
     override val hjmBrukersFnr: Fødselsnummer = bruker.fnr,
     override val prioritet: Prioritet = tilPrioritet(levering.hast),

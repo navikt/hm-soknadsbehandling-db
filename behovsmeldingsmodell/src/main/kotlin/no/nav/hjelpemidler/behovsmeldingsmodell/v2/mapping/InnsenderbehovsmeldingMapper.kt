@@ -27,6 +27,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Utleveringsmåte
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertType
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hjelpemiddel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Kroppsmål
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Søknad
@@ -51,7 +52,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
 
-fun tilInnsenderbehovsmeldingV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding): Innsenderbehovsmelding {
+fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding): Innsenderbehovsmelding {
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
     return Innsenderbehovsmelding(
