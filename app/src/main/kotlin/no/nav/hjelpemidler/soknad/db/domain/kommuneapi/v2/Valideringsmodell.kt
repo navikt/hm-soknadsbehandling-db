@@ -238,10 +238,12 @@ data class Tilbehør(
     val saksbehandlingvarsel: List<Varsel>?,
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class SkalBrukesMed(
     val type: SkalBrukesMedType,
 )
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 enum class SkalBrukesMedType {
     HJELPEMIDDEL_I_INNSENDT_SAK,
     HJELPEMIDDEL_I_UTLÅN,
