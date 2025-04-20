@@ -39,7 +39,7 @@ dependencies {
     implementation(libs.tokenx.validation)
 
     // Metrics
-    implementation(libs.bundles.metrics)
+    implementation(libs.micrometer.registry.prometheus)
 
     // GraphQL Client
     implementation(libs.graphql.ktor.client) {
