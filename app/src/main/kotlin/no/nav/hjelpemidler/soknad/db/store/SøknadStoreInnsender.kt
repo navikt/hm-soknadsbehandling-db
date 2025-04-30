@@ -40,6 +40,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                        soknad.navn_bruker,
                        status.status,
                        status.arsaker,
+                       soknad.soknad_gjelder,
                        (CASE
                             WHEN EXISTS (SELECT 1
                                          FROM v1_status
