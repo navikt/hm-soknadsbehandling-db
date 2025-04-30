@@ -40,6 +40,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                        soknad.navn_bruker,
                        status.status,
                        status.arsaker,
+                       soknad.soknad_gjelder,
                        (CASE
                             WHEN EXISTS (SELECT 1
                                          FROM v1_status
@@ -86,6 +87,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 fnrBruker = it.string("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
+                soknadGjelder = it.stringOrNull("soknad_gjelder"),
             )
         }
     }
@@ -113,6 +115,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                        soknad.navn_bruker,
                        status.status,
                        status.arsaker,
+                       soknad.soknad_gjelder,
                        (CASE
                             WHEN EXISTS (SELECT 1
                                          FROM v1_status
@@ -162,6 +165,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 navnBruker = it.stringOrNull("navn_bruker"),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 behovsmelding = it.tilInnsenderbehovsmelding(),
+                soknadGjelder = it.stringOrNull("soknad_gjelder"),
             )
         }
     }
@@ -178,4 +182,5 @@ class SøknadForInnsender(
     val navnBruker: String?,
     val valgteÅrsaker: List<String>,
     val behovsmelding: Innsenderbehovsmelding? = null,
+    val soknadGjelder: String?,
 )
