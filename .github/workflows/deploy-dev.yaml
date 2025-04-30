@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - v2-fra-frontend
+      - tilgjengeliggjøre-tittel
 
 jobs:
   build:
