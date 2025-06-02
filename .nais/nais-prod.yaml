@@ -47,6 +47,8 @@ spec:
       rules:
         - application: hm-grunndata-search
         - application: hm-roller
+        - application: logging
+          namespace: nais-system
       external:
         - host: hooks.slack.com
   resources:
@@ -56,8 +58,6 @@ spec:
     requests:
       cpu: 30m
       memory: 512Mi
-  secureLogs:
-    enabled: true
   gcp:
     sqlInstances:
       - name: hm-soknadsbehandling-db-v3-prod

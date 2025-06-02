@@ -8,6 +8,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.logging.teamInfo
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
@@ -17,6 +18,7 @@ class SøknadService(private val transaction: Transaction) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
         logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
+        logg.teamInfo { "LOGG_TEST: test av teamlog" }
         return when (grunnlag) {
             is Behovsmeldingsgrunnlag.Digital -> transaction {
                 søknadStore.lagreBehovsmelding(grunnlag)
