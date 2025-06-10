@@ -88,7 +88,7 @@ data class Bruker(
     @JsonProperty("signatur")
     val signaturtype: Signaturtype?,
     @JsonProperty("telefonNummer")
-    val telefon: String,
+    val telefon: String?, // https://trello.com/c/FV6XBtrC/377-brukers-telefonnummer-i-digital-behovsmelding-hva-brukes-det-til
     val adresse: String?,
     val postnummer: String?,
     val poststed: String?,

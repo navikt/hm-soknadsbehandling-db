@@ -55,7 +55,7 @@ data class Bruker(
     override val fnr: Fødselsnummer,
     val navn: Personnavn,
     val signaturtype: Signaturtype,
-    val telefon: String,
+    val telefon: String?, // Inputfelt for innbyggers tlf fjernet: https://trello.com/c/FV6XBtrC/377-brukers-telefonnummer-i-digital-behovsmelding-hva-brukes-det-til
     val veiadresse: Veiadresse?,
     val kommunenummer: String?,
     val brukernummer: String?,
