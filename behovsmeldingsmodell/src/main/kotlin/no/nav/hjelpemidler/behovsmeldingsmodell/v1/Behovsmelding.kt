@@ -431,7 +431,8 @@ data class OppreisningsstolInfo(
     val sidebetjeningspanel: SidebetjeningspanelPosisjon?,
     val bruksområde: OppreisningsstolBruksområde?,
     val annetTrekkKanBenyttes: Boolean,
-    val løftType: OppreisningsstolLøftType,
+    val løftType: OppreisningsstolLøftType?,
+    val behovForTilt: Boolean?,
 )
 
 data class DiverseInfo(

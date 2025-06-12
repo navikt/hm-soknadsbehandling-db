@@ -620,7 +620,8 @@ data class OppreisningsStolInfo(
     val sideBetjeningsPanel: SideBetjeningsPanelPosisjon?,
     val bruksområde: OppreisningsStolBruksområde?,
     val annetTrekkKanBenyttes: Boolean,
-    val løftType: OppreisningsStolLøftType,
+    val løftType: OppreisningsStolLøftType?,
+    val behovForTilt: Boolean?,
 )
 
 enum class OppreisningsStolLøftType {

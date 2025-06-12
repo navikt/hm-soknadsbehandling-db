@@ -1532,15 +1532,17 @@ fun oppreisningsstolInfo(hm: Hjelpemiddel): List<Opplysning> {
         ),
     )
 
-    opplysninger.add(
-        Opplysning(
-            ledetekst = LokalisertTekst("Skråløft eller rettløft"),
-            innhold = when (hm.oppreisningsstolInfo.løftType) {
-                OppreisningsstolLøftType.SKRÅLØFT -> LokalisertTekst("Skråløft")
-                OppreisningsstolLøftType.RETTLØFT -> LokalisertTekst("Rettløft")
-            },
-        ),
-    )
+    if (hm.oppreisningsstolInfo.løftType != null) {
+        opplysninger.add(
+            Opplysning(
+                ledetekst = LokalisertTekst("Skråløft eller rettløft"),
+                innhold = when (hm.oppreisningsstolInfo.løftType) {
+                    OppreisningsstolLøftType.SKRÅLØFT -> LokalisertTekst("Skråløft")
+                    OppreisningsstolLøftType.RETTLØFT -> LokalisertTekst("Rettløft")
+                },
+            ),
+        )
+    }
 
     return opplysninger
 }
