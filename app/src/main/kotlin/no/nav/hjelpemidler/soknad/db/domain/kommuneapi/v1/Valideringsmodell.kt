@@ -128,7 +128,7 @@ data class Bruker(
     val fnummer: Fødselsnummer,
     val fornavn: String,
     val signatur: Signaturtype,
-    val telefonNummer: String,
+    val telefonNummer: String?,
     val adresse: String?,
     val postnummer: String?,
     val poststed: String?,

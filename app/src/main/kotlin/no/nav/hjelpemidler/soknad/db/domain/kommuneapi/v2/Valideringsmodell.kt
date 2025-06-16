@@ -97,7 +97,7 @@ data class Bruker(
     val fnr: Fødselsnummer,
     val navn: Personnavn,
     val signaturtype: Signaturtype,
-    val telefon: String,
+    val telefon: String?,
     val veiadresse: Veiadresse?,
     val kommunenummer: String?,
     val brukernummer: String?,
