@@ -129,15 +129,21 @@ data class Hjelpemidler(
     val totaltAntall: Int,
 ) : Iterable<Hjelpemiddel> by hjelpemidler
 
+interface ArtikkelBase {
+    val hmsArtNr: String
+    val artikkelnavn: String
+    val antall: Int
+}
+
 data class Hjelpemiddel(
     /**
-     * Tilfeldig genrerert id for å unikt kunne identifisere hjelpemidler,
-     * feks. dersom det er lagt til flere innslag med samme hmsArtNr.
-     * For gamle saker: hjelpemiddelId = hjelpemiddel.produkt.stockid + new Date().getTime()
-     * For nye saker (etter ca 2024-11-05): hjelpemiddelId = UUID()
+     * Tilfeldig generert id for å kunne unikt identifisere hjelpemidler,
+     * f.eks. dersom det er lagt til flere innslag med samme hmsArtNr.
+     * For gamle saker: `hjelpemiddelId = hjelpemiddel.produkt.stockid + new Date().getTime()`.
+     * For nye saker (etter ca. 2024-11-05): `hjelpemiddelId = UUID()`.
      */
     val hjelpemiddelId: String,
-    val antall: Int,
+    override val antall: Int,
     val produkt: HjelpemiddelProdukt,
     val tilbehør: List<Tilbehør>,
     val bytter: List<Bytte>,
@@ -146,7 +152,15 @@ data class Hjelpemiddel(
     val opplysninger: List<Opplysning>,
     val varsler: List<Varsel>,
     val saksbehandlingvarsel: List<Varsel> = emptyList(),
-)
+) : ArtikkelBase {
+    override val hmsArtNr: String
+        @JsonIgnore
+        get() = produkt.hmsArtNr
+
+    override val artikkelnavn: String
+        @JsonIgnore
+        get() = produkt.artikkelnavn
+}
 
 data class HjelpemiddelProdukt(
     val hmsArtNr: String,
@@ -166,14 +180,18 @@ data class HjelpemiddelProdukt(
 )
 
 data class Tilbehør(
-    val hmsArtNr: String,
+    override val hmsArtNr: String,
     val navn: String,
-    val antall: Int,
+    override val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
     val opplysninger: List<Opplysning> = emptyList(),
     val saksbehandlingvarsel: List<Varsel> = emptyList(),
-)
+) : ArtikkelBase {
+    override val artikkelnavn: String
+        @JsonIgnore
+        get() = navn
+}
 
 data class Utlevertinfo(
     val alleredeUtlevertFraHjelpemiddelsentralen: Boolean,

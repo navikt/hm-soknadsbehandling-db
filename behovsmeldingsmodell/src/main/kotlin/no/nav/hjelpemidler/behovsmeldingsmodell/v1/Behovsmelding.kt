@@ -422,7 +422,7 @@ data class Bytte(
     val hjmNavn: String,
     val hjmKategori: String,
     val årsak: BytteÅrsak? = null,
-    val versjon: String = "v1"
+    val versjon: String = "v1",
 )
 
 data class OppreisningsstolInfo(
