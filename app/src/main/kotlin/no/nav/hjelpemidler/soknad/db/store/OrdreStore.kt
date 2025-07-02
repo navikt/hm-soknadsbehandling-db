@@ -4,7 +4,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.database.json
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje

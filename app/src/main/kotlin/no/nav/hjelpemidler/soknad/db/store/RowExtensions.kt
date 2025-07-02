@@ -13,10 +13,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.database.Row
-import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.enumOrNull
-import no.nav.hjelpemidler.database.json
-import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.sak.tilVedtak
 

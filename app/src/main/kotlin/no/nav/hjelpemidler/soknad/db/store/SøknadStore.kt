@@ -17,9 +17,6 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.json
-import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.SlackClient

@@ -6,8 +6,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
-import no.nav.hjelpemidler.database.enum
-import no.nav.hjelpemidler.database.jsonOrNull
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.LocalDateTime

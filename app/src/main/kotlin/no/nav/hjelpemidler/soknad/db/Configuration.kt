@@ -1,10 +1,9 @@
 package no.nav.hjelpemidler.soknad.db
 
 import no.nav.hjelpemidler.configuration.EnvironmentVariable
-import no.nav.hjelpemidler.configuration.environmentVariable
 
 object Configuration {
-    val PORT: Int by environmentVariable()
+    val PORT by EnvironmentVariable(transform = String::toInt)
 
     val KAFKA_TOPIC by EnvironmentVariable
 
