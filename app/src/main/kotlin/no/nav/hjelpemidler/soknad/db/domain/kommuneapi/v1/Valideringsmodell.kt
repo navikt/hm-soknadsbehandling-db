@@ -320,6 +320,7 @@ data class HjelpemiddelItem(
     val posisjoneringsputeForBarnInfo: PosisjoneringsputeForBarnInfo?,
     val oppreisningsStolInfo: OppreisningsStolInfo?,
     val diverseInfo: Map<String, String> = emptyMap(),
+    val trengerEnTilBegrunnelse: String? = null,
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: List<Bruksarena>? = null,
     val årsakForAntallEnum: ÅrsakForAntall?,
@@ -345,6 +346,7 @@ data class Bytte(
     val hjmNavn: String,
     val hjmKategori: String,
     val årsak: BytteÅrsak? = null,
+    val versjon: String = "v1",
 )
 
 enum class BytteÅrsak {

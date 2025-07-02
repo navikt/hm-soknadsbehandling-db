@@ -179,7 +179,7 @@ data class Innsender(
     val rolle: InnsenderRolle,
     val erKommunaltAnsatt: Boolean?,
     val kurs: List<Godkjenningskurs>,
-    val sjekketUtlånsoversiktForKategorier: Set<String>,
+    val sjekketUtlånsoversiktForKategorier: Set<String>?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -206,6 +206,7 @@ data class Hjelpemiddel(
     val utlevertinfo: Utlevertinfo,
     val opplysninger: List<Opplysning>,
     val varsler: List<Varsel>,
+    val saksbehandlingvarsel: List<Varsel> = emptyList(),
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

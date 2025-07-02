@@ -120,7 +120,7 @@ data class Innsender(
     val rolle: InnsenderRolle,
     val erKommunaltAnsatt: Boolean?,
     val kurs: List<Godkjenningskurs>,
-    val sjekketUtlånsoversiktForKategorier: Set<Iso6>,
+    val sjekketUtlånsoversiktForKategorier: Set<Iso6>?,
 )
 
 data class Hjelpemidler(
@@ -145,6 +145,7 @@ data class Hjelpemiddel(
     val utlevertinfo: Utlevertinfo,
     val opplysninger: List<Opplysning>,
     val varsler: List<Varsel>,
+    val saksbehandlingvarsel: List<Varsel> = emptyList(),
 )
 
 data class HjelpemiddelProdukt(

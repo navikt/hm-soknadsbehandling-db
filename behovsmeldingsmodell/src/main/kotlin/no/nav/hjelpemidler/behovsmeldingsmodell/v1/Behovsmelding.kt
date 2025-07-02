@@ -396,6 +396,7 @@ data class Hjelpemiddel(
     @JsonProperty("oppreisningsStolInfo")
     val oppreisningsstolInfo: OppreisningsstolInfo? = null,
     val diverseInfo: DiverseInfo? = null,
+    val trengerEnTilBegrunnelse: String? = null,
     val bytter: List<Bytte> = emptyList(),
     val bruksarena: Set<Bruksarena> = emptySet(),
 ) {
@@ -421,6 +422,7 @@ data class Bytte(
     val hjmNavn: String,
     val hjmKategori: String,
     val årsak: BytteÅrsak? = null,
+    val versjon: String = "v1"
 )
 
 data class OppreisningsstolInfo(
