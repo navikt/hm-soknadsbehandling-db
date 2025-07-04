@@ -127,7 +127,20 @@ data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
     val tilbehør: List<Tilbehør> = emptyList(),
     val totaltAntall: Int,
-) : Iterable<Hjelpemiddel> by hjelpemidler
+) : Iterable<Hjelpemiddel> by hjelpemidler {
+    /**
+     * Sett av alle [ArtikkelBase.hmsArtNr] fra alle hjelpemidler og tilbehør.
+     */
+    val hmsArtNrs: Set<String>
+        @JsonIgnore
+        get() {
+            val destination = hjelpemidler.flatMapTo(sortedSetOf()) {
+                it.tilbehør.mapTo(sortedSetOf(it.hmsArtNr), Tilbehør::hmsArtNr)
+            }
+            tilbehør.mapTo(destination, Tilbehør::hmsArtNr)
+            return destination
+        }
+}
 
 interface ArtikkelBase {
     val hmsArtNr: String
