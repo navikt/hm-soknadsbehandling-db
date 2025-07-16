@@ -371,6 +371,7 @@ data class Bytte(
     val hjmNavn: String,
     val hjmKategori: String,
     val årsak: BytteÅrsak? = null,
+    val versjon: String = "v1",
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
