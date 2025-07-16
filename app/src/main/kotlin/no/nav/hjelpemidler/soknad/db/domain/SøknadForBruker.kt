@@ -2,18 +2,23 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilBrukerpassbytteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
+import no.nav.hjelpemidler.domain.person.toFødselsnummer
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import java.util.Date
 import java.util.UUID
+
+private val log = KotlinLogging.logger { }
 
 class SøknadForBruker private constructor(
     val søknadId: BehovsmeldingId,
@@ -25,6 +30,7 @@ class SøknadForBruker private constructor(
     val fullmakt: Boolean,
     val fnrBruker: String,
     val brukerpassbyttedata: Brukerpassbytte?,
+    val brukerpassbyttedataV2: no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -64,6 +70,20 @@ class SøknadForBruker private constructor(
                 brukerpassbyttedata = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
                     BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(behovsmeldingJson["brukerpassbytte"])
+                },
+                brukerpassbyttedataV2 = when (behovsmeldingType) {
+                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
+                    BehovsmeldingType.BRUKERPASSBYTTE -> try {
+                        tilBrukerpassbytteV2(
+                            jsonMapper.treeToValue<Brukerpassbytte>(
+                                behovsmeldingJson["brukerpassbytte"],
+                            ),
+                            fnrBruker.toFødselsnummer(),
+                        )
+                    } catch (e: Exception) {
+                        log.error(e) { "Mapping til brukerpassbytteV2 feilet." }
+                        null
+                    }
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
@@ -108,6 +128,7 @@ class SøknadForBruker private constructor(
             fullmakt = fullmakt,
             fnrBruker = fnrBruker,
             brukerpassbyttedata = null,
+            brukerpassbyttedataV2 = null,
             er_digital = er_digital,
             soknadGjelder = soknadGjelder,
             ordrelinjer = ordrelinjer,

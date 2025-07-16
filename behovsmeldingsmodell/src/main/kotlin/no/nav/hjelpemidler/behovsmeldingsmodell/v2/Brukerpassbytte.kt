@@ -31,6 +31,6 @@ data class Brukerpassbytte(
         val hmsArtNr: String,
         val artikkelnavn: String,
         val iso6Tittel: String,
-        val iso6: Iso6,
+        val iso6: Iso6?,
     )
 }
