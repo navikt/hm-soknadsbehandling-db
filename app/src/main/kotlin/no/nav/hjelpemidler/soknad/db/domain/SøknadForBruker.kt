@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db.domain
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
-import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
@@ -17,8 +16,6 @@ import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import java.util.Date
 import java.util.UUID
-
-private val log = KotlinLogging.logger { }
 
 class SøknadForBruker private constructor(
     val søknadId: BehovsmeldingId,
@@ -73,17 +70,12 @@ class SøknadForBruker private constructor(
                 },
                 brukerpassbyttedataV2 = when (behovsmeldingType) {
                     BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> try {
-                        tilBrukerpassbytteV2(
-                            jsonMapper.treeToValue<Brukerpassbytte>(
-                                behovsmeldingJson["brukerpassbytte"],
-                            ),
-                            fnrBruker.toFødselsnummer(),
-                        )
-                    } catch (e: Exception) {
-                        log.error(e) { "Mapping til brukerpassbytteV2 feilet." }
-                        null
-                    }
+                    BehovsmeldingType.BRUKERPASSBYTTE -> tilBrukerpassbytteV2(
+                        jsonMapper.treeToValue<Brukerpassbytte>(
+                            behovsmeldingJson["brukerpassbytte"],
+                        ),
+                        fnrBruker.toFødselsnummer(),
+                    )
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
