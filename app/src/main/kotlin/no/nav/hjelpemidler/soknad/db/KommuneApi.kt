@@ -31,28 +31,15 @@ fun Route.kommuneApi(transaction: Transaction) {
             return@post
         }
 
-        val nyDatamodell = request.nyDatamodell ?: false
-
-        logg.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer} (nyDatamodell=$nyDatamodell)" }
-        if (!nyDatamodell) {
-            val søknader = transaction {
-                søknadStore.hentSøknaderForKommuneApiet(
-                    kommunenummer = request.kommunenummer,
-                    nyereEnn = request.nyereEnn,
-                    nyereEnnTidsstempel = request.nyereEnnTidsstempel,
-                )
-            }
-            call.respond(søknader)
-        } else {
-            val søknader = transaction {
-                søknadStore.hentBehovsmeldingerForKommuneApiet(
-                    kommunenummer = request.kommunenummer,
-                    nyereEnn = request.nyereEnn,
-                    nyereEnnTidsstempel = request.nyereEnnTidsstempel,
-                )
-            }
-            call.respond(søknader)
+        logg.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer}" }
+        val søknader = transaction {
+            søknadStore.hentBehovsmeldingerForKommuneApiet(
+                kommunenummer = request.kommunenummer,
+                nyereEnn = request.nyereEnn,
+                nyereEnnTidsstempel = request.nyereEnnTidsstempel,
+            )
         }
+        call.respond(søknader)
     }
 }
 

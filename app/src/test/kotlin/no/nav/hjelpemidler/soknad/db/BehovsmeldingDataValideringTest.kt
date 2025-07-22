@@ -5,214 +5,33 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.jsonToTree
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v1.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import org.junit.jupiter.api.Test
 
 class BehovsmeldingDataValideringTest {
     @Test
     fun `Validering av en normal søknad i dagens format`() {
-        val søknadId = lagSøknadId()
+        val fnr = lagFødselsnummer()
+        lagFødselsnummer()
         val node = jsonToTree(
             """
-                {
-                  "id": "$søknadId",
-                  "soknad": {
-                    "id": "$søknadId",
-                    "date": "2023-01-17",
-                    "bruker": {
-                      "kilde": "PDL",
-                      "adresse": "Flataberget 19",
-                      "fnummer": "${lagFødselsnummer()}",
-                      "fornavn": "Sedat",
-                      "poststed": "Sand",
-                      "signatur": "BRUKER_BEKREFTER",
-                      "etternavn": "Kronjuvel",
-                      "kroppsmaal": {
-                        "hoyde": 180,
-                        "kroppsvekt": 80,
-                        "laarlengde": 40,
-                        "legglengde": 40,
-                        "setebredde": 40
-                      },
-                      "postnummer": "4230",
-                      "kommunenummer": "1134",
-                      "telefonNummer": "15084300",
-                      "erInformertOmRettigheter": false
-                    },
-                    "levering": {
-                      "hmfEpost": "urokkelig@mail.no",
-                      "hmfPostnr": "0484",
-                      "hmfFornavn": "Sedat",
-                      "hmfTelefon": "12345678",
-                      "opfFornavn": "",
-                      "opfTelefon": "",
-                      "hmfPoststed": "OSLO",
-                      "hmfStilling": "Fysioterapeut",
-                      "opfStilling": "",
-                      "hmfEtternavn": "Kronjuvel",
-                      "opfAnsvarFor": "",
-                      "opfEtternavn": "",
-                      "hmfArbeidssted": "Nav Oslo",
-                      "hmfPostadresse": "Oslo Kommune",
-                      "opfArbeidssted": "",
-                      "opfRadioButton": "Hjelpemiddelformidler",
-                      "utleveringPostnr": "",
-                      "hmfTreffesEnklest": "Mandag og tirsdag",
-                      "utleveringFornavn": "",
-                      "utleveringTelefon": "",
-                      "utleveringPoststed": "",
-                      "utleveringEtternavn": "",
-                      "merknadTilUtlevering": "",
-                      "utleveringPostadresse": "",
-                      "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
-                      "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker"
-                    },
-                    "innsender": {
-                      "somRolle": "FORMIDLER",
-                      "organisasjoner": [
-                        {
-                          "navn": "STORÅS OG HESSENG",
-                          "orgnr": "910753282",
-                          "orgform": "AS"
-                        }
-                      ],
-                      "godkjenningskurs": [
-                        {
-                          "id": 1,
-                          "kilde": "kursliste_import",
-                          "title": "El-rullestol"
-                        },
-                        {
-                          "id": 2,
-                          "kilde": "kunnskapsbanken",
-                          "title": "Personløftere og seil"
-                        },
-                        {
-                          "id": 3,
-                          "kilde": "kunnskapsbanken",
-                          "title": "Elektrisk seng"
-                        },
-                        {
-                          "id": 4,
-                          "kilde": "kunnskapsbanken",
-                          "title": "Bestilling"
-                        }
-                      ]
-                    },
-                    "hjelpemidler": {
-                      "hjelpemiddelListe": [
-                        {
-                          "navn": "Real 6100 Plus høy",
-                          "hmsNr": "250993",
-                          "antall": 1,
-                          "produkt": {
-                            "artid": "113619",
-                            "newsid": "7449",
-                            "prodid": "61718",
-                            "apostid": "902",
-                            "apostnr": "24.0",
-                            "artname": "Real 6100 Plus høy",
-                            "isocode": "12230603",
-                            "stockid": "250993",
-                            "isotitle": "Elektriske rullestoler motorisert styring innebruk",
-                            "kategori": "Elektriske rullestoler",
-                            "postrank": "1",
-                            "prodname": "Real 6100 Plus høy/lav",
-                            "techdata": [],
-                            "aposttitle": "Post 24: Elektrisk rullestol med motorisert styring for innendørs bruk - voksne",
-                            "pshortdesc": "Elektrisk rullestol med senterdrift for innendørs bruk. Finnes i lav og høy versjon. Elektrisk regulering av seteløft og manuell regulering av ryggvinkel. Leveres som standard med Ergomedic Plus sittenhet. Setebredde: 44 cm. Maks brukervekt: 135 kg.",
-                            "techdataAsText": "Setebredde min 38cm, Setebredde maks 52cm, Setedybde min 33cm, Setedybde maks 48cm, Setehøyde uten pute min 48cm, Setehøyde uten pute maks 76cm, Rygghøyde min 32cm, Rygghøyde maks 45cm, Totalbredde 58cm, Totallengde 79cm, Seteløft elektrisk, Tilt ingen, Ryggvinkling manuell, Seterotasjon ingen, Ståfunksjon (elektrisk) NEI, Benstøttevinkling manuell, Armlener høyderegulerbare JA, Armlener dybderegulerbare NEI, Armlener oppfellbare JA, Armlener nedfellbare JA, Benstøtte sentermontert JA, Hjuldrift senterdrift, Hastighet maks 4.5km/t, Kjørelengde maks 15km, Motorstyrke 220watt, Hinderhøyde maks 4cm, Helningsgrad maks 3grader, Vekt inkl batteri 83kg, Brukervekt maks 135kg, Beregnet på barn NEI",
-                            "paakrevdGodkjenningskurs": {
-                              "kursId": 1,
-                              "tittel": "Elektrisk rullestol",
-                              "isokode": "122306",
-                              "formidlersGjennomforing": "GODKJENNINGSKURS_DB"
-                            }
-                          },
-                          "uniqueKey": "2509931673972771498",
-                          "beskrivelse": "Real 6100 Plus høy",
-                          "begrunnelsen": "",
-                          "utlevertInfo": {},
-                          "tilbehorListe": [],
-                          "vilkaroverskrift": "",
-                          "kanIkkeTilsvarande": "false",
-                          "tilleggsinformasjon": "",
-                          "hjelpemiddelkategori": "Elektriske rullestoler",
-                          "elektriskRullestolInfo": {
-                            "plasseringAvHendel": "Høyre",
-                            "nedsattGangfunksjon": false,
-                            "ferdesSikkertITrafikk": false,
-                            "kanBetjeneManuellStyring": false,
-                            "kanBetjeneMotorisertStyring": true
-                          },
-                          "utlevertFraHjelpemiddelsentralen": false
-                        }
-                      ],
-                      "hjelpemiddelTotaltAntall": 1
-                    },
-                    "brukersituasjon": {
-                      "storreBehov": true,
-                      "nedsattFunksjon": true,
-                      "praktiskeProblem": true,
-                      "bostedRadioButton": "Hjemme",
-                      "nedsattFunksjonTypes": {
-                        "horsel": false,
-                        "bevegelse": false,
-                        "kognisjon": true
-                      },
-                      "bruksarenaErDagliglivet": true,
-                      "skalIkkeBrukesTilAndreFormaal": false
-                    }
-                  },
-                  "behovsmeldingType": "SØKNAD",
-                  "bestillingsordningsjekk": {
-                    "version": "4d07c217b6647d17f3c3bc39be710a2eaa80d06f",
-                    "metaInfo": {
-                      "tilbehør": [],
-                      "hovedProdukter": [
-                        "250993"
-                      ],
-                      "tilbehørIkkePåBestillingsordning": [],
-                      "hovedProdukterIkkePåBestillingsordning": [
-                        "250993"
-                      ]
-                    },
-                    "kriterier": {
-                      "brukersAdresseErSatt": true,
-                      "brukerBorIkkeIUtlandet": true,
-                      "inneholderIkkeFritekst": true,
-                      "brukerErIkkeSkjermetPerson": true,
-                      "brukerBorIkkePåInstitusjon": true,
-                      "brukerTilhørerPilotsentral": false,
-                      "brukerHarHjelpemidlerFraFør": false,
-                      "brukerHarHotsakVedtakFraFør": true,
-                      "brukerHarInfotrygdVedtakFraFør": false,
-                      "ingenProdukterErAlleredeUtlevert": true,
-                      "leveringTilFolkeregistrertAdresse": true,
-                      "alleTilbehørPåBestillingsOrdning": true,
-                      "alleHovedProdukterPåBestillingsOrdning": false
-                    },
-                    "kanVæreBestilling": false
-                  }
-                }
+                {"bruker":{"fnr":"$fnr","navn":{"fornavn":"Sedat","mellomnavn":null,"etternavn":"Kronjuvel"},"signaturtype":"BRUKER_BEKREFTER","telefon":"15084300","veiadresse":{"adresse":"Flataberget 19","postnummer":"4230","poststed":"Sand"},"kommunenummer":"1134","brukernummer":null,"kilde":"PDL","legacyopplysninger":[{"ledetekst":{"nb":"Boform","nn":"Buform"},"innhold":{"nb":"Hjemme","nn":"Heime"}},{"ledetekst":{"nb":"Bruksarena","nn":"Bruksarena"},"innhold":{"nb":"Dagliglivet","nn":"Dagleglivet"}}]},"brukersituasjon":{"vilkår":[{"vilkårtype":"NEDSATT_FUNKSJON","tekst":{"nb":"Sedat Kronjuvel har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.","nn":"Sedat Kronjuvel har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut."}},{"vilkårtype":"STØRRE_BEHOV","tekst":{"nb":"Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av Nav.","nn":"Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av Nav."}},{"vilkårtype":"PRAKTISKE_PROBLEM","tekst":{"nb":"Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og Sedat Kronjuvel vil være i stand til å bruke det.","nn":"Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og Sedat Kronjuvel vil vera i stand til å bruka det."}}],"funksjonsnedsettelser":["KOGNISJON"],"funksjonsbeskrivelse":null},"hjelpemidler":{"hjelpemidler":[{"hjelpemiddelId":"2509931673972771498","antall":1,"produkt":{"hmsArtNr":"250993","artikkelnavn":"Real 6100 Plus høy","iso8":"12230603","iso8Tittel":"Elektriske rullestoler motorisert styring innebruk","delkontrakttittel":"Post 24: Elektrisk rullestol med motorisert styring for innendørs bruk - voksne","sortimentkategori":"Elektriske rullestoler","delkontraktId":"902","rangering":1},"tilbehør":[],"bytter":[],"bruksarenaer":[],"utlevertinfo":{"alleredeUtlevertFraHjelpemiddelsentralen":false,"utleverttype":null,"overførtFraBruker":null,"annenKommentar":null},"opplysninger":[{"ledetekst":{"nb":"Krav om kurs","nn":"Krav om kurs"},"innhold":[{"fritekst":null,"forhåndsdefinertTekst":{"nb":"Det er dokumentert at innsender har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs elektrisk rullestol.","nn":"Det er dokumentert at innsendar har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs elektrisk rullestol."},"begrepsforklaring":null}]},{"ledetekst":{"nb":"Betjene styring","nn":"Betene styring"},"innhold":[{"fritekst":null,"forhåndsdefinertTekst":{"nb":"Brukeren er vurdert til å kunne betjene elektrisk rullestol med motorisert styring","nn":"Brukaren er vurdert til å kunne betene elektrisk rullestol med motorisert styring"},"begrepsforklaring":null}]},{"ledetekst":{"nb":"Gasshendel","nn":"Gasshendel"},"innhold":[{"fritekst":null,"forhåndsdefinertTekst":{"nb":"Skal plasseres på høyre side","nn":"Skal plasserast på høgre side"},"begrepsforklaring":null}]},{"ledetekst":{"nb":"Kroppsmål","nn":"Kroppsmål"},"innhold":[{"fritekst":null,"forhåndsdefinertTekst":{"nb":"Setebredde: 40 cm, lårlengde: 40 cm, legglengde: 40 cm, høyde: 180 cm, kroppsvekt: 80 kg.","nn":"Setebredde: 40 cm, lårlengde: 40 cm, legglengde: 40 cm, høgde: 180 cm, kroppsvekt: 80 kg."},"begrepsforklaring":null}]}],"varsler":[],"saksbehandlingvarsel":[]}],"tilbehør":[],"totaltAntall":1},"levering":{"hjelpemiddelformidler":{"navn":{"fornavn":"Sedat","mellomnavn":null,"etternavn":"Kronjuvel"},"arbeidssted":"Nav Oslo","stilling":"Fysioterapeut","telefon":"12345678","adresse":{"adresse":"Oslo Kommune","postnummer":"0484","poststed":"OSLO"},"epost":"urokkelig@mail.no","treffesEnklest":"Mandag og tirsdag","kommunenavn":null},"oppfølgingsansvarlig":"HJELPEMIDDELFORMIDLER","annenOppfølgingsansvarlig":null,"utleveringsmåte":"FOLKEREGISTRERT_ADRESSE","annenUtleveringsadresse":null,"utleveringKontaktperson":"HJELPEMIDDELBRUKER","annenKontaktperson":null,"utleveringMerknad":"","hast":null,"automatiskUtledetTilleggsinfo":[]},"innsender":{"rolle":"FORMIDLER","erKommunaltAnsatt":null,"kurs":[{"id":1,"title":"El-rullestol","kilde":"kursliste_import"},{"id":2,"title":"Personløftere og seil","kilde":"kunnskapsbanken"},{"id":3,"title":"Elektrisk seng","kilde":"kunnskapsbanken"},{"id":4,"title":"Bestilling","kilde":"kunnskapsbanken"}],"sjekketUtlånsoversiktForKategorier":[]},"metadata":{"bestillingsordningsjekk":{"kanVæreBestilling":false,"kriterier":{"alleHovedProdukterPåBestillingsOrdning":false,"alleTilbehørPåBestillingsOrdning":true,"brukerHarHjelpemidlerFraFør":false,"brukerHarInfotrygdVedtakFraFør":false,"brukerHarHotsakVedtakFraFør":true,"leveringTilFolkeregistrertAdresse":true,"brukersAdresseErSatt":true,"brukerBorIkkeIUtlandet":true,"brukerErIkkeSkjermetPerson":true,"inneholderIkkeFritekst":true,"kildeErPdl":false,"harIkkeForMangeOrdrelinjer":false,"ingenProdukterErAlleredeUtlevert":true,"brukerErTilknyttetBydelIOslo":null,"harIngenBytter":false,"brukerHarAdresseIOeBS":false},"metaInfo":{"hovedProdukter":["250993"],"hovedProdukterIkkePåBestillingsordning":["250993"],"tilbehør":[],"tilbehørIkkePåBestillingsordning":[]},"version":"4d07c217b6647d17f3c3bc39be710a2eaa80d06f"}},"id":"c5e04c1a-d4a4-4626-a046-61a5b894ca5e","type":"SØKNAD","innsendingsdato":"2023-01-17","innsendingstidspunkt":null,"skjemaversjon":2,"hjmBrukersFnr":"07073810927","prioritet":"NORMAL"}
             """.trimIndent(),
         )
 
-        val data = Behovsmelding.fraJsonNode(node)
+        val data = Innsenderbehovsmelding.fraJsonNode(node)
         val filtrert = data.filtrerForKommuneApiet()
         val filtrertRaw = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(filtrert)
 
         withClue("Forventet at bestillingsordningssjekk ble nullet ut før det sendes til kommunen") {
-            filtrert.bestillingsordningsjekk.shouldBeNull()
+            filtrert.metadata?.bestillingsordningsjekk.shouldBeNull()
         }
 
         withClue("Forventet at søknad.innsender ble nullet ut før det sendes til kommunen") {
-            filtrert.soknad.innsender.shouldBeNull()
+            filtrert.innsender.shouldBeNull()
         }
 
         filtrertRaw shouldNotContain "bestillingsordningsjekk"
-        filtrertRaw shouldNotContain "innsender"
     }
 }

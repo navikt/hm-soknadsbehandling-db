@@ -1,7 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import java.time.Instant
@@ -12,14 +17,8 @@ fun mockSøknadMedRullestol(
     id: UUID,
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
     fnrBruker: String = lagFødselsnummer(),
-): Behovsmeldingsgrunnlag.Digital = Behovsmeldingsgrunnlag.Digital(
-    søknadId = id,
-    status = status,
-    fnrBruker = fnrBruker,
-    navnBruker = "Fornavn Etternavn",
-    fnrInnsender = lagFødselsnummer(),
-    behovsmelding = jsonToValue(
-        """
+): Behovsmeldingsgrunnlag.Digital {
+    val v1Json = """
             {
               "soknad": {
                 "timestamp": "${Instant.now()}",
@@ -138,7 +137,24 @@ fun mockSøknadMedRullestol(
                 }
               }
             }
-        """.trimIndent(),
-    ),
-    behovsmeldingGjelder = null,
-)
+    """.trimIndent()
+    return Behovsmeldingsgrunnlag.Digital(
+        søknadId = id,
+        status = status,
+        fnrBruker = fnrBruker,
+        navnBruker = "Fornavn Etternavn",
+        fnrInnsender = lagFødselsnummer(),
+        behovsmelding = jsonToValue(v1Json),
+        behovsmeldingGjelder = null,
+        behovsmeldingV2 = jsonMapper.treeToValue(
+            jsonMapper.valueToTree<JsonNode>(
+                tilInnsenderbehovsmeldingV2(
+                    jsonMapper.readValue(
+                        v1Json,
+                        Behovsmelding::class.java,
+                    ),
+                ),
+            ),
+        ),
+    )
+}

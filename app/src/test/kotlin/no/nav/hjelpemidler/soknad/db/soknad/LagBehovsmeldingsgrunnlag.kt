@@ -1,9 +1,14 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import java.time.LocalDate
@@ -15,113 +20,122 @@ fun lagBehovsmeldingsgrunnlagDigital(
     fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
 ): Behovsmeldingsgrunnlag.Digital {
+    val v1Json = """
+        {
+          "id": "$søknadId",
+          "behovsmeldingType": "$behovsmeldingType",
+          "soknad": {
+            "id": "$søknadId",
+            "date": "${LocalDate.now()}",
+            "bruker": {
+              "fnummer": "$fnrBruker",
+              "fornavn": "Fornavn",
+              "signatur": "FULLMAKT",
+              "etternavn": "Etternavn",
+              "telefonNummer": "12345678",
+              "adresse": "adresseveien 2",
+              "postnummer": "1234",
+              "poststed": "poststed",
+              "kommunenummer": "9999",
+              "kroppsmaal": {}
+            },
+            "brukersituasjon": {
+              "bostedRadioButton": "Hjemme",
+              "bruksarenaErDagliglivet": true,
+              "nedsattFunksjonTypes": {
+                "bevegelse": true,
+                "kognisjon": false,
+                "horsel": true
+              }
+            },
+            "hjelpemidler": {
+              "hjelpemiddelTotaltAntall": 2,
+              "hjelpemiddelListe": [
+                {
+                  "uniqueKey": "1",
+                  "hmsNr": "123456",
+                  "beskrivelse": "Hjelpemiddelnavn",
+                  "begrunnelsen": "begrunnelse",
+                  "antall": 1,
+                  "navn": "Hjelpemiddelnavn",
+                  "utlevertFraHjelpemiddelsentralen": true,
+                  "tilleggsinformasjon": "Tilleggsinformasjon",
+                  "kanIkkeTilsvarande": true,
+                  "hjelpemiddelkategori": "Arbeidsstoler",
+                  "produkt": {
+                    "postrank": "1",
+                    "isocode": "11111111",
+                    "isotitle": "Isotittel",
+                    "aposttitle": "Delkontrakt",
+                    "kategori": "Arbeidsstoler"
+                  },
+                  "vilkarliste": [
+                    {
+                      "vilkartekst": "Vilkår 1",
+                      "tilleggsinfo": "Tilleggsinfo",
+                      "checked": true
+                    }
+                  ],
+                  "tilbehorListe": [
+                    {
+                      "hmsnr": "654321",
+                      "navn": "Tilbehør 1",
+                      "antall": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            "levering": {
+              "hmfFornavn": "formidlerFornavn",
+              "hmfEtternavn": "formidlerEtternavn",
+              "hmfArbeidssted": "arbeidssted",
+              "hmfStilling": "stilling",
+              "hmfPostadresse": "postadresse arbeidssted",
+              "hmfPostnr": "9999",
+              "hmfPoststed": "poststed",
+              "hmfTelefon": "12345678",
+              "hmfTreffesEnklest": "treffesEnklest",
+              "hmfEpost": "formidler@kommune.no",
+              "opfRadioButton": "Hjelpemiddelformidler",
+              "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
+              "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker",
+              "merknadTilUtlevering": ""
+            },
+            "innsender": {
+              "somRolle": "FORMIDLER",
+              "erKommunaltAnsatt": true,
+              "organisasjoner": [
+                {
+                  "navn": "STORÅS OG HESSENG",
+                  "orgnr": "910753282",
+                  "orgform": "AS",
+                  "kommunenummer": "9999"
+                }
+              ],
+              "godkjenningskurs": []
+            }
+          }
+        }
+    """.trimIndent()
     return Behovsmeldingsgrunnlag.Digital(
         søknadId = søknadId,
         status = status,
         fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
         fnrInnsender = fnrInnsender,
-        behovsmelding = jsonToValue(
-            """
-                {
-                  "id": "$søknadId",
-                  "behovsmeldingType": "$behovsmeldingType",
-                  "soknad": {
-                    "id": "$søknadId",
-                    "date": "${LocalDate.now()}",
-                    "bruker": {
-                      "fnummer": "$fnrBruker",
-                      "fornavn": "Fornavn",
-                      "signatur": "FULLMAKT",
-                      "etternavn": "Etternavn",
-                      "telefonNummer": "12345678",
-                      "adresse": "adresseveien 2",
-                      "postnummer": "1234",
-                      "poststed": "poststed",
-                      "kommunenummer": "9999",
-                      "kroppsmaal": {}
-                    },
-                    "brukersituasjon": {
-                      "bostedRadioButton": "Hjemme",
-                      "bruksarenaErDagliglivet": true,
-                      "nedsattFunksjonTypes": {
-                        "bevegelse": true,
-                        "kognisjon": false,
-                        "horsel": true
-                      }
-                    },
-                    "hjelpemidler": {
-                      "hjelpemiddelTotaltAntall": 2,
-                      "hjelpemiddelListe": [
-                        {
-                          "uniqueKey": "1",
-                          "hmsNr": "123456",
-                          "beskrivelse": "Hjelpemiddelnavn",
-                          "begrunnelsen": "begrunnelse",
-                          "antall": 1,
-                          "navn": "Hjelpemiddelnavn",
-                          "utlevertFraHjelpemiddelsentralen": true,
-                          "tilleggsinformasjon": "Tilleggsinformasjon",
-                          "kanIkkeTilsvarande": true,
-                          "hjelpemiddelkategori": "Arbeidsstoler",
-                          "produkt": {
-                            "postrank": "1",
-                            "isocode": "11111111",
-                            "isotitle": "Isotittel",
-                            "aposttitle": "Delkontrakt",
-                            "kategori": "Arbeidsstoler"
-                          },
-                          "vilkarliste": [
-                            {
-                              "vilkartekst": "Vilkår 1",
-                              "tilleggsinfo": "Tilleggsinfo",
-                              "checked": true
-                            }
-                          ],
-                          "tilbehorListe": [
-                            {
-                              "hmsnr": "654321",
-                              "navn": "Tilbehør 1",
-                              "antall": 1
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "levering": {
-                      "hmfFornavn": "formidlerFornavn",
-                      "hmfEtternavn": "formidlerEtternavn",
-                      "hmfArbeidssted": "arbeidssted",
-                      "hmfStilling": "stilling",
-                      "hmfPostadresse": "postadresse arbeidssted",
-                      "hmfPostnr": "9999",
-                      "hmfPoststed": "poststed",
-                      "hmfTelefon": "12345678",
-                      "hmfTreffesEnklest": "treffesEnklest",
-                      "hmfEpost": "formidler@kommune.no",
-                      "opfRadioButton": "Hjelpemiddelformidler",
-                      "utleveringsmaateRadioButton": "FolkeregistrertAdresse",
-                      "utleveringskontaktpersonRadioButton": "Hjelpemiddelbruker",
-                      "merknadTilUtlevering": ""
-                    },
-                    "innsender": {
-                      "somRolle": "FORMIDLER",
-                      "erKommunaltAnsatt": true,
-                      "organisasjoner": [
-                        {
-                          "navn": "STORÅS OG HESSENG",
-                          "orgnr": "910753282",
-                          "orgform": "AS",
-                          "kommunenummer": "9999"
-                        }
-                      ],
-                      "godkjenningskurs": []
-                    }
-                  }
-                }
-            """.trimIndent(),
-        ),
+        behovsmelding = jsonToValue(v1Json),
         behovsmeldingGjelder = "TEST",
+        behovsmeldingV2 = jsonMapper.treeToValue(
+            jsonMapper.valueToTree<JsonNode>(
+                tilInnsenderbehovsmeldingV2(
+                    jsonMapper.readValue(
+                        v1Json,
+                        Behovsmelding::class.java,
+                    ),
+                ),
+            ),
+        ),
     )
 }
 

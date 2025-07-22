@@ -42,7 +42,7 @@ sealed interface Behovsmeldingsgrunnlag : TilknyttetSøknad {
          * behovsmeldingsmodellen oppdaterer seg. hm-soknadsbehandling skal uansett bare videre sende data.
          * Typing av data i hm-soknad-api og hm-soknadsbehandling-db.
          */
-        val behovsmeldingV2: Map<String, Any?>? = null,
+        val behovsmeldingV2: Map<String, Any?>,
     ) : Behovsmeldingsgrunnlag {
         override val kilde: Kilde = Kilde.DIGITAL
         override val digital: Boolean = true

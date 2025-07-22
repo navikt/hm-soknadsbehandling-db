@@ -29,7 +29,6 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.SøknadForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import java.math.BigInteger
 import java.time.DayOfWeek
@@ -37,7 +36,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
-import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v1.Behovsmelding as BehovsmeldingKommuneApi
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding as InnsenderbehovsmeldingKommuneApi
 
 private val logg = KotlinLogging.logger {}
@@ -527,119 +525,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 status = it.enum("status"),
                 opprettet = it.instant("created"),
                 digital = it.boolean("er_digital"),
-            )
-        }
-    }
-
-    private var hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
-    fun hentSøknaderForKommuneApiet(
-        kommunenummer: String,
-        nyereEnn: UUID?,
-        nyereEnnTidsstempel: Long?,
-    ): List<SøknadForKommuneApi> {
-        val extraWhere1 =
-            if (nyereEnn == null) "" else "AND CREATED > (SELECT CREATED FROM V1_SOKNAD WHERE SOKNADS_ID = :nyereEnn)"
-        val extraWhere2 = if (nyereEnnTidsstempel == null) "" else "AND CREATED > :nyereEnnTidsstempel"
-
-        val statement = Sql(
-            """
-                SELECT fnr_bruker,
-                       navn_bruker,
-                       fnr_innsender,
-                       soknads_id,
-                       data,
-                       soknad_gjelder,
-                       created
-                FROM v1_soknad
-                WHERE
-                  -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
-                  data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
-                  -- Sjekk at brukeren det søkes om bor i samme kommune
-                  AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
-                  -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
-                  AND data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
-                  -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
-                  AND created > NOW() - '7 days'::INTERVAL
-                  -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
-                  AND er_digital
-                  -- Videre filtrering basert på kommunens filtre
-                  $extraWhere1
-                  $extraWhere2
-                ORDER BY CREATED ASC
-            """.trimIndent(),
-        )
-
-        return tx.list(
-            statement,
-            mapOf(
-                "kommunenummer" to kommunenummer,
-                "kommunenummerJson" to pgJsonbOf(listOf(mapOf("kommunenummer" to kommunenummer))),
-                "nyereEnn" to nyereEnn,
-                "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
-                    LocalDateTime.ofInstant(
-                        Instant.ofEpochSecond(nyereEnnTidsstempel),
-                        ZoneId.systemDefault(),
-                    )
-                },
-            ),
-        ) {
-            val behovsmeldingId = it.uuid("soknads_id")
-            val data = it.jsonOrNull<JsonNode>("DATA") ?: jsonMapper.createObjectNode()
-
-            // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
-            val validatedData = runCatching { BehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
-                logg.error(cause) { "Kunne ikke tolke søknadsdata (v1), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
-                synchronized(hentSoknaderForKommuneApietSistRapportertSlack) {
-                    if (
-                        hentSoknaderForKommuneApietSistRapportertSlack.isBefore(
-                            LocalDateTime.now().minusHours(1),
-                        ) &&
-                        hentSoknaderForKommuneApietSistRapportertSlack.hour >= 8 &&
-                        hentSoknaderForKommuneApietSistRapportertSlack.hour < 16 &&
-                        hentSoknaderForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
-                        !Environment.current.tier.isLocal
-                    ) {
-                        hentSoknaderForKommuneApietSistRapportertSlack = LocalDateTime.now()
-                        runBlocking(Dispatchers.IO) {
-                            slackClient.sendMessage(
-                                "hm-soknadsbehandling-db",
-                                slackIconEmoji(":this-is-fine-fire:"),
-                                if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
-                                """
-                                    Datamodellen (v1) for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/app/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/v1/Valideringsmodell.kt|Valideringsmodell.kt>.
-                                    
-                                    Bør fikses ASAP.
-                                    
-                                    Feilmelding: Søk etter UUID i logger: $behovsmeldingId
-                                """.trimIndent(),
-                            )
-                        }
-                    }
-                }
-                return@list null
-            }
-
-            // Ekstra sikkerhetssjekker
-            if (validatedData.soknad.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
-                // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
-                error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
-            }
-
-            if (validatedData.soknad.bruker.kommunenummer != kommunenummer) {
-                error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet brukers kommunenummer")
-            }
-
-            // Filtrer ut ikke-relevante felter
-            val filteredData = validatedData.filtrerForKommuneApiet()
-
-            SøknadForKommuneApi(
-                fnrBruker = it.string("fnr_bruker"),
-                navnBruker = it.string("navn_bruker"),
-                fnrInnsender = it.stringOrNull("fnr_innsender"),
-                soknadId = it.uuid("soknads_id"),
-                soknad = filteredData,
-                soknadGjelder = it.stringOrNull("soknad_gjelder"),
-                opprettet = it.localDateTime("created"),
             )
         }
     }

@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - brukerpassbytte-v2
+      - sunset-v1
 
 jobs:
   build:

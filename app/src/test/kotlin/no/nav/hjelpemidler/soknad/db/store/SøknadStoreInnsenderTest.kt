@@ -92,6 +92,7 @@ class SøknadStoreInnsenderTest {
                     fnrInnsender = fnrInnsender,
                     behovsmelding = emptyMap(),
                     behovsmeldingGjelder = null,
+                    behovsmeldingV2 = emptyMap(),
                 ),
             ) shouldBe 1
 
