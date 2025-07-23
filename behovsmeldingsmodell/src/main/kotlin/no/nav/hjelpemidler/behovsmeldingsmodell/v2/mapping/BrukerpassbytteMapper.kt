@@ -31,7 +31,7 @@ fun tilBrukerpassbytteV2(v1: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerp
         hmsArtNr = v1.hjelpemiddel.artnr,
         artikkelnavn = v1.hjelpemiddel.navn,
         iso6Tittel = v1.hjelpemiddel.kategori,
-        iso6 = v1.hjelpemiddel.kategorinummer?.let { Iso6(it) },
+        iso6 = v1.hjelpemiddel.kategorinummer?.let { Iso6(it.take(6)) },
     )
 
     return Brukerpassbytte(

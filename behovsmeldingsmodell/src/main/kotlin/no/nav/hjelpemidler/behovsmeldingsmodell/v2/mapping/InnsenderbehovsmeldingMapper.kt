@@ -51,14 +51,15 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Utlevertinfo
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varsel
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Varseltype
 import no.nav.hjelpemidler.behovsmeldingsmodell.ÅrsakForAntall
+import java.time.LocalDate
 
-fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding): Innsenderbehovsmelding {
+fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding, defaultDato: LocalDate? = null): Innsenderbehovsmelding {
     val id = v1.id ?: error("Behovsmelding v1 mangler id")
     val v1Bruker = v1.søknad?.bruker ?: error("Behovsmelding $id mangler søknad")
     return Innsenderbehovsmelding(
         id = id,
         type = v1.behovsmeldingType,
-        innsendingsdato = v1.søknad.dato ?: error("Behovsmelding $id mangler dato"),
+        innsendingsdato = v1.søknad.dato ?: defaultDato ?:error("Behovsmelding $id mangler dato"),
         bruker = Bruker(
             fnr = v1Bruker.fnr,
             navn = v1Bruker.navn,
