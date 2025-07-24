@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderbehovsmeldingMetadataDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
@@ -308,11 +309,11 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,
-                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.data_v2 ->> 'type' AS behovsmeldingtype,
                        soknad.journalpostid,
                        soknad.created,
                        soknad.updated,
-                       soknad.data,
+                       soknad.data_v2,
                        soknad.er_digital,
                        soknad.soknad_gjelder,
                        status.status,
@@ -345,10 +346,11 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             val status = it.enum<BehovsmeldingStatus>("status")
             val datoOpprettet = it.sqlTimestamp("created")
             val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
+            val behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType")
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadMedStatus.newSøknadUtenFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = behovsmeldingType,
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
@@ -361,19 +363,29 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             } else {
                 SøknadMedStatus.newSøknadMedFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
-                    behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
+                    behovsmeldingType = behovsmeldingType,
                     journalpostId = it.stringOrNull("journalpostid"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    søknad = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(), // TODO hent fra data_v2
+                    formidlerNavn = it.formidlerNavn(behovsmeldingType),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 )
             }
         }
+    }
+
+    private fun Row.formidlerNavn(
+        behovsmeldingType: BehovsmeldingType,
+    ): String? {
+        if (behovsmeldingType == BehovsmeldingType.BRUKERPASSBYTTE) {
+            return null
+        }
+        val behovsmelding = this.json<Innsenderbehovsmelding>("data_v2")
+        return behovsmelding.levering.hjelpemiddelformidler.navn.toString()
     }
 
     fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {

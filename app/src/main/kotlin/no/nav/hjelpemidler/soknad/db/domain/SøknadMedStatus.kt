@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
@@ -54,7 +53,7 @@ class SøknadMedStatus private constructor(
             datoOppdatert: Date,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
-            søknad: JsonNode,
+            formidlerNavn: String?,
             er_digital: Boolean,
             soknadGjelder: String?,
             valgteÅrsaker: List<String>,
@@ -66,21 +65,10 @@ class SøknadMedStatus private constructor(
             datoOppdatert,
             status,
             fullmakt,
-            formidlerNavn(søknad, behovsmeldingType),
+            formidlerNavn,
             er_digital,
             soknadGjelder,
             valgteÅrsaker,
         )
     }
-}
-
-private fun formidlerNavn(
-    soknad: JsonNode,
-    behovsmeldingType: BehovsmeldingType,
-): String? {
-    if (behovsmeldingType == BehovsmeldingType.BRUKERPASSBYTTE) {
-        return null
-    }
-    val leveringNode = soknad["soknad"]["levering"]
-    return "${leveringNode["hmfFornavn"].textValue()} ${leveringNode["hmfEtternavn"].textValue()}"
 }
