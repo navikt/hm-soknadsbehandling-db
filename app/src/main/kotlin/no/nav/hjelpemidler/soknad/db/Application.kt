@@ -119,7 +119,7 @@ private fun startDataMigrering(database: Database, serviceContext: ServiceContex
                         antallMigrert = serviceContext.søknadService.migrerTilDataV2()
                     }
                     logg.info { "Antall migrert: $antallMigrert (${tidsbrukMs}ms)" }
-                    delay(1_000)
+                    delay(200)
                 }
                 logg.info { "Datamigrering ferdig." }
             }
