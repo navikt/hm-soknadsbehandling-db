@@ -434,7 +434,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
              FROM v1_soknad
              WHERE er_digital = true AND data_v2 IS NULL AND data IS NOT NULL
              FOR UPDATE SKIP LOCKED
-             LIMIT 100
+             LIMIT 200
             """.trimIndent(),
             mapOf(),
             { row ->
