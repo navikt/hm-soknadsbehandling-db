@@ -312,7 +312,7 @@ data class Levering(
             lagVeiadresse(
                 adresse = checkNotNull(utleveringPostadresse),
                 postnummer = checkNotNull(utleveringPostnummer),
-                poststed = checkNotNull(utleveringPoststed ?: ""),
+                poststed = checkNotNull(utleveringPoststed ?: "POSTSTED MANGLER"),
             )
         }
 
