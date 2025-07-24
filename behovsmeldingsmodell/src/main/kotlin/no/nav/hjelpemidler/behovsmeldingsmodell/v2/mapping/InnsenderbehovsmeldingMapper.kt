@@ -130,7 +130,7 @@ fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding, defaultDato: LocalDate? = nul
                 Utleveringsmåte.ALLEREDE_UTLEVERT_AV_NAV -> UtleveringsmåteV2.ALLEREDE_UTLEVERT_AV_NAV
                 null -> null
             },
-            annenUtleveringsadresse = if (v1.søknad.levering.utleveringPostadresse.isNullOrBlank() && v1.søknad.levering.utleveringPoststed.isNullOrBlank() && v1.søknad.levering.utleveringPostnummer.isNullOrBlank()) null else v1.søknad.levering.annenUtleveringsadresse,
+            annenUtleveringsadresse = v1.søknad.levering.annenUtleveringsadresse,
             utleveringKontaktperson = when (v1.søknad.levering.utleveringKontaktperson) {
                 Kontaktperson.HJELPEMIDDELBRUKER -> KontaktpersonV2.HJELPEMIDDELBRUKER
                 Kontaktperson.HJELPEMIDDELFORMIDLER -> KontaktpersonV2.HJELPEMIDDELFORMIDLER
