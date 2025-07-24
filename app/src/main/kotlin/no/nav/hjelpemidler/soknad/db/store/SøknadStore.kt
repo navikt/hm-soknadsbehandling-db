@@ -9,6 +9,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderbehovsmeldingMetadataDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.collections.enumSetOf
@@ -81,6 +82,18 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId),
             Row::tilInnsenderbehovsmelding,
+        )
+    }
+
+    fun finnBrukerpassbytte(behovsmeldingId: UUID): Brukerpassbytte? {
+        return tx.singleOrNull(
+            """
+                SELECT data_v2
+                FROM v1_soknad
+                WHERE soknads_id = :behovsmeldingId
+            """.trimIndent(),
+            mapOf("behovsmeldingId" to behovsmeldingId),
+            Row::tilBrukerpassbytte,
         )
     }
 

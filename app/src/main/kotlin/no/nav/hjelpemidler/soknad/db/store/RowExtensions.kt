@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.database.Row
@@ -44,6 +45,10 @@ fun Row.tilSøknad(): SøknadDto {
 fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding {
     return jsonOrNull<Innsenderbehovsmelding>("data_v2")
         ?: tilInnsenderbehovsmeldingV2(json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data"))
+}
+
+fun Row.tilBrukerpassbytte(): Brukerpassbytte? {
+    return jsonOrNull<Brukerpassbytte>("data_v2")
 }
 
 fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDto {

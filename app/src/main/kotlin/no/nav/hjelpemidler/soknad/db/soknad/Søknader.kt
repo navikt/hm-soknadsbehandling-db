@@ -81,3 +81,13 @@ class Behovsmelding {
         val parent: Behovsmelding = Behovsmelding(),
     )
 }
+
+// TODO: Det gir kanskje mer mening å slå i hop med /behovsmelding over, og returnere som JsonNode/BehovsmeldingBase
+@Resource("/brukerpassbytte")
+class Brukerpassbytte {
+    @Resource("/{behovsmeldingId}")
+    class BehovsmeldingId(
+        @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
+        val parent: Brukerpassbytte = Brukerpassbytte(),
+    )
+}

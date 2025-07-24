@@ -60,6 +60,15 @@ fun Route.søknadApi(
         call.respondNullable(HttpStatusCode.OK, behovsmeldingDto)
     }
 
+    get<Brukerpassbytte.BehovsmeldingId> {
+        val behovsmeldingId = it.behovsmeldingId
+        val behovsmelding = transaction { søknadStore.finnBrukerpassbytte(behovsmeldingId) }
+        if (behovsmelding == null) {
+            logg.info { "Fant ikke brukerpassbytte med behovsmeldingId: $behovsmeldingId" }
+        }
+        call.respondNullable(HttpStatusCode.OK, behovsmelding)
+    }
+
     put<Søknader.SøknadId.Journalpost> {
         data class Journalpost(val journalpostId: String)
 
