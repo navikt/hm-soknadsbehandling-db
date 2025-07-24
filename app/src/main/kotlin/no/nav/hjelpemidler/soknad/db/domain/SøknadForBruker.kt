@@ -5,12 +5,8 @@ import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilBrukerpassbytteV2
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
-import no.nav.hjelpemidler.domain.person.toFødselsnummer
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
@@ -26,8 +22,7 @@ class SøknadForBruker private constructor(
     val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val fnrBruker: String,
-    val brukerpassbyttedata: Brukerpassbytte?,
-    val brukerpassbyttedataV2: no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte?,
+    val brukerpassbyttedataV2: Brukerpassbytte?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
     var ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -43,7 +38,6 @@ class SøknadForBruker private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            behovsmeldingJson: JsonNode, // TODO fjern
             behovsmeldingJsonV2: JsonNode,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
@@ -64,18 +58,9 @@ class SøknadForBruker private constructor(
                 status = status,
                 fullmakt = fullmakt,
                 fnrBruker = fnrBruker,
-                brukerpassbyttedata = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(behovsmeldingJson["brukerpassbytte"])
-                },
                 brukerpassbyttedataV2 = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE -> null
-                    BehovsmeldingType.BRUKERPASSBYTTE -> tilBrukerpassbytteV2(
-                        jsonMapper.treeToValue<Brukerpassbytte>(
-                            behovsmeldingJson["brukerpassbytte"],
-                        ),
-                        fnrBruker.toFødselsnummer(),
-                    )
+                    BehovsmeldingType.BRUKERPASSBYTTE -> jsonMapper.treeToValue<Brukerpassbytte>(behovsmeldingJsonV2)
+                    else -> null
                 },
                 er_digital = er_digital,
                 soknadGjelder = soknadGjelder,
@@ -84,13 +69,8 @@ class SøknadForBruker private constructor(
                 søknadType = søknadType,
                 valgteÅrsaker = valgteÅrsaker,
                 innsenderbehovsmelding = when (behovsmeldingType) {
-                    BehovsmeldingType.SØKNAD, BehovsmeldingType.BESTILLING, BehovsmeldingType.BYTTE ->
-                        behovsmeldingJsonV2?.let { jsonMapper.treeToValue<Innsenderbehovsmelding>(it) }
-                            ?: tilInnsenderbehovsmeldingV2(
-                                jsonMapper.treeToValue<Behovsmelding>(behovsmeldingJson),
-                            )
-
                     BehovsmeldingType.BRUKERPASSBYTTE -> null
+                    else -> behovsmeldingJsonV2.let { jsonMapper.treeToValue<Innsenderbehovsmelding>(it) }
                 },
             )
         }
@@ -119,7 +99,6 @@ class SøknadForBruker private constructor(
             status = status,
             fullmakt = fullmakt,
             fnrBruker = fnrBruker,
-            brukerpassbyttedata = null,
             brukerpassbyttedataV2 = null,
             er_digital = er_digital,
             soknadGjelder = soknadGjelder,

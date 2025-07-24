@@ -196,7 +196,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    behovsmeldingJson = jsonMapper.createObjectNode(),
                     behovsmeldingJsonV2 = it.json<JsonNode>("data_v2"),
                     fnrBruker = it.string("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
