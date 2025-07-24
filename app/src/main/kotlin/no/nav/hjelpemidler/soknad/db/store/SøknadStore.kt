@@ -384,8 +384,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         if (behovsmeldingType == BehovsmeldingType.BRUKERPASSBYTTE) {
             return null
         }
-        val behovsmelding = this.json<Innsenderbehovsmelding>("data_v2")
-        return behovsmelding.levering.hjelpemiddelformidler.navn.toString()
+        val behovsmelding = this.jsonOrNull<Innsenderbehovsmelding>("data_v2")
+        return behovsmelding?.levering?.hjelpemiddelformidler?.navn.toString()
     }
 
     fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
