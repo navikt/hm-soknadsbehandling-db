@@ -419,6 +419,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         ).actualRowCount
     }
 
+    val kjenteFeil = mutableSetOf<UUID>()
+
     fun migrerDataTilV2(): Int {
 
         data class Data(
@@ -473,7 +475,10 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     else -> tilInnsenderbehovsmeldingV2(jsonMapper.convertValue<Behovsmelding>(data), datoOpprettet)
                 }
             } catch (e: Exception) {
-                logg.error(e) { "Migrering til V2 feilet for $id. Skipper." }
+                if (id !in kjenteFeil) {
+                    kjenteFeil.add(id)
+                    logg.error(e) { "Migrering til V2 feilet for $id. Skipper." }
+                }
                 return@forEach
             }
 
