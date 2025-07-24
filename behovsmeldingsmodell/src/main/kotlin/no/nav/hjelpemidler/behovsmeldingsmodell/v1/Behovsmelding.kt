@@ -266,7 +266,7 @@ data class Levering(
             adresse = lagVeiadresse(
                 adresse = hjelpemiddelformidlerPostadresse,
                 postnummer = hjelpemiddelformidlerPostnummer,
-                poststed = hjelpemiddelformidlerPoststed,
+                poststed = hjelpemiddelformidlerPoststed.ifBlank { "POSTSTED MANGLER" },
             ),
             epost = hjelpemiddelformidlerEpost,
             treffesEnklest = hjelpemiddelformidlerTreffesEnklest,
