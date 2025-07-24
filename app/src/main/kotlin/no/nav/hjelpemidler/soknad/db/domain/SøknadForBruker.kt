@@ -43,8 +43,8 @@ class SøknadForBruker private constructor(
             journalpostId: String?,
             datoOpprettet: Date,
             datoOppdatert: Date,
-            behovsmeldingJson: JsonNode,
-            behovsmeldingJsonV2: JsonNode?,
+            behovsmeldingJson: JsonNode, // TODO fjern
+            behovsmeldingJsonV2: JsonNode,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
             fnrBruker: String,

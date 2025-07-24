@@ -76,7 +76,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
     fun finnInnsenderbehovsmelding(behovsmeldingId: UUID): Innsenderbehovsmelding? {
         return tx.singleOrNull(
             """
-                SELECT data, data_v2
+                SELECT data_v2
                 FROM v1_soknad
                 WHERE soknads_id = :behovsmeldingId
             """.trimIndent(),
@@ -101,7 +101,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         return tx.singleOrNull(
             """
                 SELECT  soknads_id,
-                        data,
                         data_v2,
                         fnr_innsender,
                         soknad_gjelder
@@ -133,9 +132,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,
-                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.data_v2 ->> 'type' AS behovsmeldingtype,
                        soknad.journalpostid,
-                       soknad.data,
                        soknad.data_v2,
                        soknad.created,
                        soknad.fnr_bruker,
@@ -198,8 +196,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    behovsmeldingJson = it.jsonOrNull<JsonNode>("data") ?: jsonMapper.createObjectNode(),
-                    behovsmeldingJsonV2 = it.jsonOrNull<JsonNode>("data_v2"),
+                    behovsmeldingJson = jsonMapper.createObjectNode(),
+                    behovsmeldingJsonV2 = it.json<JsonNode>("data_v2"),
                     fnrBruker = it.string("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),

@@ -43,8 +43,7 @@ fun Row.tilSøknad(): SøknadDto {
 }
 
 fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding {
-    return jsonOrNull<Innsenderbehovsmelding>("data_v2")
-        ?: tilInnsenderbehovsmeldingV2(json<no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding>("data"))
+    return json<Innsenderbehovsmelding>("data_v2")
 }
 
 fun Row.tilBrukerpassbytte(): Brukerpassbytte? {
