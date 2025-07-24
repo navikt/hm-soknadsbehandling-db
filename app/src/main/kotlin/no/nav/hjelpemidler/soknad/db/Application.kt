@@ -17,10 +17,6 @@ import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
@@ -35,9 +31,6 @@ import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import org.slf4j.event.Level
-import java.util.Timer
-import kotlin.concurrent.schedule
-import kotlin.system.measureTimeMillis
 
 private val logg = KotlinLogging.logger { }
 
@@ -90,8 +83,6 @@ fun Application.module() {
             }
         }
     }
-
-    startDataMigrering(database, serviceContext)
 }
 
 fun Application.felles() {
@@ -104,25 +95,4 @@ fun Application.felles() {
         filter { call -> call.request.path().startsWith("/api") }
     }
     feilmelding()
-}
-
-private fun startDataMigrering(database: Database, serviceContext: ServiceContext) {
-    val timer = Timer("data-migrering-task", true)
-
-    timer.schedule(delay = 10_000) {
-        runBlocking(Dispatchers.IO) {
-            launch {
-                var antallMigrert = 1
-                while (antallMigrert > 0) {
-                    logg.info { "Kjører datamigreringsbatch." }
-                    val tidsbrukMs = measureTimeMillis {
-                        antallMigrert = serviceContext.søknadService.migrerTilDataV2()
-                    }
-                    logg.info { "Antall migrert: $antallMigrert (${tidsbrukMs}ms)" }
-                    delay(200)
-                }
-                logg.info { "Datamigrering ferdig." }
-            }
-        }
-    }
 }

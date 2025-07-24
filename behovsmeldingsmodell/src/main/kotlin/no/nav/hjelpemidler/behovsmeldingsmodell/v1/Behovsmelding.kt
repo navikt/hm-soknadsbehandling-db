@@ -266,7 +266,7 @@ data class Levering(
             adresse = lagVeiadresse(
                 adresse = hjelpemiddelformidlerPostadresse,
                 postnummer = hjelpemiddelformidlerPostnummer,
-                poststed = hjelpemiddelformidlerPoststed.ifBlank { "POSTSTED MANGLER" },
+                poststed = hjelpemiddelformidlerPoststed,
             ),
             epost = hjelpemiddelformidlerEpost,
             treffesEnklest = hjelpemiddelformidlerTreffesEnklest,
@@ -311,8 +311,8 @@ data class Levering(
         } else {
             lagVeiadresse(
                 adresse = checkNotNull(utleveringPostadresse),
-                postnummer = checkNotNull(if (utleveringPostnummer == "51444") "5144" else utleveringPostnummer),
-                poststed = checkNotNull(if (utleveringPoststed.isNullOrBlank()) "POSTSTED MANGLER" else utleveringPoststed),
+                postnummer = checkNotNull(utleveringPostnummer),
+                poststed = checkNotNull(utleveringPoststed),
             )
         }
 

@@ -1,19 +1,15 @@
 package no.nav.hjelpemidler.soknad.db.store
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.convertValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderbehovsmeldingMetadataDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilBrukerpassbytteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
@@ -23,7 +19,6 @@ import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
-import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
@@ -38,7 +33,6 @@ import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import java.math.BigInteger
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
@@ -417,85 +411,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
             ),
         ).actualRowCount
-    }
-
-    val kjenteFeil = mutableSetOf<UUID>()
-
-    fun migrerDataTilV2(): Int {
-
-        data class Data(
-            val id: UUID,
-            val data: JsonNode,
-            val fnrInnsender: Fødselsnummer,
-            val datoOpprettet: LocalDate,
-        )
-
-        val behovsmeldingerV1 = tx.list(
-            """
-             SELECT soknads_id, data, fnr_innsender, created
-             FROM v1_soknad
-             WHERE er_digital = true AND data_v2 IS NULL AND data IS NOT NULL
-             FOR UPDATE SKIP LOCKED
-             LIMIT 200
-            """.trimIndent(),
-            mapOf(),
-            { row ->
-                val id = row.uuid("soknads_id")
-                logg.info { "Klargjør $id for migrering." }
-                Data(
-                    id = id,
-                    data = row.json<JsonNode>("data"),
-                    fnrInnsender = Fødselsnummer(row.string("fnr_innsender")),
-                    datoOpprettet = row.localDate("created")
-                )
-            },
-        )
-
-        var count = 0
-        behovsmeldingerV1.forEach { (id, data, fnrInnsender, datoOpprettet) ->
-            logg.info { "Migrerer til data_v2 for behovsmelding '$id'" }
-            val typeNode = data["behovsmeldingType"]
-            val type = if (typeNode == null || typeNode.isNull()) {
-                BehovsmeldingType.SØKNAD
-            } else {
-                BehovsmeldingType.valueOf(
-                    typeNode.asText("SØKNAD")
-                )
-            }
-
-            logg.info { "$id har type ${type.name}" }
-
-            val dataV2 = try {
-                when (type) {
-                    BehovsmeldingType.BRUKERPASSBYTTE -> tilBrukerpassbytteV2(
-                        v1 = jsonMapper.convertValue<Brukerpassbytte>(data["brukerpassbytte"]),
-                        fnr = fnrInnsender,
-                    )
-
-                    else -> tilInnsenderbehovsmeldingV2(jsonMapper.convertValue<Behovsmelding>(data), datoOpprettet)
-                }
-            } catch (e: Exception) {
-                if (id !in kjenteFeil) {
-                    kjenteFeil.add(id)
-                    logg.error(e) { "Migrering til V2 feilet for $id. Skipper." }
-                }
-                return@forEach
-            }
-
-            logg.info { "Mappet $id til v2" }
-
-            tx.update(
-                """
-                    UPDATE v1_soknad SET data_v2 = :dataV2 WHERE soknads_id = :id
-                """.trimIndent(),
-                mapOf("id" to id, "dataV2" to pgJsonbOf(dataV2)),
-            )
-
-            logg.info { "Lagret data_v2 for $id" }
-            count++
-        }
-
-        return count
     }
 
     fun lagrePapirsøknad(grunnlag: Behovsmeldingsgrunnlag.Papir): Int {

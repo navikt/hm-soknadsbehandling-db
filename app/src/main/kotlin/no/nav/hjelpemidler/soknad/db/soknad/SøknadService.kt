@@ -47,17 +47,6 @@ class SøknadService(private val transaction: Transaction) {
         }
     }
 
-    suspend fun migrerTilDataV2(): Int {
-        return transaction {
-            try {
-                søknadStore.migrerDataTilV2()
-            } catch (e: Exception) {
-                logg.error(e) { "Migrering til data_v2 feilet." }
-                0
-            }
-        }
-    }
-
     suspend fun finnSak(søknadId: BehovsmeldingId): Fagsak? {
         return transaction {
             hotsakStore.finnSak(søknadId) ?: infotrygdStore.finnSak(søknadId)
