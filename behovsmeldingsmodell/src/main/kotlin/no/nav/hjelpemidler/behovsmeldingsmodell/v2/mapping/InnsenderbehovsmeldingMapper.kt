@@ -59,7 +59,7 @@ fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding, defaultDato: LocalDate? = nul
     return Innsenderbehovsmelding(
         id = id,
         type = v1.behovsmeldingType,
-        innsendingsdato = v1.søknad.dato ?: defaultDato ?:error("Behovsmelding $id mangler dato"),
+        innsendingsdato = v1.søknad.dato ?: defaultDato ?: error("Behovsmelding $id mangler dato"),
         bruker = Bruker(
             fnr = v1Bruker.fnr,
             navn = v1Bruker.navn,
@@ -130,7 +130,7 @@ fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding, defaultDato: LocalDate? = nul
                 Utleveringsmåte.ALLEREDE_UTLEVERT_AV_NAV -> UtleveringsmåteV2.ALLEREDE_UTLEVERT_AV_NAV
                 null -> null
             },
-            annenUtleveringsadresse = v1.søknad.levering.annenUtleveringsadresse,
+            annenUtleveringsadresse = if (v1.søknad.levering.annenUtleveringsadresse?.poststed.isNullOrBlank() && v1.søknad.levering.annenUtleveringsadresse?.postnummer.isNullOrBlank() && v1.søknad.levering.annenUtleveringsadresse?.adresse.isNullOrBlank()) null else v1.søknad.levering.annenUtleveringsadresse,
             utleveringKontaktperson = when (v1.søknad.levering.utleveringKontaktperson) {
                 Kontaktperson.HJELPEMIDDELBRUKER -> KontaktpersonV2.HJELPEMIDDELBRUKER
                 Kontaktperson.HJELPEMIDDELFORMIDLER -> KontaktpersonV2.HJELPEMIDDELFORMIDLER
@@ -142,7 +142,7 @@ fun tilInnsenderbehovsmeldingV2(v1: Behovsmelding, defaultDato: LocalDate? = nul
             hast = v1.søknad.hast,
             automatiskUtledetTilleggsinfo = v1.søknad.levering.tilleggsinfo,
 
-        ),
+            ),
         innsender = Innsender(
             rolle = v1.søknad.innsender?.somRolle ?: InnsenderRolle.FORMIDLER,
             erKommunaltAnsatt = v1.søknad.innsender?.erKommunaltAnsatt,
@@ -483,57 +483,57 @@ private fun bruksarena(hm: Hjelpemiddel): List<Opplysning> {
     return opplysninger(
         ledetekst = LokalisertTekst("Bruksarena"),
         tekster =
-        hm.bruksarena.map {
-            when (it) {
-                Bruksarena.EGET_HJEM -> Tekst(
-                    nb = "I eget hjem.",
-                    nn = "I eigen heim.",
-                )
+            hm.bruksarena.map {
+                when (it) {
+                    Bruksarena.EGET_HJEM -> Tekst(
+                        nb = "I eget hjem.",
+                        nn = "I eigen heim.",
+                    )
 
-                Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> Tekst(
-                    forhåndsdefinertTekst = LokalisertTekst(
-                        nb = "I eget hjem. Ikke avlastningsbolig.",
-                        nn = "I eigen heim. Ikkje avlastingsbustad.",
-                    ),
-                    begrepsforklaring = LokalisertTekst(
-                        nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
-                        nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
-                    ),
-                )
+                    Bruksarena.EGET_HJEM_IKKE_AVLASTNING -> Tekst(
+                        forhåndsdefinertTekst = LokalisertTekst(
+                            nb = "I eget hjem. Ikke avlastningsbolig.",
+                            nn = "I eigen heim. Ikkje avlastingsbustad.",
+                        ),
+                        begrepsforklaring = LokalisertTekst(
+                            nb = "Med avlastningsbolig menes en tjeneste som kommunen betaler for. Det kan være privat eller kommunalt. Det er kommunens ansvar å dekke hjelpemidler i avlastningsbolig.",
+                            nn = "Med avlastingsbustad siktar ein til ei teneste som kommunen betaler for. Det kan vere privat eller kommunalt. Det er ansvaret til kommunen å dekkje hjelpemiddel i avlastingsbustad.",
+                        ),
+                    )
 
-                Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
-                    nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
-                    nn = "I omsorgsbustad, bufellesskap eller servicebustad.",
-                )
+                    Bruksarena.OMSORGSBOLIG_BOFELLESKAP_SERVICEBOLIG -> Tekst(
+                        nb = "I omsorgsbolig, bofellesskap eller servicebolig.",
+                        nn = "I omsorgsbustad, bufellesskap eller servicebustad.",
+                    )
 
-                Bruksarena.BARNEHAGE -> Tekst(LokalisertTekst("I barnehage."))
+                    Bruksarena.BARNEHAGE -> Tekst(LokalisertTekst("I barnehage."))
 
-                Bruksarena.GRUNN_ELLER_VIDEREGÅENDE_SKOLE -> Tekst(
-                    nb = "På skolen som grunnskole eller videregående skole.",
-                    nn = "På skulen som grunnskule eller vidaregåande skule.",
-                )
+                    Bruksarena.GRUNN_ELLER_VIDEREGÅENDE_SKOLE -> Tekst(
+                        nb = "På skolen som grunnskole eller videregående skole.",
+                        nn = "På skulen som grunnskule eller vidaregåande skule.",
+                    )
 
-                Bruksarena.SKOLEFRITIDSORDNING -> Tekst(
-                    nb = "På skolefritidsordning.",
-                    nn = "På skulefritidsordning.",
-                )
+                    Bruksarena.SKOLEFRITIDSORDNING -> Tekst(
+                        nb = "På skolefritidsordning.",
+                        nn = "På skulefritidsordning.",
+                    )
 
-                Bruksarena.INSTITUSJON -> Tekst(
-                    nb = "På institusjon som sykehjem.",
-                    nn = "På institusjon som sjukeheim.",
-                )
+                    Bruksarena.INSTITUSJON -> Tekst(
+                        nb = "På institusjon som sykehjem.",
+                        nn = "På institusjon som sjukeheim.",
+                    )
 
-                Bruksarena.INSTITUSJON_BARNEBOLIG -> Tekst(
-                    nb = "På institusjon som sykehjem eller barnebolig.",
-                    nn = "På institusjon som sjukeheim eller barnebustad.",
-                )
+                    Bruksarena.INSTITUSJON_BARNEBOLIG -> Tekst(
+                        nb = "På institusjon som sykehjem eller barnebolig.",
+                        nn = "På institusjon som sjukeheim eller barnebustad.",
+                    )
 
-                Bruksarena.INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK -> Tekst(
-                    nb = "På institusjon som sykehjem eller barnebolig, og hjelpemiddelet skal kun være til personlig bruk.",
-                    nn = "På institusjon som sjukeheim eller barnebustad, og hjelpemiddelet skal berre vera til personlig bruk.",
-                )
-            }
-        },
+                    Bruksarena.INSTITUSJON_BARNEBOLIG_KUN_PERSONLIG_BRUK -> Tekst(
+                        nb = "På institusjon som sykehjem eller barnebolig, og hjelpemiddelet skal kun være til personlig bruk.",
+                        nn = "På institusjon som sjukeheim eller barnebustad, og hjelpemiddelet skal berre vera til personlig bruk.",
+                    )
+                }
+            },
     )
 }
 
@@ -584,17 +584,17 @@ private fun påkrevdeGodkjenningskurs(hm: Hjelpemiddel): List<Opplysning> {
         opplysninger(
             ledetekst = LokalisertTekst("Krav om kurs"),
             tekst =
-            if (erERS) {
-                Tekst(
-                    nb = "Det er dokumentert at innsender har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs $kurs.",
-                    nn = "Det er dokumentert at innsendar har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs $kurs.",
-                )
-            } else {
-                Tekst(
-                    nb = "Det er dokumentert at innsender har fullført og bestått godkjenningskurs $kurs.",
-                    nn = "Det er dokumentert at innsendar har fullført og bestått godkjenningskurs $kurs.",
-                )
-            },
+                if (erERS) {
+                    Tekst(
+                        nb = "Det er dokumentert at innsender har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs $kurs.",
+                        nn = "Det er dokumentert at innsendar har fullført og bestått både del 1 (teoretisk) og del 2 (praktisk) av godkjenningskurs $kurs.",
+                    )
+                } else {
+                    Tekst(
+                        nb = "Det er dokumentert at innsender har fullført og bestått godkjenningskurs $kurs.",
+                        nn = "Det er dokumentert at innsendar har fullført og bestått godkjenningskurs $kurs.",
+                    )
+                },
         )
     } else {
         emptyList() // blir lagt inn som varsel i stedet
@@ -851,7 +851,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -871,7 +871,7 @@ private fun ersInfo(hm: Hjelpemiddel): List<Opplysning> {
                     )
                 },
 
-            ),
+                ),
         )
     }
 
@@ -1659,7 +1659,8 @@ private fun opplysninger(ledetekst: LokalisertTekst, tekster: List<Tekst>) = lis
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: Tekst) = listOf(Opplysning(ledetekst, tekst))
 
-private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) = listOf(Opplysning(ledetekst, Tekst(tekst)))
+private fun opplysninger(ledetekst: LokalisertTekst, tekst: LokalisertTekst) =
+    listOf(Opplysning(ledetekst, Tekst(tekst)))
 
 private fun opplysninger(ledetekst: LokalisertTekst, tekst: String) = listOf(Opplysning(ledetekst, Tekst(tekst)))
 
