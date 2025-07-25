@@ -32,10 +32,4 @@ class AzureADRoutesTest {
         client.get("/api/soknad/ordre/har-ordre/${grunnlag.søknadId}")
             .expect(HttpStatusCode.OK, HarOrdre(harOrdreAvTypeHjelpemidler = false, harOrdreAvTypeDel = false))
     }
-
-    @Test
-    fun `Skal hente datasett for forslagsmotoren`() = testApplication {
-        client.get("/api/forslagsmotor/tilbehoer/datasett")
-            .expect<Any?>(HttpStatusCode.OK)
-    }
 }

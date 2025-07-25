@@ -24,9 +24,6 @@ import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemiddelListe
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørHjelpemidler
-import no.nav.hjelpemidler.soknad.db.domain.ForslagsmotorTilbehørSøknad
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
@@ -448,39 +445,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                 "navnBruker" to grunnlag.navnBruker,
             ),
         ).actualRowCount
-    }
-
-    // TODO -> kan denne slettes?
-    fun hentInitieltDatasettForForslagsmotorTilbehør(): List<ForslagsmotorTilbehørHjelpemidler> {
-        val statement = Sql(
-            """
-                SELECT data, created
-                FROM v1_soknad
-                WHERE er_digital
-                  AND data IS NOT NULL
-            """.trimIndent(),
-        )
-
-        val søknader = tx.list(statement) {
-            val hjelpemiddel = it.json<ForslagsmotorTilbehørHjelpemidler>("data")
-            hjelpemiddel.created = it.localDateTime("created")
-            hjelpemiddel
-        }
-
-        // Filter out products with no accessories (ca. 2/3 of the cases)
-        return søknader.map { søknad ->
-            ForslagsmotorTilbehørHjelpemidler(
-                soknad = ForslagsmotorTilbehørSøknad(
-                    id = søknad.soknad.id,
-                    hjelpemidler = ForslagsmotorTilbehørHjelpemiddelListe(
-                        hjelpemiddelListe = søknad.soknad.hjelpemidler.hjelpemiddelListe.filter {
-                            it.tilbehorListe?.isNotEmpty() ?: false
-                        },
-                    ),
-                ),
-                created = søknad.created,
-            )
-        }
     }
 
     fun hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(dager: Int): List<String> {

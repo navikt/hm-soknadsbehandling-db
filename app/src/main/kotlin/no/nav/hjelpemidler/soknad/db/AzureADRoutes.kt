@@ -64,12 +64,4 @@ fun Route.azureADRoutes(
         val result = transaction { ordreStore.harOrdre(søknadId) }
         call.respond(result)
     }
-
-    get("/forslagsmotor/tilbehoer/datasett") {
-        logg.info { "Henter initielt datasett til forslagsmotoren for tilbehør" }
-        val result = transaction {
-            søknadStore.hentInitieltDatasettForForslagsmotorTilbehør()
-        }
-        call.respond(result)
-    }
 }
