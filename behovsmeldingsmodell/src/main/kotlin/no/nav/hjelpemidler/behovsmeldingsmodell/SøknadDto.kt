@@ -24,7 +24,6 @@ data class SøknadDto(
     val behovsmeldingstype: BehovsmeldingType,
     val status: BehovsmeldingStatus,
     val statusEndret: Instant,
-    val data: Map<String, Any?>,
 ) : TilknyttetSøknad
 
 data class InnsenderbehovsmeldingMetadataDto(

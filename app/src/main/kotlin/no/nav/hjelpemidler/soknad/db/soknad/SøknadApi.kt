@@ -35,7 +35,7 @@ fun Route.søknadApi(
     get<Søknader.SøknadId> {
         val søknadId = it.søknadId
         logg.info { "Kall til Søknader.SøknadId oppdaget." }
-        val søknad = transaction { søknadStore.finnSøknad(søknadId, it.inkluderData) }
+        val søknad = transaction { søknadStore.finnSøknad(søknadId) }
         if (søknad == null) {
             logg.info { "Fant ikke søknad med søknadId: $søknadId" }
         }

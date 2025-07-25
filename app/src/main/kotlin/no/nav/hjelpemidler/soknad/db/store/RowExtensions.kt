@@ -37,7 +37,6 @@ fun Row.tilSøknad(): SøknadDto {
         behovsmeldingstype = enum<BehovsmeldingType>("behovsmeldingstype"),
         status = enum<BehovsmeldingStatus>("status"),
         statusEndret = instant("status_endret"),
-        data = jsonOrNull<Map<String, Any?>>("data") ?: emptyMap(),
     )
 }
 

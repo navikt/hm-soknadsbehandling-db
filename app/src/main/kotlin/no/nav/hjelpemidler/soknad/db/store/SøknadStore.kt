@@ -43,13 +43,12 @@ import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding
 private val logg = KotlinLogging.logger {}
 
 class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
-    fun finnSøknad(søknadId: UUID, inkluderData: Boolean = false): SøknadDto? {
-        // TODO finn ut hvor denne brukes og returner ny modell.
+    fun finnSøknad(søknadId: UUID): SøknadDto? {
         return tx.singleOrNull(
             """
                 SELECT soknad.soknads_id,
-                       soknad.created           AS soknad_opprettet,
-                       soknad.updated           AS soknad_endret,
+                       soknad.created            AS soknad_opprettet,
+                       soknad.updated            AS soknad_endret,
                        soknad.soknad_gjelder,
                        soknad.fnr_innsender,
                        soknad.fnr_bruker,
@@ -57,13 +56,12 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        soknad.journalpostid,
                        soknad.oppgaveid,
                        soknad.er_digital,
-                       ${if (inkluderData) "soknad.data," else "NULL AS data,"}
                        COALESCE(
-                               soknad.data ->> 'behovsmeldingType',
+                               soknad.data_v2 ->> 'behovsmeldingType',
                                'SØKNAD'
-                       )                        AS behovsmeldingstype,
-                       gjeldende_status.status  AS status,
-                       gjeldende_status.created AS status_endret
+                       )  AS behovsmeldingstype,
+                       gjeldende_status.status   AS status,
+                       gjeldende_status.created  AS status_endret
                 FROM v1_soknad AS soknad
                          INNER JOIN v1_gjeldende_status AS gjeldende_status
                                     ON soknad.soknads_id = gjeldende_status.soknads_id

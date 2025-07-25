@@ -108,8 +108,8 @@ class TestContext(
             .expect(HttpStatusCode.OK, 1)
     }
 
-    suspend fun finnSøknad(søknadId: BehovsmeldingId, inkluderData: Boolean = false): SøknadDto? {
-        val response = client.get(Søknader.SøknadId(søknadId, inkluderData))
+    suspend fun finnSøknad(søknadId: BehovsmeldingId): SøknadDto? {
+        val response = client.get(Søknader.SøknadId(søknadId))
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<SøknadDto?>()
     }

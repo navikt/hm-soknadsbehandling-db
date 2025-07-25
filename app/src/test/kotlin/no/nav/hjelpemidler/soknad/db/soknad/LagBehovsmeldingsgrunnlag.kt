@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
@@ -127,7 +126,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
         behovsmelding = jsonToValue(v1Json),
         behovsmeldingGjelder = "TEST",
         behovsmeldingV2 = jsonMapper.treeToValue(
-            jsonMapper.valueToTree<JsonNode>(
+            jsonMapper.valueToTree(
                 tilInnsenderbehovsmeldingV2(
                     jsonMapper.readValue(
                         v1Json,

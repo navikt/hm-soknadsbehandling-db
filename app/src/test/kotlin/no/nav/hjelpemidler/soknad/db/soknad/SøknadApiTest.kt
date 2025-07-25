@@ -1,7 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.soknad
 
-import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.maps.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -48,17 +46,15 @@ class SøknadApiTest {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
         val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.GODKJENT shouldNotBe status1
         oppdaterStatus(søknadId, status2)
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldNotBeEmpty()
         }
     }
 
@@ -67,17 +63,15 @@ class SøknadApiTest {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
         val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.UTLØPT shouldNotBe status1
         oppdaterStatus(søknadId, status2)
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldBeEmpty()
         }
     }
 
@@ -86,17 +80,15 @@ class SøknadApiTest {
         val status1 = BehovsmeldingStatus.VENTER_GODKJENNING
         val grunnlag = lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = status1))
         val søknadId = grunnlag.søknadId
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status1
-            this.data.shouldNotBeEmpty()
         }
         val status2 = BehovsmeldingStatus.SLETTET shouldNotBe status1
         oppdaterStatus(søknadId, status2)
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
             this.status shouldBe status2
-            this.data.shouldBeEmpty()
         }
     }
 
@@ -110,7 +102,7 @@ class SøknadApiTest {
     @Test
     fun `Skal hente søknad`() = testApplication {
         val søknadId = lagreBehovsmelding().søknadId
-        finnSøknad(søknadId, true).shouldNotBeNull {
+        finnSøknad(søknadId).shouldNotBeNull {
             this.søknadId shouldBe søknadId
         }
     }
@@ -118,7 +110,7 @@ class SøknadApiTest {
     @Test
     fun `Skal hente søknad som ikke finnes`() = testApplication {
         val søknadId = UUID.randomUUID()
-        val søknad = finnSøknad(søknadId, true)
+        val søknad = finnSøknad(søknadId)
         søknad shouldBe null
     }
 
