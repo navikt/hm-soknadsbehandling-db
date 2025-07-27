@@ -5,8 +5,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Brukerkilde
 import no.nav.hjelpemidler.behovsmeldingsmodell.BrukersituasjonVilkårtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.BruksarenaV2
+import no.nav.hjelpemidler.behovsmeldingsmodell.BytteÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.FritakFraBegrunnelseÅrsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.Funksjonsnedsettelser
+import no.nav.hjelpemidler.behovsmeldingsmodell.Hasteårsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderRolle
 import no.nav.hjelpemidler.behovsmeldingsmodell.KontaktpersonV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
@@ -15,13 +17,9 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtleveringsmåteV2
 import no.nav.hjelpemidler.behovsmeldingsmodell.UtlevertTypeV2
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bestillingsordningsjekk
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Bytte
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Funksjonsbeskrivelse
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Godkjenningskurs
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Hast
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.HarPersonnavn
 import no.nav.hjelpemidler.domain.person.Personnavn
 import no.nav.hjelpemidler.domain.person.TilknyttetPerson
 import org.owasp.html.HtmlPolicyBuilder
@@ -77,10 +75,10 @@ data class BrukersituasjonVilkårV2(
 )
 
 data class Levering(
-    val hjelpemiddelformidler: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.Hjelpemiddelformidler,
+    val hjelpemiddelformidler: Hjelpemiddelformidler,
 
     val oppfølgingsansvarlig: OppfølgingsansvarligV2,
-    val annenOppfølgingsansvarlig: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenOppfølgingsansvarlig?,
+    val annenOppfølgingsansvarlig: AnnenOppfølgingsansvarlig?,
 
     /**
      * utleveringsmåte == null -> formidler har ikke fått spm om utlevering fordi det ikke er behov for denne infoen.
@@ -92,7 +90,7 @@ data class Levering(
 
     // utleveringKontaktperson == null => alle hjm. er allerede utlevert
     val utleveringKontaktperson: KontaktpersonV2?,
-    val annenKontaktperson: no.nav.hjelpemidler.behovsmeldingsmodell.v1.Levering.AnnenKontaktperson?,
+    val annenKontaktperson: AnnenKontaktperson?,
 
     val utleveringMerknad: String,
 
@@ -114,7 +112,36 @@ data class Levering(
     val alleHjelpemidlerErAlleredeUtlevert: Boolean
         @JsonIgnore
         get() = utleveringsmåte == null || utleveringsmåte == UtleveringsmåteV2.ALLEREDE_UTLEVERT_AV_NAV
+
+    data class Hjelpemiddelformidler(
+        override val navn: Personnavn,
+        val arbeidssted: String,
+        val stilling: String,
+        val telefon: String,
+        val adresse: Veiadresse,
+        val epost: String,
+        val treffesEnklest: String,
+        val kommunenavn: String?,
+    ) : HarPersonnavn
+
+    data class AnnenOppfølgingsansvarlig(
+        override val navn: Personnavn,
+        val arbeidssted: String,
+        val stilling: String,
+        val telefon: String,
+        val ansvarFor: String,
+    ) : HarPersonnavn
+
+    data class AnnenKontaktperson(
+        override val navn: Personnavn,
+        val telefon: String,
+    ) : HarPersonnavn
 }
+
+data class Hast(
+    val hasteårsaker: Set<Hasteårsak>,
+    val hastBegrunnelse: String?,
+)
 
 data class Innsender(
     val rolle: InnsenderRolle,
@@ -175,6 +202,16 @@ data class Hjelpemiddel(
         get() = produkt.artikkelnavn
 }
 
+data class Bytte(
+    val erTilsvarende: Boolean,
+    val hmsnr: String,
+    val serienr: String? = null,
+    val hjmNavn: String,
+    val hjmKategori: String,
+    val årsak: BytteÅrsak? = null,
+    val versjon: String = "v1",
+)
+
 data class HjelpemiddelProdukt(
     val hmsArtNr: String,
     val artikkelnavn: String,
@@ -212,6 +249,24 @@ data class Utlevertinfo(
     val overførtFraBruker: Brukernummer?,
     val annenKommentar: String?,
 )
+
+data class Godkjenningskurs(
+    val id: Int,
+    val title: String,
+    val kilde: String,
+)
+
+data class Funksjonsbeskrivelse(
+    val innbyggersVarigeFunksjonsnedsettelse: InnbyggersVarigeFunksjonsnedsettelse,
+    val diagnose: String?,
+    val beskrivelse: String,
+)
+
+enum class InnbyggersVarigeFunksjonsnedsettelse {
+    ALDERDOMSSVEKKELSE,
+    ANNEN_VARIG_DIAGNOSE,
+    UAVKLART,
+}
 
 typealias Brukernummer = String
 

@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.behovsmeldingsmodell.v1
+package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.DynamicTest

@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.behovsmeldingsmodell.v2
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Prioritet
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Brukerpassbytte
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.domain.person.Personnavn
@@ -15,9 +14,9 @@ data class Brukerpassbytte(
     val folkeregistrertAdresse: Veiadresse,
     val annenUtleveringsadresse: Veiadresse?,
     val hjelpemiddel: Hjelpemiddel,
-    val bytteårsak: Brukerpassbytte.Bytteårsak,
+    val bytteårsak: Bytteårsak,
     val byttebegrunnelse: String?,
-    val utleveringsmåte: Brukerpassbytte.Utleveringsmåte,
+    val utleveringsmåte: Utleveringsmåte,
 
     override val id: UUID,
     override val type: BehovsmeldingType = BehovsmeldingType.BRUKERPASSBYTTE,
@@ -33,4 +32,15 @@ data class Brukerpassbytte(
         val iso6Tittel: String,
         val iso6: Iso6?,
     )
+
+    enum class Bytteårsak {
+        UTSLITT,
+        ØDELAGT,
+        ANNEN_ÅRSAK,
+    }
+
+    enum class Utleveringsmåte {
+        FOLKEREGISTRERT_ADRESSE,
+        OPPGITT_ADRESSE,
+    }
 }
