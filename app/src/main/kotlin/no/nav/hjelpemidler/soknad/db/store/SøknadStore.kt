@@ -8,11 +8,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderbehovsmeldingMetadataDto
+import no.nav.hjelpemidler.behovsmeldingsmodell.Organisasjon
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
-import no.nav.hjelpemidler.behovsmeldingsmodell.v1.Behovsmelding
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.behovsmeldingsmodell.v2.mapping.tilInnsenderbehovsmeldingV2
 import no.nav.hjelpemidler.collections.enumSetOf
 import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
@@ -23,7 +22,6 @@ import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
-import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
@@ -529,7 +527,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        navn_bruker,
                        fnr_innsender,
                        soknads_id,
-                       data,
+                       data -> 'soknad' -> 'innsender' -> 'organisasjoner' as organisasjoner,
                        data_v2,
                        soknad_gjelder,
                        created
@@ -538,9 +536,9 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                   -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
                   data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
                   -- Sjekk at brukeren det søkes om bor i samme kommune
-                  AND data -> 'soknad' -> 'bruker' ->> 'kommunenummer' = :kommunenummer
+                  AND data_v2 -> 'bruker' ->> 'kommunenummer' = :kommunenummer
                   -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
-                  AND data -> 'soknad' -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
+                  AND data_v2 -> 'innsender' ->> 'erKommunaltAnsatt' = 'true'
                   -- Ikke gi tilgang til gamlere søknader enn 7 dager feks.
                   AND created > NOW() - '7 days'::INTERVAL
                   -- Kun digitale søknader kan kvitteres tilbake til innsender kommunen
@@ -567,12 +565,10 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             ),
         ) {
             val behovsmeldingId = it.uuid("soknads_id")
-            val soknadV1 = it.json<Behovsmelding>("DATA")
 
-            // Konverter v1 til v2, gjør om til json slik at vi kan verifisere at datamodellen ikke har endret seg uten at
+            // Gjør om til json slik at vi kan verifisere at datamodellen ikke har endret seg uten at
             // validaeringsmodellen har vært fikset
-            val data: JsonNode = it.jsonOrNull<JsonNode>("DATA_V2")
-                ?: jsonMapper.valueToTree<JsonNode>(tilInnsenderbehovsmeldingV2(soknadV1))
+            val data: JsonNode = it.json<JsonNode>("DATA_V2")
 
             // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
             val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
@@ -608,7 +604,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             }
 
             // Ekstra sikkerhetssjekker
-            if (soknadV1.søknad?.innsender?.organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
+            val organisasjoner = it.jsonOrNull<List<Organisasjon>>("organisasjoner")
+            if (organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
                 // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
                 error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
             }

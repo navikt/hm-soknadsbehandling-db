@@ -18,6 +18,9 @@ fun lagBehovsmeldingsgrunnlagDigital(
     fnrBruker: String = lagFødselsnummer(),
     fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
+    erKommunaltAnsatt: Boolean = true,
+    innsenderOrgKommunenummer: String = "9999",
+    brukersKommunenummer: String = "9999",
 ): Behovsmeldingsgrunnlag.Digital {
     val v1Json = """
         {
@@ -35,7 +38,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
               "adresse": "adresseveien 2",
               "postnummer": "1234",
               "poststed": "poststed",
-              "kommunenummer": "9999",
+              "kommunenummer": "$brukersKommunenummer",
               "kroppsmaal": {}
             },
             "brukersituasjon": {
@@ -103,13 +106,13 @@ fun lagBehovsmeldingsgrunnlagDigital(
             },
             "innsender": {
               "somRolle": "FORMIDLER",
-              "erKommunaltAnsatt": true,
+              "erKommunaltAnsatt": $erKommunaltAnsatt,
               "organisasjoner": [
                 {
                   "navn": "STORÅS OG HESSENG",
                   "orgnr": "910753282",
                   "orgform": "AS",
-                  "kommunenummer": "9999"
+                  "kommunenummer": "$innsenderOrgKommunenummer"
                 }
               ],
               "godkjenningskurs": []

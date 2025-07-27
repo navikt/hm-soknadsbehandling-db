@@ -493,4 +493,52 @@ class SøknadStoreTest {
             )
         }
     }
+
+    @Test
+    fun `Hent behovsmelding for kommune-api happy path`() = databaseTest {
+        testTransaction {
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = "1234", erKommunaltAnsatt = true, brukersKommunenummer = "1234")
+            søknadStore.lagreBehovsmelding(grunnlag)
+
+            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = "1234", null, null)
+            assertEquals(1, behovsmeldinger.size)
+            assertEquals(grunnlag.søknadId, behovsmeldinger.first().behovsmelding.id)
+        }
+    }
+
+    @Test
+    fun `Ikke returner behovsmeldinger for kommune-api dersom innsender tilhører annen kommune`() = databaseTest {
+        testTransaction {
+            val kommunnummer = "2222"
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunnummer, erKommunaltAnsatt = true, brukersKommunenummer = kommunnummer)
+            søknadStore.lagreBehovsmelding(grunnlag)
+
+            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = "1337", null, null)
+            assertTrue(behovsmeldinger.isEmpty())
+        }
+    }
+
+    @Test
+    fun `Ikke returner behovsmeldinger for kommune-api dersom innsender ikke er kommunalt ansatt`() = databaseTest {
+        testTransaction {
+            val kommunenummer = "3333"
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunenummer, erKommunaltAnsatt = false, brukersKommunenummer = kommunenummer)
+            søknadStore.lagreBehovsmelding(grunnlag)
+
+            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
+            assertTrue(behovsmeldinger.isEmpty())
+        }
+    }
+
+    @Test
+    fun `Ikke returner behovsmeldinger for kommune-api dersom innbygger bor i annen kommune`() = databaseTest {
+        testTransaction {
+            val kommunenummer = "4444"
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunenummer, erKommunaltAnsatt = true, brukersKommunenummer = "1337")
+            søknadStore.lagreBehovsmelding(grunnlag)
+
+            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
+            assertTrue(behovsmeldinger.isEmpty())
+        }
+    }
 }
