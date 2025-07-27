@@ -93,114 +93,139 @@ class SøknadStoreTest {
         val fnrBruker = lagFødselsnummer()
         val fnrInnsender = lagFødselsnummer()
 
-        val behovsmeldingV1Json = """
-        {
-          "fnrBruker": "$fnrBruker",
-          "soknadId": "62f68547-11ae-418c-8ab7-4d2af985bcd9",
-          "datoOpprettet": "2021-02-23T09:46:45.146+00:00",
-          "soknad": {
-            "id": "e8dac11d-fa66-4561-89d7-88a62ab31c2b",
-            "date": "2021-02-16",
-            "bruker": {
-              "kilde": "PDL",
-              "adresse": "Trandemveien 29",
-              "fnummer": "$fnrBruker",
-              "fornavn": "Sedat",
-              "poststed": "Hebnes",
-              "signatur": "BRUKER_BEKREFTER",
-              "etternavn": "Kronjuvel",
-              "postnummer": "4235",
-              "telefonNummer": "12341234"
-            },
-            "levering": {
-              "hmfEpost": "anders@andersen.no",
-              "hmfPostnr": "1212",
-              "hmfFornavn": "Sedat",
-              "hmfTelefon": "12121212",
-              "opfFornavn": "",
-              "opfTelefon": "",
-              "hmfPoststed": "Oslo",
-              "hmfStilling": "Ergo",
-              "opfStilling": "",
-              "hmfEtternavn": "Kronjuvel",
-              "opfAnsvarFor": "",
-              "opfEtternavn": "",
-              "hmfArbeidssted": "Oslo",
-              "hmfPostadresse": "Oslovegen",
-              "opfArbeidssted": "",
-              "opfRadioButton": "Hjelpemiddelformidler",
-              "utleveringPostnr": "",
-              "hmfTreffesEnklest": "Måndag",
-              "utleveringFornavn": "",
-              "utleveringTelefon": "",
-              "utleveringPoststed": "",
-              "utleveringEtternavn": "",
-              "merknadTilUtlevering": "",
-              "utleveringPostadresse": "",
-              "utleveringsmaateRadioButton": null,
-              "utlevertInfo": {
-                "utlevertType": "Overført",
-                "overførtFraBruker": "1234"
-              },
-              "tilleggsinfo": [
-                "UTLEVERING_KALENDERAPP"
-              ]
-            },
-            "hjelpemidler": {
-              "hjelpemiddelListe": [
-                {
-                  "navn": "Topro Skråbrett",
-                  "hmsNr": "243544",
-                  "antall": 1,
-                  "produkt": {
-                    "artid": "108385",
-                    "artno": "815061",
-                    "newsid": "4289",
-                    "prodid": "30389",
-                    "apostid": "860",
-                    "apostnr": "3",
-                    "artname": "Topro Skråbrett",
-                    "isocode": "18301505",
-                    "stockid": "243544",
-                    "isotitle": "Terskeleliminatorer",
-                    "kategori": "Terskeleliminatorer og ramper",
-                    "postrank": "1",
-                    "prodname": "Topro Skråbrett",
-                    "artpostid": "14309",
-                    "adescshort": "Bredde 90 cm. Lengde 77 cm.",
-                    "aposttitle": "Post 3: Terskeleleminator - påkjøring fra en side. Velegnet for utendørs bruk",
-                    "pshortdesc": "Skråbrett i aluminium utførelse med sklisikker overflate. Leveres som standard i bredder fra 90 - 126 cm og justerbar høyde fra 5 - 20 cm.",
-                    "cleanposttitle": "Terskeleleminator - påkjøring fra en side. Velegnet for utendørs bruk",
-                    "techdataAsText": "Påkjøring forfra JA, Bredde 90cm, Lengde maks 77cm, Terskelhøyde min 5cm, Terskelhøyde maks 20cm, Vekt 8kg, Belastning maks 350kg, Fastmontert JA, Festemåte fastmontert, Materiale aluminium, Sklisikker overflate JA",
-                    "cleanTechdataAsText": " Bredde 90cm,  Lengde maks 77cm,  Terskelhøyde min 5cm,  Terskelhøyde maks 20cm"
+        val behovsmeldingJson = """
+            {
+              "bruker": {
+                "fnr": "$fnrBruker",
+                "navn": {
+                  "fornavn": "Sedat",
+                  "mellomnavn": null,
+                  "etternavn": "Kronjuvel"
+                },
+                "signaturtype": "BRUKER_BEKREFTER",
+                "telefon": "12341234",
+                "veiadresse": {
+                  "adresse": "Trandemveien 29",
+                  "postnummer": "4235",
+                  "poststed": "Hebnes"
+                },
+                "kommunenummer": null,
+                "brukernummer": null,
+                "kilde": "PDL",
+                "legacyopplysninger": [
+                  {
+                    "ledetekst": { "nb": "Boform", "nn": "Buform" },
+                    "innhold": { "nb": "Hjemme", "nn": "Heime" }
                   },
-                  "uniqueKey": "2435441613472031819",
-                  "beskrivelse": "Topro Skråbrett",
-                  "begrunnelsen": "",
-                  "tilbehorListe": [],
-                  "vilkaroverskrift": "",
-                  "kanIkkeTilsvarande": "false",
-                  "tilleggsinformasjon": "",
-                  "hjelpemiddelkategori": "Terskeleliminatorer og ramper",
-                  "utlevertFraHjelpemiddelsentralen": false
-                }
-              ],
-              "hjelpemiddelTotaltAntall": 1
-            },
-            "brukersituasjon": {
-              "storreBehov": true,
-              "nedsattFunksjon": true,
-              "praktiskeProblem": true,
-              "bostedRadioButton": "Hjemme",
-              "nedsattFunksjonTypes": {
-                "horsel": false,
-                "bevegelse": true,
-                "kognisjon": false
+                  {
+                    "ledetekst": { "nb": "Bruksarena", "nn": "Bruksarena" },
+                    "innhold": { "nb": "Dagliglivet", "nn": "Dagleglivet" }
+                  }
+                ]
               },
-              "bruksarenaErDagliglivet": true
+              "brukersituasjon": {
+                "vilkår": [
+                  {
+                    "vilkårtype": "NEDSATT_FUNKSJON",
+                    "tekst": {
+                      "nb": "Sedat Kronjuvel har vesentlig og varig nedsatt funksjonsevne som følge av sykdom, skade eller lyte. Med varig menes 2 år eller livet ut.",
+                      "nn": "Sedat Kronjuvel har vesentleg og varig nedsett funksjonsevne som følgje av sjukdom, skade eller lyte. Med varig siktar ein til 2 år eller livet ut."
+                    }
+                  },
+                  {
+                    "vilkårtype": "STØRRE_BEHOV",
+                    "tekst": {
+                      "nb": "Hjelpemiddelet(ene) er nødvendig for å avhjelpe praktiske problemer i dagliglivet eller bli pleid i hjemmet. Brukers behov kan ikke løses med enklere og rimeligere hjelpemidler eller ved andre tiltak som ikke dekkes av Nav.",
+                      "nn": "Hjelpemiddelet(a) er naudsynt for å avhjelpa praktiske problem i dagleglivet eller bli pleidd i heimen. Brukars behov kan ikkje løysast med enklare og rimelegare hjelpemiddel eller ved andre tiltak som ikkje blir dekt av Nav."
+                    }
+                  },
+                  {
+                    "vilkårtype": "PRAKTISKE_PROBLEM",
+                    "tekst": {
+                      "nb": "Hjelpemiddelet(ene) er egnet til å avhjelpe funksjonsnedsettelsen og Sedat Kronjuvel vil være i stand til å bruke det.",
+                      "nn": "Hjelpemiddelet(a) er eigna til å avhjelpa funksjonsnedsetjinga og Sedat Kronjuvel vil vera i stand til å bruka det."
+                    }
+                  }
+                ],
+                "funksjonsnedsettelser": ["BEVEGELSE"],
+                "funksjonsbeskrivelse": null
+              },
+              "hjelpemidler": {
+                "hjelpemidler": [
+                  {
+                    "hjelpemiddelId": "2435441613472031819",
+                    "antall": 1,
+                    "produkt": {
+                      "hmsArtNr": "243544",
+                      "artikkelnavn": "Topro Skråbrett",
+                      "iso8": "18301505",
+                      "iso8Tittel": "Terskeleliminatorer",
+                      "delkontrakttittel": "Post 3: Terskeleleminator - påkjøring fra en side. Velegnet for utendørs bruk",
+                      "sortimentkategori": "Terskeleliminatorer og ramper",
+                      "delkontraktId": "860",
+                      "rangering": 1
+                    },
+                    "tilbehør": [],
+                    "bytter": [],
+                    "bruksarenaer": [],
+                    "utlevertinfo": {
+                      "alleredeUtlevertFraHjelpemiddelsentralen": false,
+                      "utleverttype": null,
+                      "overførtFraBruker": null,
+                      "annenKommentar": null
+                    },
+                    "opplysninger": [],
+                    "varsler": [],
+                    "saksbehandlingvarsel": []
+                  }
+                ],
+                "tilbehør": [],
+                "totaltAntall": 1
+              },
+              "levering": {
+                "hjelpemiddelformidler": {
+                  "navn": {
+                    "fornavn": "Sedat",
+                    "mellomnavn": null,
+                    "etternavn": "Kronjuvel"
+                  },
+                  "arbeidssted": "Oslo",
+                  "stilling": "Ergo",
+                  "telefon": "12121212",
+                  "adresse": {
+                    "adresse": "Oslovegen",
+                    "postnummer": "1212",
+                    "poststed": "Oslo"
+                  },
+                  "epost": "anders@andersen.no",
+                  "treffesEnklest": "Måndag",
+                  "kommunenavn": null
+                },
+                "oppfølgingsansvarlig": "HJELPEMIDDELFORMIDLER",
+                "annenOppfølgingsansvarlig": null,
+                "utleveringsmåte": null,
+                "annenUtleveringsadresse": null,
+                "utleveringKontaktperson": null,
+                "annenKontaktperson": null,
+                "utleveringMerknad": "",
+                "hast": null,
+                "automatiskUtledetTilleggsinfo": ["UTLEVERING_KALENDERAPP"]
+              },
+              "innsender": {
+                "rolle": "FORMIDLER",
+                "erKommunaltAnsatt": null,
+                "kurs": [],
+                "sjekketUtlånsoversiktForKategorier": []
+              },
+              "metadata": { "bestillingsordningsjekk": null },
+              "id": "$søknadId",
+              "type": "SØKNAD",
+              "innsendingsdato": "2021-02-16",
+              "innsendingstidspunkt": null,
+              "skjemaversjon": 2,
+              "hjmBrukersFnr": "$fnrBruker",
+              "prioritet": "NORMAL"
             }
-          }
-        }
         """.trimIndent()
 
         testTransaction {
@@ -210,10 +235,10 @@ class SøknadStoreTest {
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = fnrInnsender,
                     søknadId = søknadId,
-                    behovsmelding = jsonToValue(behovsmeldingV1Json),
+                    behovsmelding = emptyMap(),
                     status = BehovsmeldingStatus.VENTER_GODKJENNING,
                     behovsmeldingGjelder = null,
-                    behovsmeldingV2 = tilInnsenderbehovsmeldingMap(behovsmeldingV1Json),
+                    behovsmeldingV2 = jsonToValue(behovsmeldingJson),
                 ),
             )
             val hentSoknad = søknadStore.hentSøknad(søknadId)
@@ -497,7 +522,11 @@ class SøknadStoreTest {
     @Test
     fun `Hent behovsmelding for kommune-api happy path`() = databaseTest {
         testTransaction {
-            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = "1234", erKommunaltAnsatt = true, brukersKommunenummer = "1234")
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(
+                innsenderOrgKommunenummer = "1234",
+                erKommunaltAnsatt = true,
+                brukersKommunenummer = "1234",
+            )
             søknadStore.lagreBehovsmelding(grunnlag)
 
             val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = "1234", null, null)
@@ -510,7 +539,11 @@ class SøknadStoreTest {
     fun `Ikke returner behovsmeldinger for kommune-api dersom innsender tilhører annen kommune`() = databaseTest {
         testTransaction {
             val kommunnummer = "2222"
-            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunnummer, erKommunaltAnsatt = true, brukersKommunenummer = kommunnummer)
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(
+                innsenderOrgKommunenummer = kommunnummer,
+                erKommunaltAnsatt = true,
+                brukersKommunenummer = kommunnummer,
+            )
             søknadStore.lagreBehovsmelding(grunnlag)
 
             val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = "1337", null, null)
@@ -522,10 +555,15 @@ class SøknadStoreTest {
     fun `Ikke returner behovsmeldinger for kommune-api dersom innsender ikke er kommunalt ansatt`() = databaseTest {
         testTransaction {
             val kommunenummer = "3333"
-            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunenummer, erKommunaltAnsatt = false, brukersKommunenummer = kommunenummer)
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(
+                innsenderOrgKommunenummer = kommunenummer,
+                erKommunaltAnsatt = false,
+                brukersKommunenummer = kommunenummer,
+            )
             søknadStore.lagreBehovsmelding(grunnlag)
 
-            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
+            val behovsmeldinger =
+                søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
             assertTrue(behovsmeldinger.isEmpty())
         }
     }
@@ -534,10 +572,15 @@ class SøknadStoreTest {
     fun `Ikke returner behovsmeldinger for kommune-api dersom innbygger bor i annen kommune`() = databaseTest {
         testTransaction {
             val kommunenummer = "4444"
-            val grunnlag = lagBehovsmeldingsgrunnlagDigital(innsenderOrgKommunenummer = kommunenummer, erKommunaltAnsatt = true, brukersKommunenummer = "1337")
+            val grunnlag = lagBehovsmeldingsgrunnlagDigital(
+                innsenderOrgKommunenummer = kommunenummer,
+                erKommunaltAnsatt = true,
+                brukersKommunenummer = "1337",
+            )
             søknadStore.lagreBehovsmelding(grunnlag)
 
-            val behovsmeldinger = søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
+            val behovsmeldinger =
+                søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
             assertTrue(behovsmeldinger.isEmpty())
         }
     }
