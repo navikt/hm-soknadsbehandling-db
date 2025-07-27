@@ -23,17 +23,16 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): List<SøknadForInnsender> {
         val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
+            InnsenderRolle.BESTILLER -> "AND soknad.data_v2 ->> 'type' = 'BESTILLING'"
             else -> ""
         }
 
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,
-                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.data_v2 ->> 'type' AS behovsmeldingtype,
                        soknad.created,
                        soknad.updated,
-                       soknad.data,
                        soknad.fnr_bruker,
                        soknad.navn_bruker,
                        status.status,
@@ -97,17 +96,16 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SøknadForInnsender? {
         val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.DATA ->> 'behovsmeldingType' = 'BESTILLING'"
+            InnsenderRolle.BESTILLER -> "AND soknad.data_v2 ->> 'type' = 'BESTILLING'"
             else -> ""
         }
 
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,
-                       soknad.data ->> 'behovsmeldingType' AS behovsmeldingtype,
+                       soknad.data_v2 ->> 'type' AS behovsmeldingtype,
                        soknad.created,
                        soknad.updated,
-                       soknad.data,
                        soknad.data_v2,
                        soknad.fnr_bruker,
                        soknad.navn_bruker,
@@ -125,7 +123,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
                   AND soknad.fnr_innsender = :fnrInnsender
-                  AND soknad.data ->> 'behovsmeldingType' <> 'BRUKERPASSBYTTE'
+                  AND soknad.data_v2 ->> 'type' <> 'BRUKERPASSBYTTE'
                   AND soknad.soknads_id = :soknadId
                   $behovsmeldingTypeClause
                   AND soknad.created > :opprettetEtter
