@@ -10,9 +10,8 @@ application {
 }
 
 dependencies {
-    implementation(project(":behovsmeldingsmodell"))
-
     // hotlibs
+    implementation(libs.hotlibs.behovsmelding)
     implementation(libs.hotlibs.core)
     implementation(libs.hotlibs.http) { exclude("io.ktor", "ktor-client-cio") } // prefer ktor-client-apache
     implementation(libs.hotlibs.kafka)
