@@ -128,6 +128,7 @@ data class Hjelpemiddelformidler(
     val epost: String,
     val treffesEnklest: String,
     val kommunenavn: String?,
+    val kommunenummer: String? = null,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
