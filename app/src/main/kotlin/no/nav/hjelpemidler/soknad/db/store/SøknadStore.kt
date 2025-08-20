@@ -8,7 +8,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.InnsenderbehovsmeldingMetadataDto
-import no.nav.hjelpemidler.behovsmeldingsmodell.Organisasjon
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
@@ -527,14 +526,14 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
                        navn_bruker,
                        fnr_innsender,
                        soknads_id,
-                       data -> 'soknad' -> 'innsender' -> 'organisasjoner' as organisasjoner,
+                       data_v2 -> 'levering' -> 'hjelpemiddelformidler' ->> 'kommunenummer' as kommunenummer_arbeidssted,
                        data_v2,
                        soknad_gjelder,
                        created
                 FROM v1_soknad
                 WHERE
-                  -- Sjekk at formidleren som sendte inn søknaden bor i kommunen som spør etter kvitteringer
-                  data -> 'soknad' -> 'innsender' -> 'organisasjoner' @> :kommunenummerJson
+                  -- Sjekk at formidleren som sendte inn søknaden jobber i kommunen som spør etter kvitteringer
+                  data_v2 -> 'levering' -> 'hjelpemiddelformidler' ->> 'kommunenummer' = :kommunenummer
                   -- Sjekk at brukeren det søkes om bor i samme kommune
                   AND data_v2 -> 'bruker' ->> 'kommunenummer' = :kommunenummer
                   -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
@@ -554,7 +553,6 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             statement,
             mapOf(
                 "kommunenummer" to kommunenummer,
-                "kommunenummerJson" to pgJsonbOf(listOf(mapOf("kommunenummer" to kommunenummer))),
                 "nyereEnn" to nyereEnn,
                 "nyereEnnTidsstempel" to nyereEnnTidsstempel?.let { nyereEnnTidsstempel ->
                     LocalDateTime.ofInstant(
@@ -604,9 +602,7 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             }
 
             // Ekstra sikkerhetssjekker
-            val organisasjoner = it.jsonOrNull<List<Organisasjon>>("organisasjoner")
-            if (organisasjoner?.any { it.kommunenummer == kommunenummer } != true) {
-                // En av verdiene er null eller ingen av organisasjonene har kommunenummeret vi leter etter...
+            if (it.stringOrNull("kommunenummer_arbeidssted") != kommunenummer) {
                 error("Noe har gått galt med sikkerhetsmekanismene i SQL query: uventet formidler kommunenummer")
             }
 
