@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - endepunkt-migrering-v2
+      - bruk-innsenders-kommunenummer
 
 jobs:
   build:

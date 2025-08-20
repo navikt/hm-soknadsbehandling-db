@@ -15,22 +15,12 @@ fun lagBehovsmeldingsgrunnlagDigital(
     fnrInnsender: String = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
     erKommunaltAnsatt: Boolean = true,
-    innsenderOrgKommunenummer: String = "9999",
+    innsenderArbeidsstedKommunenummer: String = "9999",
     brukersKommunenummer: String = "9999",
 ): Behovsmeldingsgrunnlag.Digital {
     val v1Json = """
         {
           "soknad": {
-            "innsender": {
-              "organisasjoner": [
-                {
-                  "navn": "STORÅS OG HESSENG",
-                  "orgnr": "910753282",
-                  "orgform": "AS",
-                  "kommunenummer": "$innsenderOrgKommunenummer"
-                }
-              ]
-            }
           }
         }
     """.trimIndent()
@@ -162,7 +152,8 @@ fun lagBehovsmeldingsgrunnlagDigital(
               },
               "epost": "formidler@kommune.no",
               "treffesEnklest": "treffesEnklest",
-              "kommunenavn": null
+              "kommunenavn": null,
+              "kommunenummer": "$innsenderArbeidsstedKommunenummer"
             },
             "oppfølgingsansvarlig": "HJELPEMIDDELFORMIDLER",
             "annenOppfølgingsansvarlig": null,

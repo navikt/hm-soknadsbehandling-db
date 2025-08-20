@@ -523,7 +523,7 @@ class SøknadStoreTest {
     fun `Hent behovsmelding for kommune-api happy path`() = databaseTest {
         testTransaction {
             val grunnlag = lagBehovsmeldingsgrunnlagDigital(
-                innsenderOrgKommunenummer = "1234",
+                innsenderArbeidsstedKommunenummer = "1234",
                 erKommunaltAnsatt = true,
                 brukersKommunenummer = "1234",
             )
@@ -540,7 +540,7 @@ class SøknadStoreTest {
         testTransaction {
             val kommunnummer = "2222"
             val grunnlag = lagBehovsmeldingsgrunnlagDigital(
-                innsenderOrgKommunenummer = kommunnummer,
+                innsenderArbeidsstedKommunenummer = kommunnummer,
                 erKommunaltAnsatt = true,
                 brukersKommunenummer = kommunnummer,
             )
@@ -556,7 +556,7 @@ class SøknadStoreTest {
         testTransaction {
             val kommunenummer = "3333"
             val grunnlag = lagBehovsmeldingsgrunnlagDigital(
-                innsenderOrgKommunenummer = kommunenummer,
+                innsenderArbeidsstedKommunenummer = kommunenummer,
                 erKommunaltAnsatt = false,
                 brukersKommunenummer = kommunenummer,
             )
@@ -573,7 +573,7 @@ class SøknadStoreTest {
         testTransaction {
             val kommunenummer = "4444"
             val grunnlag = lagBehovsmeldingsgrunnlagDigital(
-                innsenderOrgKommunenummer = kommunenummer,
+                innsenderArbeidsstedKommunenummer = kommunenummer,
                 erKommunaltAnsatt = true,
                 brukersKommunenummer = "1337",
             )
