@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -28,22 +27,6 @@ fun Route.tokenXRoutes(
     val rolleService = serviceContext.rolleService
     val søknadService = serviceContext.søknadService
     val safselvbetjening = serviceContext.safselvbetjening
-
-    get<Søknader.Bruker.Dokumenter.ForSak> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, it.fagsakId, token)
-        call.respond(results)
-    }
-
-    get<Søknader.Bruker.Dokumenter> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, null, token)
-        call.respond(results)
-    }
 
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
@@ -121,6 +104,22 @@ fun Route.tokenXRoutes(
             logg.info { "Formidler hentet ut søknad med id: $søknadId" }
             call.respond(søknad)
         }
+    }
+
+    get<Bruker.Dokumenter.ForSak> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnr = user.ident
+        val token = user.tokenString!!
+        val results = safselvbetjening.hentDokumenter(fnr, it.fagsakId, token)
+        call.respond(results)
+    }
+
+    get<Bruker.Dokumenter> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnr = user.ident
+        val token = user.tokenString!!
+        val results = safselvbetjening.hentDokumenter(fnr, null, token)
+        call.respond(results)
     }
 
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadId}") {

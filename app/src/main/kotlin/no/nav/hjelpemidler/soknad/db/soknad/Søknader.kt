@@ -15,12 +15,6 @@ class Søknader {
             @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
             val parent: Bruker = Bruker(),
         )
-
-        @Resource("/dokumenter")
-        class Dokumenter(val parent: Søknader = Søknader()) {
-            @Resource("/{fagsakId}")
-            class ForSak(val fagsakId: String, val parent: Dokumenter = Dokumenter())
-        }
     }
 
     @Resource("/innsender")
