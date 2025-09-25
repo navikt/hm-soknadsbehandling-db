@@ -85,6 +85,11 @@ class Safselvbetjening(
                     ?.journalposter
                     ?: emptyList()
 
+                // Filtrer ut for fagsaker
+                if (forFagsakId != null) {
+                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) && it.sak?.fagsakId == forFagsakId }
+                }
+
                 // Sorter resultater
                 jps = jps.sortedBy {
                     runCatching {
@@ -93,11 +98,6 @@ class Safselvbetjening(
                             ?.dato
                             ?.let { dt -> LocalDateTime.parse(dt) }
                     }.getOrNull()
-                }
-
-                // Filtrer ut for fagsaker
-                if (forFagsakId != null) {
-                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) && it.sak?.fagsakId == forFagsakId }
                 }
 
                 jps
