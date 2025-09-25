@@ -97,7 +97,7 @@ class Safselvbetjening(
 
                 // Filtrer ut for fagsaker
                 if (forFagsakId != null) {
-                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) }
+                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) && it.sak?.fagsakId == forFagsakId }
                 }
 
                 jps
