@@ -10,6 +10,7 @@ on:
     branches:
       - main
       - bruk-innsenders-kommunenummer
+      - hotbff
 
 jobs:
   build:
