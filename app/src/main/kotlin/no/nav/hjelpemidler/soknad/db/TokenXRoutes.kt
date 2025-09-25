@@ -29,6 +29,22 @@ fun Route.tokenXRoutes(
     val søknadService = serviceContext.søknadService
     val safselvbetjening = serviceContext.safselvbetjening
 
+    get<Søknader.Bruker.Dokumenter.ForSak> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnr = user.ident
+        val token = user.tokenString!!
+        val results = safselvbetjening.hentDokumenter(fnr, it.fagsakId, token)
+        call.respond(results)
+    }
+
+    get<Søknader.Bruker.Dokumenter> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnr = user.ident
+        val token = user.tokenString!!
+        val results = safselvbetjening.hentDokumenter(fnr, null, token)
+        call.respond(results)
+    }
+
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
         val søknad = transaction { søknadStore.hentSøknad(it.søknadId) }
@@ -63,22 +79,6 @@ fun Route.tokenXRoutes(
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
         val brukersSaker = transaction { søknadStore.hentSøknaderForBruker(fnr) }
         call.respond(brukersSaker)
-    }
-
-    get<Søknader.Bruker.Dokumenter> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, null, token)
-        call.respond(results)
-    }
-
-    get<Søknader.Bruker.Dokumenter.ForSak> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, it.fagsakId, token)
-        call.respond(results)
     }
 
     get<Søknader.Innsender> {
