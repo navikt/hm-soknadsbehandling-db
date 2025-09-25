@@ -12,5 +12,8 @@ object Configuration {
     val HM_ROLLER_URL by EnvironmentVariable
     val HM_ROLLER_AUDIENCE by EnvironmentVariable
 
+    val SAFSELVBETJENING_URL by EnvironmentVariable
+    val SAFSELVBETJENING_AUDIENCE by EnvironmentVariable
+
     val BIGQUERY_DATASET_ID by EnvironmentVariable // fixme -> brukes ikke
 }

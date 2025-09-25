@@ -27,6 +27,7 @@ import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
+import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -40,6 +41,7 @@ class TestContext(
     val grunndataClient: GrunndataClient = mockk(),
     val metrics: Metrics = mockk(relaxed = true),
     val rolleClient: RolleClient = mockk(),
+    val safselvbetjening: Safselvbetjening = mockk(relaxed = true),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
 ) {
     init {

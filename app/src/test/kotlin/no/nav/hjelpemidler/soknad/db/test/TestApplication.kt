@@ -38,6 +38,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
             transaction = database,
             grunndataClient = context.grunndataClient,
             rolleClient = context.rolleClient,
+            safselvbetjening = context.safselvbetjening,
             metrics = context.metrics,
         )
 

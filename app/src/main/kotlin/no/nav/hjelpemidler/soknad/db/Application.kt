@@ -25,6 +25,7 @@ import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
+import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.store.Database
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
@@ -61,6 +62,7 @@ fun Application.module() {
         transaction = database,
         grunndataClient = grunndataClient,
         rolleClient = RolleClient(),
+        safselvbetjening = Safselvbetjening(),
     )
 
     Oppgaveinspektør(database)
