@@ -33,7 +33,10 @@ data class Journalpost(
     val kanal: String?,
     val relevanteDatoer: List<RelevanteDato>,
     val dokumenter: List<DokumentInfo>?,
-)
+) {
+    // Brukt i frontenden, men ikke fra safselvbetjening datamodellen
+    val dato get() = relevanteDatoer.find { it.datotype == "DATO_OPPRETTET" }?.dato
+}
 
 data class RelevanteDato(
     val dato: String,
