@@ -7,8 +7,10 @@ import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.correlationId
@@ -74,14 +76,21 @@ class Safselvbetjening(
                     correlationId()
                     contentType(ContentType.Application.Json)
                     setBody(req)
-                }.body<GraphqlResult>()
+                }
 
-                if (res.errors != null) {
-                    logg.error { "Error message from safselvbetjening: ${res.errors.toPrettyString()}" }
+                if (!res.status.isSuccess()) {
+                    val textBody = runCatching { res.bodyAsText() }.getOrNull()
+                    logg.error { "Failed to run graphql query against safselvbetjening: $textBody" }
                     return@withContext emptyList()
                 }
 
-                var jps = res.data
+                val body = res.body<GraphqlResult>()
+                if (body.errors != null) {
+                    logg.error { "Error message from safselvbetjening: ${body.errors.toPrettyString()}" }
+                    return@withContext emptyList()
+                }
+
+                var jps = body.data
                     ?.dokumentoversiktSelvbetjening
                     ?.tema
                     ?.firstOrNull()
