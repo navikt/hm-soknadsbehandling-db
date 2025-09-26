@@ -7,6 +7,8 @@ import io.ktor.client.engine.apache.Apache
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.correlationId
@@ -70,6 +72,7 @@ class Safselvbetjening(
                 val res = client.post("$url/graphql") {
                     bearerAuth(exchangedToken)
                     correlationId()
+                    contentType(ContentType.Application.Json)
                     setBody(req)
                 }.body<GraphqlResult>()
 
