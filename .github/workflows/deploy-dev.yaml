@@ -9,7 +9,6 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - bruk-innsenders-kommunenummer
 
 jobs:
   build:

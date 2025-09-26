@@ -51,6 +51,7 @@ spec:
           namespace: nais-system
       external:
         - host: hooks.slack.com
+        - host: safselvbetjening.prod-fss-pub.nais.io
   resources:
     limits:
       cpu: 800m
@@ -93,5 +94,9 @@ spec:
       value: http://hm-roller
     - name: HM_ROLLER_AUDIENCE
       value: prod-gcp:teamdigihot:hm-roller
+    - name: SAFSELVBETJENING_URL
+      value: https://safselvbetjening.prod-fss-pub.nais.io
+    - name: SAFSELVBETJENING_AUDIENCE
+      value: prod-fss:teamdokumenthandtering:safselvbetjening
     - name: BIGQUERY_DATASET_ID
       value: hm_soknadsbehandling_v1_dataset_prod
