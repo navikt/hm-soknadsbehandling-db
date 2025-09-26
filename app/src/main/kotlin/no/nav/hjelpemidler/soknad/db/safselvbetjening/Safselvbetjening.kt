@@ -94,7 +94,7 @@ class Safselvbetjening(
                 }
 
                 // Sorter resultater
-                jps = jps.sortedBy {
+                jps = jps.sortedByDescending {
                     runCatching {
                         it.relevanteDatoer
                             .find { dat -> dat.datotype == "DATO_OPPRETTET" }
