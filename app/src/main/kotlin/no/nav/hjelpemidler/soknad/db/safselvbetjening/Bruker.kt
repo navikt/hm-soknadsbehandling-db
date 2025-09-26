@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db
+package no.nav.hjelpemidler.soknad.db.safselvbetjening
 
 import io.ktor.resources.Resource
 
