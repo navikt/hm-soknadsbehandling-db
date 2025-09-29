@@ -112,7 +112,8 @@ fun Route.tokenXRoutes(
         }
     }
 
-    suspend fun RoutingContext.brukerBekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
+    suspend fun RoutingContext.brukerbekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
+        logg.info { "Brukerbekreftelse: utfall=$utfall" }
         val søknadId = it.parent.søknadId
         val user = tokenXUserFactory.createTokenXUser(call)
 
@@ -136,8 +137,8 @@ fun Route.tokenXRoutes(
         kafkaClient.send(user.ident, Event(eventName = utfall.eventName, soknadId = søknadId))
         call.respond(HttpStatusCode.NoContent)
     }
-    post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerBekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
-    delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerBekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
+    post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
+    delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
 
     get<Bruker.Dokumenter.ForSak> {
         val user = tokenXUserFactory.createTokenXUser(call)

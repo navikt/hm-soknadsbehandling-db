@@ -4,7 +4,6 @@ import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nav.hjelpemidler.serialization.kotlinx.UUIDSerializer
-import no.nav.hjelpemidler.soknad.db.soknad.Søknader.SøknadId
 import java.util.UUID
 
 @Resource("/soknad")
