@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.metrics.kafka
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.kafka.createKafkaProducer
+import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.Configuration
 import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -24,5 +25,9 @@ class AivenKafkaClient : KafkaClient {
 
     override fun hendelseOpprettet(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         produceEvent(measurement, toEventString(measurement, fields, tags))
+    }
+
+    override fun <K, V> send(key: K, value: V) {
+        produceEvent(key.toString(), jsonMapper.writeValueAsString(value))
     }
 }

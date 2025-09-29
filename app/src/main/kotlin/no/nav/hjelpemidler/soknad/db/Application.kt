@@ -24,6 +24,7 @@ import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
+import no.nav.hjelpemidler.soknad.db.metrics.kafka.createKafkaClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.store.Database
@@ -56,6 +57,7 @@ fun Application.module() {
         monitor.unsubscribe(ApplicationStopping) {}
     }
 
+    val kafkaClient = createKafkaClient()
     val grunndataClient = GrunndataClient()
 
     val serviceContext = ServiceContext(
@@ -63,6 +65,7 @@ fun Application.module() {
         grunndataClient = grunndataClient,
         rolleClient = RolleClient(),
         safselvbetjening = Safselvbetjening(),
+        kafkaClient = kafkaClient,
     )
 
     Oppgaveinspektør(database)

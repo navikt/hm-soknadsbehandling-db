@@ -39,6 +39,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
             grunndataClient = context.grunndataClient,
             rolleClient = context.rolleClient,
             safselvbetjening = context.safselvbetjening,
+            kafkaClient = context.kafkaClient,
             metrics = context.metrics,
         )
 

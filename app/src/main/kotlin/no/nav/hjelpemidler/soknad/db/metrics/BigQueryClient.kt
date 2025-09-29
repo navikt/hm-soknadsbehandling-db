@@ -3,13 +3,12 @@ package no.nav.hjelpemidler.soknad.db.metrics
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
-import no.nav.hjelpemidler.soknad.db.metrics.kafka.createKafkaClient
 
 private val logg = KotlinLogging.logger {}
 
-class BigQueryClient {
-    private val kafkaClient: KafkaClient = createKafkaClient()
-
+class BigQueryClient(
+    val kafkaClient: KafkaClient,
+) {
     private fun writeEvent(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         kafkaClient.hendelseOpprettet(measurement, fields, tags)
     }

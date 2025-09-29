@@ -2,10 +2,13 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.resources.delete
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
@@ -16,6 +19,7 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDate
+import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
@@ -28,6 +32,7 @@ fun Route.tokenXRoutes(
     val rolleService = serviceContext.rolleService
     val søknadService = serviceContext.søknadService
     val safselvbetjening = serviceContext.safselvbetjening
+    val kafkaClient = serviceContext.kafkaClient
 
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
@@ -107,6 +112,33 @@ fun Route.tokenXRoutes(
         }
     }
 
+    suspend fun RoutingContext.brukerBekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
+        val søknadId = it.parent.søknadId
+        val user = tokenXUserFactory.createTokenXUser(call)
+
+        // Verifiser status og bruker
+        val søknad = transaction { søknadStore.hentSøknad(søknadId) }
+        val søknadVenterPåGodkjenningFraGittBruker = when {
+            søknad == null -> false
+            søknad.fnrBruker != user.ident -> false
+            else -> søknad.status == BehovsmeldingStatus.VENTER_GODKJENNING
+        }
+        if (!søknadVenterPåGodkjenningFraGittBruker) {
+            return call.feilmelding(HttpStatusCode.BadRequest, "Søknad venter ikke på godkjenning fra denne brukeren")
+        }
+
+        // Send ut kafka event
+        data class Event(
+            val eventId: UUID = UUID.randomUUID(),
+            val eventName: String,
+            val soknadId: UUID,
+        )
+        kafkaClient.send(user.ident, Event(eventName = utfall.eventName, soknadId = søknadId))
+        call.respond(HttpStatusCode.NoContent)
+    }
+    post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerBekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
+    delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerBekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
+
     get<Bruker.Dokumenter.ForSak> {
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnr = user.ident
@@ -123,6 +155,7 @@ fun Route.tokenXRoutes(
         call.respond(results)
     }
 
+    // FIXME: DEPRICATED "Skal fjernes som en del av at hm-dinehjelpemidler går over til hotbff!"
     get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadId}") {
         val søknadId = call.søknadId
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
@@ -142,4 +175,9 @@ fun Route.tokenXRoutes(
             ),
         )
     }
+}
+
+private enum class BekreftelseUtfall(val eventName: String) {
+    GODKJENT_AV_BRUKER("godkjentAvBruker"),
+    SLETTET_AV_BRUKER("slettetAvBruker"),
 }

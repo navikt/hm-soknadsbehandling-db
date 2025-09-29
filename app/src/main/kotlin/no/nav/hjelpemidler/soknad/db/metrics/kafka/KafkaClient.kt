@@ -25,6 +25,8 @@ interface KafkaClient {
             ),
         ),
     )
+
+    fun <K, V> send(key: K, value: V)
 }
 
 fun createKafkaClient(): KafkaClient = when (Environment.current) {

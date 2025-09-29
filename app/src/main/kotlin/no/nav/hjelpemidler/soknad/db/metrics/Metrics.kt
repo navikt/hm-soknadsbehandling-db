@@ -21,7 +21,7 @@ private val logg = KotlinLogging.logger {}
 
 class Metrics(
     private val transaction: Transaction,
-    private val bigQuery: BigQueryClient = BigQueryClient(),
+    private val bigQuery: BigQueryClient,
 ) {
     init {
         Timer("metrics", true).schedule(

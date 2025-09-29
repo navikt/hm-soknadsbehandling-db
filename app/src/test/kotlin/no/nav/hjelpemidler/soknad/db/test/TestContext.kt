@@ -24,6 +24,7 @@ import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Attribut
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
@@ -41,7 +42,8 @@ class TestContext(
     val grunndataClient: GrunndataClient = mockk(),
     val metrics: Metrics = mockk(relaxed = true),
     val rolleClient: RolleClient = mockk(),
-    val safselvbetjening: Safselvbetjening = mockk(relaxed = true),
+    val safselvbetjening: Safselvbetjening = mockk(),
+    val kafkaClient: KafkaClient = mockk(),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
 ) {
     init {

@@ -4,6 +4,7 @@ import io.ktor.resources.Resource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nav.hjelpemidler.serialization.kotlinx.UUIDSerializer
+import no.nav.hjelpemidler.soknad.db.soknad.Søknader.SøknadId
 import java.util.UUID
 
 @Resource("/soknad")
@@ -14,7 +15,12 @@ class Søknader {
         class SøknadId(
             @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
             val parent: Bruker = Bruker(),
-        )
+        ) {
+            @Resource("/bekreftelse")
+            class Bekreftelse(val parent: SøknadId) {
+                constructor(søknadId: UUID) : this(SøknadId(søknadId))
+            }
+        }
     }
 
     @Resource("/innsender")
