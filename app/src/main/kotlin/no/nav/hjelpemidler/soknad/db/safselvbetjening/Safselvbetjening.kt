@@ -9,18 +9,23 @@ import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
+import io.ktor.http.headers
 import io.ktor.http.isSuccess
-import io.ktor.server.response.respondBytesWriter
+import io.ktor.server.request.httpMethod
+import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingCall
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.availableForRead
-import io.ktor.utils.io.copyTo
-import io.ktor.utils.io.jvm.javaio.copyTo
+import io.ktor.util.filter
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.writeByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.correlationId
@@ -38,7 +43,11 @@ class Safselvbetjening(
     private val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     private val client: HttpClient = createHttpClient(Apache.create())
 
-    suspend fun hentDokumenter(onBehalfOfToken: String, fnrBruker: String, forFagsakId: String? = null): List<Journalpost> {
+    suspend fun hentDokumenter(
+        onBehalfOfToken: String,
+        fnrBruker: String,
+        forFagsakId: String? = null,
+    ): List<Journalpost> {
         val req = GraphqlRequest(
             query = """
                 query (${'$'}ident: String!) {
@@ -109,7 +118,13 @@ class Safselvbetjening(
 
                 // Filtrer ut for fagsaker
                 if (forFagsakId != null) {
-                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) && it.sak?.fagsakId == forFagsakId }
+                    jps = jps.filter {
+                        listOf(
+                            "IT01",
+                            "HJELPEMIDLER",
+                        ).contains(it.sak?.fagsaksystem) &&
+                            it.sak?.fagsakId == forFagsakId
+                    }
                 }
 
                 // Sorter resultater
@@ -130,7 +145,14 @@ class Safselvbetjening(
         }
     }
 
-    suspend fun hentPdfDokumentProxy(onBehalfOfToken: String, proxyTo: RoutingCall, journalpostId: String, dokumentId: String, dokumentvariant: String) {
+    @OptIn(InternalAPI::class)
+    suspend fun hentPdfDokumentProxy(
+        onBehalfOfToken: String,
+        proxyTo: RoutingCall,
+        journalpostId: String,
+        dokumentId: String,
+        dokumentvariant: String,
+    ) {
         withContext(Dispatchers.IO) {
             // Token exchange og graphql request
             val exchangedToken = tokendingsService.exchangeToken(onBehalfOfToken, audience)
@@ -138,48 +160,47 @@ class Safselvbetjening(
                 expectSuccess = false
                 bearerAuth(exchangedToken)
                 correlationId()
-
-                // Forward range header from client if present
-                proxyTo.request.headers[HttpHeaders.Range]?.let { rangeHeader ->
-                    headers.append(HttpHeaders.Range, rangeHeader)
+                method = proxyTo.request.httpMethod
+                headers {
+                    appendAll(
+                        proxyTo.request.headers.filter { key, _ ->
+                            !key.equals(
+                                HttpHeaders.ContentType,
+                                ignoreCase = true,
+                            ) &&
+                                !key.equals(
+                                    HttpHeaders.ContentLength,
+                                    ignoreCase = true,
+                                ) &&
+                                !key.equals(HttpHeaders.Host, ignoreCase = true)
+                        },
+                    )
                 }
             }
-            // Proxy response
-            val responseBodyChannel: ByteReadChannel = upstreamResponse.bodyAsChannel()
-            logg.info { "DEBUG: Upstream status: ${upstreamResponse.status}" }
-            logg.info { "DEBUG: Upstream headers: ${upstreamResponse.headers}" }
-            logg.info { "DEBUG: Channel available: ${responseBodyChannel.availableForRead}" }
-            proxyTo.respondBytesWriter(
-                contentType = upstreamResponse.contentType(),
-                status = upstreamResponse.status,
-            ) {
-                // Support use of api in iframes
-                proxyTo.response.headers.append("X-Frame-Options", "SAMEORIGIN")
 
-                // Copy upstream response headers if needed (optional)
-                upstreamResponse.headers.forEach { name, values ->
-                    val lowerName = name.lowercase()
-                    // Only allow safe headers + Transfer-Encoding: chunked
-                    val isSafe = !HttpHeaders.isUnsafe(name)
-                    val isAllowedTransferEncoding =
-                        lowerName == HttpHeaders.TransferEncoding.lowercase() &&
-                            values.any { it.equals("chunked", ignoreCase = true) }
-                    if (isSafe || isAllowedTransferEncoding) {
-                        values.forEach { value ->
-                            proxyTo.response.headers.append(name, value, safeOnly = true)
-                        }
-                    }
+            val proxiedHeaders = upstreamResponse.headers
+            val contentType = proxiedHeaders[HttpHeaders.ContentType]
+            val contentLength = proxiedHeaders[HttpHeaders.ContentLength]
+            proxyTo.respond(object : OutgoingContent.WriteChannelContent() {
+                override val contentLength: Long? = contentLength?.toLong()
+                override val contentType: ContentType? =
+                    contentType?.let { ContentType.parse(it) }
+                override val headers: Headers = Headers.build {
+                    appendAll(
+                        proxiedHeaders.filter { key, _ ->
+                            !key.equals(
+                                HttpHeaders.ContentType,
+                                ignoreCase = true,
+                            ) &&
+                                !key.equals(HttpHeaders.ContentLength, ignoreCase = true)
+                        },
+                    )
                 }
-
-                if (!upstreamResponse.headers.contains(HttpHeaders.ContentDisposition)) {
-                    proxyTo.response.headers.append(HttpHeaders.ContentDisposition, "inline; filename=\"dokument.pdf\"")
+                override val status: HttpStatusCode? = upstreamResponse.status
+                override suspend fun writeTo(channel: ByteWriteChannel) {
+                    channel.writeByteArray(upstreamResponse.readRawBytes())
                 }
-
-                logg.info { "DEBUG: downstream headers: ${upstreamResponse.headers}" }
-
-                // Pipe the body
-                responseBodyChannel.copyTo(this)
-            }
+            })
         }
     }
 }
