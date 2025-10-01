@@ -15,9 +15,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import io.ktor.server.response.respondOutputStream
+import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.RoutingCall
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.availableForRead
+import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.jvm.javaio.copyTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -144,7 +146,10 @@ class Safselvbetjening(
             }
             // Proxy response
             val responseBodyChannel: ByteReadChannel = upstreamResponse.bodyAsChannel()
-            proxyTo.respondOutputStream(
+            logg.info { "DEBUG: Upstream status: ${upstreamResponse.status}" }
+            logg.info { "DEBUG: Upstream headers: ${upstreamResponse.headers}" }
+            logg.info { "DEBUG: Channel available: ${responseBodyChannel.availableForRead}" }
+            proxyTo.respondBytesWriter(
                 contentType = upstreamResponse.contentType(),
                 status = upstreamResponse.status,
             ) {
@@ -153,15 +158,24 @@ class Safselvbetjening(
 
                 // Copy upstream response headers if needed (optional)
                 upstreamResponse.headers.forEach { name, values ->
-                    if (HttpHeaders.isUnsafe(name)) return@forEach // prevent unsafe header copying
-                    values.forEach { value ->
-                        proxyTo.response.headers.append(name, value, safeOnly = true)
+                    val lowerName = name.lowercase()
+                    // Only allow safe headers + Transfer-Encoding: chunked
+                    val isSafe = !HttpHeaders.isUnsafe(name)
+                    val isAllowedTransferEncoding =
+                        lowerName == HttpHeaders.TransferEncoding.lowercase() &&
+                            values.any { it.equals("chunked", ignoreCase = true) }
+                    if (isSafe || isAllowedTransferEncoding) {
+                        values.forEach { value ->
+                            proxyTo.response.headers.append(name, value, safeOnly = true)
+                        }
                     }
                 }
 
-                if (!upstreamResponse.headers.contains("Content-Disposition")) {
-                    proxyTo.response.headers.append("Content-Disposition", "inline; filename=\"dokument.pdf\"")
+                if (!upstreamResponse.headers.contains(HttpHeaders.ContentDisposition)) {
+                    proxyTo.response.headers.append(HttpHeaders.ContentDisposition, "inline; filename=\"dokument.pdf\"")
                 }
+
+                logg.info { "DEBUG: downstream headers: ${upstreamResponse.headers}" }
 
                 // Pipe the body
                 responseBodyChannel.copyTo(this)
