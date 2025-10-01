@@ -22,7 +22,6 @@ import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.RoutingCall
 import io.ktor.util.filter
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.copyTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -143,7 +142,6 @@ class Safselvbetjening(
         }
     }
 
-    @OptIn(InternalAPI::class)
     suspend fun hentPdfDokumentProxy(
         onBehalfOfToken: String,
         proxyTo: RoutingCall,
