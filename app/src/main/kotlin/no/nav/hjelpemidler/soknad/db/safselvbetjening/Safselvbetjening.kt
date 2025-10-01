@@ -4,13 +4,21 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.apache.Apache
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.server.response.respondOutputStream
+import io.ktor.server.routing.RoutingCall
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.jvm.javaio.copyTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.correlationId
@@ -28,7 +36,7 @@ class Safselvbetjening(
     private val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     private val client: HttpClient = createHttpClient(Apache.create())
 
-    suspend fun hentDokumenter(fnrBruker: String, forFagsakId: String?, onBehalfOfToken: String): List<Journalpost> {
+    suspend fun hentDokumenter(onBehalfOfToken: String, fnrBruker: String, forFagsakId: String? = null): List<Journalpost> {
         val req = GraphqlRequest(
             query = """
                 query (${'$'}ident: String!) {
@@ -117,6 +125,38 @@ class Safselvbetjening(
         } catch (e: Exception) {
             logg.error(e) { "Henting av dokumenter fra safselvbetjening feilet" }
             throw e
+        }
+    }
+
+    suspend fun hentPdfDokumentProxy(onBehalfOfToken: String, proxyTo: RoutingCall, journalpostId: String, dokumentId: String, dokumentvariant: String) {
+        withContext(Dispatchers.IO) {
+            // Token exchange og graphql request
+            val exchangedToken = tokendingsService.exchangeToken(onBehalfOfToken, audience)
+            val upstreamResponse = client.get("$url/rest/hentdokument/$journalpostId/$dokumentId/$dokumentvariant") {
+                expectSuccess = false
+                bearerAuth(exchangedToken)
+                correlationId()
+            }
+            // Proxy response
+            val responseBodyChannel: ByteReadChannel = upstreamResponse.bodyAsChannel()
+            proxyTo.respondOutputStream(
+                contentType = upstreamResponse.contentType(),
+                status = upstreamResponse.status,
+            ) {
+                // Support use of api in iframes
+                proxyTo.response.headers.append("X-Frame-Options", "SAMEORIGIN")
+
+                // Copy upstream response headers if needed (optional)
+                upstreamResponse.headers.forEach { name, values ->
+                    if (HttpHeaders.isUnsafe(name)) return@forEach // prevent unsafe header copying
+                    values.forEach { value ->
+                        proxyTo.response.headers.append(name, value, safeOnly = true)
+                    }
+                }
+
+                // Pipe the body
+                responseBodyChannel.copyTo(this)
+            }
         }
     }
 }

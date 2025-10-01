@@ -144,7 +144,7 @@ fun Route.tokenXRoutes(
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnr = user.ident
         val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, it.fagsakId, token)
+        val results = safselvbetjening.hentDokumenter(token, fnr, it.fagsakId)
         call.respond(results)
     }
 
@@ -152,8 +152,20 @@ fun Route.tokenXRoutes(
         val user = tokenXUserFactory.createTokenXUser(call)
         val fnr = user.ident
         val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(fnr, null, token)
+        val results = safselvbetjening.hentDokumenter(token, fnr)
         call.respond(results)
+    }
+
+    get<Bruker.ArkivDokumenter.JournalpostId.DokumentId.Dokumentvariant> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val token = user.tokenString!!
+        safselvbetjening.hentPdfDokumentProxy(
+            token,
+            call,
+            it.parent.parent.journalpostId,
+            it.parent.dokumentId,
+            it.dokumentvariant,
+        )
     }
 
     // FIXME: DEPRICATED "Skal fjernes som en del av at hm-dinehjelpemidler går over til hotbff!"
