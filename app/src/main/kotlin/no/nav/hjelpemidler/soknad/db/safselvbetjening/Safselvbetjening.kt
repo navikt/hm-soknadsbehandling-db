@@ -136,6 +136,11 @@ class Safselvbetjening(
                 expectSuccess = false
                 bearerAuth(exchangedToken)
                 correlationId()
+
+                // Forward range header from client if present
+                proxyTo.request.headers[HttpHeaders.Range]?.let { rangeHeader ->
+                    headers.append(HttpHeaders.Range, rangeHeader)
+                }
             }
             // Proxy response
             val responseBodyChannel: ByteReadChannel = upstreamResponse.bodyAsChannel()
@@ -152,6 +157,10 @@ class Safselvbetjening(
                     values.forEach { value ->
                         proxyTo.response.headers.append(name, value, safeOnly = true)
                     }
+                }
+
+                if (!upstreamResponse.headers.contains("Content-Disposition")) {
+                    proxyTo.response.headers.append("Content-Disposition", "inline; filename=\"dokument.pdf\"")
                 }
 
                 // Pipe the body
