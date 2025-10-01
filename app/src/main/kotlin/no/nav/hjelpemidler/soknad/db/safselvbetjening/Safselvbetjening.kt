@@ -41,7 +41,11 @@ class Safselvbetjening(
     private val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
     private val client: HttpClient = createHttpClient(Apache.create())
 
-    suspend fun hentDokumenter(onBehalfOfToken: String, fnrBruker: String, forFagsakId: String? = null): List<Journalpost> {
+    suspend fun hentDokumenter(
+        onBehalfOfToken: String,
+        fnrBruker: String,
+        forFagsakId: String? = null,
+    ): List<Journalpost> {
         val req = GraphqlRequest(
             query = """
                 query (${'$'}ident: String!) {
@@ -112,7 +116,13 @@ class Safselvbetjening(
 
                 // Filtrer ut for fagsaker
                 if (forFagsakId != null) {
-                    jps = jps.filter { listOf("IT01", "HJELPEMIDLER").contains(it.sak?.fagsaksystem) && it.sak?.fagsakId == forFagsakId }
+                    jps = jps.filter {
+                        listOf(
+                            "IT01",
+                            "HJELPEMIDLER",
+                        ).contains(it.sak?.fagsaksystem) &&
+                            it.sak?.fagsakId == forFagsakId
+                    }
                 }
 
                 // Sorter resultater
@@ -134,7 +144,13 @@ class Safselvbetjening(
     }
 
     @OptIn(InternalAPI::class)
-    suspend fun hentPdfDokumentProxy(onBehalfOfToken: String, proxyTo: RoutingCall, journalpostId: String, dokumentId: String, dokumentvariant: String) {
+    suspend fun hentPdfDokumentProxy(
+        onBehalfOfToken: String,
+        proxyTo: RoutingCall,
+        journalpostId: String,
+        dokumentId: String,
+        dokumentvariant: String,
+    ) {
         withContext(Dispatchers.IO) {
             // Token exchange og graphql request
             val exchangedToken = tokendingsService.exchangeToken(onBehalfOfToken, audience)
@@ -162,7 +178,6 @@ class Safselvbetjening(
             }
             // Proxy response
             val responseBodyChannel: ByteReadChannel = upstreamResponse.bodyAsChannel()
-            logg.info { "DEBUG: Upstream headers: ${upstreamResponse.headers.filter { key, _ -> !key.equals(HttpHeaders.Authorization, ignoreCase = true) }}" }
             proxyTo.response.headers.let { headers ->
                 upstreamResponse.headers.filter { key, _ ->
                     !key.equals(
