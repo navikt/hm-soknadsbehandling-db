@@ -8,11 +8,9 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
-import io.ktor.server.routing.get
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
-import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
@@ -165,27 +163,6 @@ fun Route.tokenXRoutes(
             it.parent.parent.journalpostId,
             it.parent.dokumentId,
             it.dokumentvariant,
-        )
-    }
-
-    // FIXME: DEPRICATED "Skal fjernes som en del av at hm-dinehjelpemidler går over til hotbff!"
-    get("/validerSøknadsidOgStatusVenterGodkjenning/{soknadId}") {
-        val søknadId = call.søknadId
-        val fnr = tokenXUserFactory.createTokenXUser(call).ident
-        val søknad = transaction { søknadStore.hentSøknad(søknadId) }
-
-        data class Response(
-            val resultat: Boolean,
-        )
-
-        call.respond(
-            Response(
-                when {
-                    søknad == null -> false
-                    søknad.fnrBruker != fnr -> false
-                    else -> søknad.status == BehovsmeldingStatus.VENTER_GODKJENNING
-                },
-            ),
         )
     }
 }
