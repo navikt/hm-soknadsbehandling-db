@@ -57,6 +57,6 @@ data class DokumentInfo(
 
 data class Dokumentvariant(
     val variantformat: String,
-    val brukerHarTilgang: String,
+    val brukerHarTilgang: Boolean,
     val code: List<String>,
 )
