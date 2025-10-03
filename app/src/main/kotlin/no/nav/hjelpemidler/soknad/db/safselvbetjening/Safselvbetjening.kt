@@ -183,6 +183,7 @@ class Safselvbetjening(
                         ignoreCase = true,
                     ) &&
                         !key.equals(HttpHeaders.ContentLength, ignoreCase = true)
+                        && !HttpHeaders.isUnsafe(key)
                 }.forEach { key, value ->
                     headers.append(key, value.first())
                 }
