@@ -86,5 +86,8 @@ tasks {
         dependsOn("spotlessApply")
         dependsOn("spotlessCheck")
     }
-    shadowJar { mergeServiceFiles() }
+    shadowJar {
+        mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 }
