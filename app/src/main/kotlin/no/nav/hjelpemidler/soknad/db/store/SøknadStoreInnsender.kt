@@ -8,6 +8,7 @@ import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
@@ -165,6 +166,29 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
             )
         }
     }
+
+    fun hentBehovsmeldingerTilGodkjenningForInnsender(fnr: String): List<BehovsmeldingTilGodkjenning> {
+        return tx.list(
+            """
+                SELECT  soknad.soknads_id, 
+                        soknad.created,
+                        status.status
+                FROM v1_soknad AS soknad
+                    LEFT JOIN v1_status AS status
+                                   ON status.id =
+                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
+                WHERE fnr_innsender = :fnrInnsender
+                    AND status.status = 'VENTER_GODKJENNING'
+            """.trimIndent(),
+            mapOf("fnrInnsender" to fnr),
+            {
+                BehovsmeldingTilGodkjenning(
+                    id = it.uuid("soknads_id"),
+                    opprettet = it.instant("created"),
+                )
+            },
+        )
+    }
 }
 
 class SøknadForInnsender(
@@ -179,4 +203,9 @@ class SøknadForInnsender(
     val valgteÅrsaker: List<String>,
     val behovsmelding: Innsenderbehovsmelding? = null,
     val soknadGjelder: String?,
+)
+
+data class BehovsmeldingTilGodkjenning(
+    val id: UUID,
+    val opprettet: Instant,
 )

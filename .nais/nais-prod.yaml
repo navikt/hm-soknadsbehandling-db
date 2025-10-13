@@ -43,6 +43,7 @@ spec:
         - application: hm-oppgave-sink
         - application: hm-saksfordeling
         - application: hm-saksbehandling
+        - application: hm-soknad
     outbound:
       rules:
         - application: hm-grunndata-search

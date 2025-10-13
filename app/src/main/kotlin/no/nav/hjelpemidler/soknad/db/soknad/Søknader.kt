@@ -29,6 +29,9 @@ class Søknader {
             @Serializable(with = UUIDSerializer::class) @SerialName("soknadId") val søknadId: UUID,
             val parent: Innsender = Innsender(),
         )
+
+        @Resource("/venter-godkjenning")
+        class VenterGodkjenning(val parent: Innsender = Innsender())
     }
 
     @Resource("/{soknadId}")

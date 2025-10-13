@@ -55,6 +55,22 @@ class SøknadStoreInnsenderTest {
     }
 
     @Test
+    fun `Formidler kan hente behovsmeldinger som ligger til godkjenning`() = databaseTest {
+        val idTilGodkjenning = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
+
+        testTransaction {
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(idTilGodkjenning, fnrInnsender = fnrFormidler, status = BehovsmeldingStatus.VENTER_GODKJENNING))
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(fnrInnsender = fnrFormidler, status = BehovsmeldingStatus.GODKJENT_MED_FULLMAKT))
+
+            val tilGodkjenning = søknadStoreInnsender.hentBehovsmeldingerTilGodkjenningForInnsender(fnrFormidler)
+
+            tilGodkjenning shouldHaveSize 1
+            tilGodkjenning.first().id shouldBe idTilGodkjenning
+        }
+    }
+
+    @Test
     fun `Navn på bruker fjernes ikke ved sletting`() = databaseTest {
         val søknadId = lagSøknadId()
         val fnrFormidler = lagFødselsnummer()

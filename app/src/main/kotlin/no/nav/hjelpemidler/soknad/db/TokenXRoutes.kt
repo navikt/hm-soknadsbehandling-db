@@ -110,6 +110,13 @@ fun Route.tokenXRoutes(
         }
     }
 
+    get<Søknader.Innsender.VenterGodkjenning> {
+        val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        val saker = transaction {
+            søknadStoreInnsender.hentBehovsmeldingerTilGodkjenningForInnsender(fnr)
+        }
+    }
+
     suspend fun RoutingContext.brukerbekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
         logg.info { "Brukerbekreftelse: utfall=$utfall" }
         val søknadId = it.parent.søknadId
