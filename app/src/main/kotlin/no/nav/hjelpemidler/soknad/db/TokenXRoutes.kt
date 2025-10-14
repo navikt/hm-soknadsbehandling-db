@@ -11,6 +11,7 @@ import io.ktor.server.routing.RoutingContext
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
+import no.nav.hjelpemidler.soknad.db.ktor.Response
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
@@ -112,9 +113,11 @@ fun Route.tokenXRoutes(
 
     get<Søknader.Innsender.VenterGodkjenning> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        logg.info { "Henter formidlers saker som venter på godkjenning." }
         val saker = transaction {
             søknadStoreInnsender.hentBehovsmeldingerTilGodkjenningForInnsender(fnr)
         }
+        call.respond(Response(saker))
     }
 
     suspend fun RoutingContext.brukerbekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
