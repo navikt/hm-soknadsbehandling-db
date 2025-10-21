@@ -18,6 +18,7 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
@@ -79,9 +80,9 @@ fun Route.tokenXRoutes(
         }
 
         // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
-        val seksMånederSiden = java.sql.Date.valueOf(LocalDate.now().minusMonths(6))
+        val seksMånederSiden = LocalDateTime.now().minusMonths(6)
         val datoer = søknader
-            .filter { it.datoOpprettet.before(seksMånederSiden) }
+            .filter { it.datoOpprettet.isBefore(seksMånederSiden) }
             .map { it.datoOpprettet }
         if (datoer.isNotEmpty()) {
             val digest = MessageDigest.getInstance("SHA-256").digest(fnrInnsender.toByteArray())

@@ -74,12 +74,12 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
         ) {
-            val datoOpprettet = it.sqlTimestamp("created")
+            val datoOpprettet = it.localDateTime("created")
             SøknadForInnsender(
                 søknadId = it.uuid("soknads_id"),
                 behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
-                datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
+                datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
                 fnrBruker = it.string("fnr_bruker"),
@@ -150,12 +150,12 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
                 "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
         ) {
-            val datoOpprettet = it.sqlTimestamp("created")
+            val datoOpprettet = it.localDateTime("created")
             SøknadForInnsender(
                 søknadId = it.uuid("soknads_id"),
                 behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
                 datoOpprettet = datoOpprettet,
-                datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet,
+                datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
                 fnrBruker = it.string("fnr_bruker"),
@@ -194,8 +194,8 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
 class SøknadForInnsender(
     val søknadId: UUID,
     val behovsmeldingType: BehovsmeldingType,
-    val datoOpprettet: Date,
-    var datoOppdatert: Date,
+    val datoOpprettet: LocalDateTime,
+    var datoOppdatert: LocalDateTime?,
     val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val fnrBruker: String,

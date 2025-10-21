@@ -161,8 +161,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             ),
         ) {
             val status = it.enum<BehovsmeldingStatus>("status")
-            val datoOpprettet = it.sqlTimestamp("created")
-            val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
+            val datoOpprettet = it.localDateTime("created")
+            val datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadForBruker.newEmptySøknad(
                     søknadId = it.uuid("soknads_id"),
@@ -336,8 +336,8 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
             ),
         ) {
             val status = it.enum<BehovsmeldingStatus>("status")
-            val datoOpprettet = it.sqlTimestamp("created")
-            val datoOppdatert = it.sqlTimestampOrNull("updated") ?: datoOpprettet
+            val datoOpprettet = it.localDateTime("created")
+            val datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet
             val behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType")
             if (status.isSlettetEllerUtløpt() || !it.boolean("er_digital")) {
                 SøknadMedStatus.newSøknadUtenFormidlernavn(

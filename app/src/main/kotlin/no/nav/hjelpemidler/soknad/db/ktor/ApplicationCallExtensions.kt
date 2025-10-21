@@ -6,5 +6,5 @@ import java.util.UUID
 val ApplicationCall.søknadId: UUID get() = parameters["soknadId"].let(UUID::fromString)
 
 data class Response(
-    val data: Any
+    val data: Any,
 )

@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import java.time.LocalDateTime
 import java.util.Date
 import java.util.UUID
 
@@ -17,8 +18,8 @@ class SøknadForBruker private constructor(
     val søknadId: BehovsmeldingId,
     val behovsmeldingType: BehovsmeldingType,
     val journalpostId: String?,
-    val datoOpprettet: Date,
-    var datoOppdatert: Date,
+    val datoOpprettet: LocalDateTime,
+    var datoOppdatert: LocalDateTime?,
     val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
     val fnrBruker: String,
@@ -36,8 +37,8 @@ class SøknadForBruker private constructor(
             søknadId: UUID,
             behovsmeldingType: BehovsmeldingType,
             journalpostId: String?,
-            datoOpprettet: Date,
-            datoOppdatert: Date,
+            datoOpprettet: LocalDateTime,
+            datoOppdatert: LocalDateTime?,
             behovsmeldingJsonV2: JsonNode,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
@@ -79,8 +80,8 @@ class SøknadForBruker private constructor(
             søknadId: UUID,
             behovsmeldingType: BehovsmeldingType,
             journalpostId: String?,
-            datoOpprettet: Date,
-            datoOppdatert: Date,
+            datoOpprettet: LocalDateTime,
+            datoOppdatert: LocalDateTime?,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
             fnrBruker: String,
