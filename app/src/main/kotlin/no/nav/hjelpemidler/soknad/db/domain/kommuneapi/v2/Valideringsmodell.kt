@@ -345,7 +345,9 @@ data class Godkjenningskurs(
 enum class InnbyggersVarigeFunksjonsnedsettelse {
     ALDERDOMSSVEKKELSE,
     ANNEN_VARIG_DIAGNOSE,
+    ANNEN_DIAGNOSE,
     UAVKLART,
+    UAVKLART_V2,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
