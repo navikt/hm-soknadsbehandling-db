@@ -51,6 +51,7 @@ data class Innsenderbehovsmelding(
     val hjelpemidler: Hjelpemidler,
     val levering: Levering,
     val innsender: Innsender?,
+    val vedlegg: List<Vedlegg> = emptyList(),
 
     val metadata: InnsenderbehovsmeldingMetadata?,
 
@@ -85,6 +86,18 @@ data class Innsenderbehovsmelding(
             }
         }
     }
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Vedlegg(
+    val id: UUID,
+    val navn: String,
+    val type: VedleggType,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+enum class VedleggType {
+    LEGEERKLÆRING_FOR_VARMEHJELPEMIDDEL,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
