@@ -230,6 +230,7 @@ data class HjelpemiddelProdukt(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Tilbehør(
+    val tilbehørId: UUID? = null,
     val hmsArtNr: String,
     val navn: String,
     val antall: Int,
