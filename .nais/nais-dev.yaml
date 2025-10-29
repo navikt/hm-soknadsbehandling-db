@@ -47,10 +47,10 @@ spec:
         - application: hm-saksbehandling
         - application: hm-soknad
         - application: azure-token-generator
-          namespace: aura
+          namespace: nais
           cluster: dev-gcp
         - application: tokenx-token-generator
-          namespace: aura
+          namespace: nais
           cluster: dev-gcp
     outbound:
       rules:
