@@ -13,18 +13,17 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.database.Row
-import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.sak.tilVedtak
 
 private val log = KotlinLogging.logger {}
 
 fun Row.tilBehovsmeldingType(columnLabel: String = "behovsmeldingType"): BehovsmeldingType = enumOrNull<BehovsmeldingType>(columnLabel) ?: BehovsmeldingType.SØKNAD
 
-fun Row.tilSøknadId(columnLabel: String = "soknads_id"): BehovsmeldingId = uuid(columnLabel)
+fun Row.tilBehovsmeldingId(columnLabel: String = "soknads_id"): BehovsmeldingId = uuid(columnLabel)
 
 fun Row.tilSøknad(): SøknadDto {
     return SøknadDto(
-        søknadId = tilSøknadId(),
+        søknadId = tilBehovsmeldingId(),
         søknadOpprettet = instant("soknad_opprettet"),
         søknadEndret = instant("soknad_endret"),
         søknadGjelder = string("soknad_gjelder"),
@@ -40,26 +39,20 @@ fun Row.tilSøknad(): SøknadDto {
     )
 }
 
-fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding {
-    return json<Innsenderbehovsmelding>("data_v2")
-}
+fun Row.tilInnsenderbehovsmelding(): Innsenderbehovsmelding = json<Innsenderbehovsmelding>("data_v2")
 
-fun Row.tilBrukerpassbytte(): Brukerpassbytte? {
-    return jsonOrNull<Brukerpassbytte>("data_v2")
-}
+fun Row.tilBrukerpassbytte(): Brukerpassbytte? = jsonOrNull<Brukerpassbytte>("data_v2")
 
-fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDto {
-    return InnsenderbehovsmeldingMetadataDto(
-        behovsmeldingId = tilSøknadId(),
-        innsenderbehovsmelding = tilInnsenderbehovsmelding(),
-        fnrInnsender = Fødselsnummer(string("fnr_innsender")),
-        behovsmeldingGjelder = string("soknad_gjelder"),
-    )
-}
+fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDto = InnsenderbehovsmeldingMetadataDto(
+    behovsmeldingId = tilBehovsmeldingId(),
+    innsenderbehovsmelding = tilInnsenderbehovsmelding(),
+    fnrInnsender = fødselsnummer("fnr_innsender"),
+    behovsmeldingGjelder = string("soknad_gjelder"),
+)
 
 fun Row.tilHotsakSak(): HotsakSak = HotsakSak(
     sakId = HotsakSakId(string("saksnummer")),
-    søknadId = tilSøknadId(),
+    søknadId = tilBehovsmeldingId(),
     opprettet = instant("created"),
     vedtak = tilVedtak(),
 )
@@ -70,7 +63,7 @@ fun Row.tilInfotrygdSak(): InfotrygdSak {
     val saksnummer = string("saksnr")
     return InfotrygdSak(
         sakId = InfotrygdSakId("$trygdekontornummer$saksblokk$saksnummer"),
-        søknadId = tilSøknadId(),
+        søknadId = tilBehovsmeldingId(),
         opprettet = instant("created"),
         vedtak = tilVedtak(),
         fnrBruker = string("fnr_bruker"),

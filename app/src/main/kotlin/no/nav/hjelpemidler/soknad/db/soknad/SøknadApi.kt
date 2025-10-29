@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.get
 import io.ktor.server.resources.post
@@ -50,11 +49,20 @@ fun Route.søknadApi(
         call.respondNullable(HttpStatusCode.OK, behovsmelding)
     }
 
-    get<Behovsmelding.BehovsmeldingMetadata> {
-        val behovsmeldingId = it.behovsmeldingId
+    get<Behovsmelding.BehovsmeldingId.Hjelpemidler> {
+        val behovsmeldingId = it.parent.behovsmeldingId
+        val hjelpemidler = transaction { søknadStore.finnHjelpemidler(behovsmeldingId) }
+        if (hjelpemidler == null) {
+            logg.info { "Fant ikke hjelpemidler for behovsmeldingId: $behovsmeldingId" }
+        }
+        call.respondNullable(HttpStatusCode.OK, hjelpemidler)
+    }
+
+    get<Behovsmelding.BehovsmeldingId.Metadata> {
+        val behovsmeldingId = it.parent.behovsmeldingId
         val behovsmeldingDto = transaction { søknadStore.finnInnsenderbehovsmeldingDto(behovsmeldingId) }
         if (behovsmeldingDto == null) {
-            logg.info { "Fant ikke behovsmelding med behovsmeldingId: $behovsmeldingId" }
+            logg.info { "Fant ikke metadata for behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, behovsmeldingDto)
     }

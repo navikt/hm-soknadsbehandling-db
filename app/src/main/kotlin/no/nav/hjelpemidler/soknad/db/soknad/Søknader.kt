@@ -80,13 +80,13 @@ class Behovsmelding {
     class BehovsmeldingId(
         @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
         val parent: Behovsmelding = Behovsmelding(),
-    )
+    ) {
+        @Resource("/hjelpemidler")
+        class Hjelpemidler(val parent: BehovsmeldingId)
 
-    @Resource("/{behovsmeldingId}/metadata")
-    class BehovsmeldingMetadata(
-        @Serializable(with = UUIDSerializer::class) @SerialName("behovsmeldingId") val behovsmeldingId: UUID,
-        val parent: Behovsmelding = Behovsmelding(),
-    )
+        @Resource("/metadata")
+        class Metadata(val parent: BehovsmeldingId)
+    }
 }
 
 // TODO: Det gir kanskje mer mening å slå i hop med /behovsmelding over, og returnere som JsonNode/BehovsmeldingBase
