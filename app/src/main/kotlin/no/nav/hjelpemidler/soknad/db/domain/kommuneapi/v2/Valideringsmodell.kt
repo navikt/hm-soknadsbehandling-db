@@ -12,6 +12,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.domain.geografi.Bydel
+import no.nav.hjelpemidler.domain.geografi.Kommune
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -173,6 +175,8 @@ data class Levering(
      */
     val utleveringsmåte: UtleveringsmåteV2?,
     val annenUtleveringsadresse: Veiadresse?,
+    val annenUtleveringskommune: Kommune? = null,
+    val annenUtleveringsbydel: Bydel? = null,
 
     // utleveringKontaktperson == null => alle hjm. er allerede utlevert
     val utleveringKontaktperson: KontaktpersonV2?,
