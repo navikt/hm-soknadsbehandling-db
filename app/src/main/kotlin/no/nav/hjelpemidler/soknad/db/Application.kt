@@ -25,6 +25,10 @@ import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.metrics.kafka.createKafkaClient
+import no.nav.hjelpemidler.soknad.db.rapportering.JobbScheduler
+import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeOppgaver
+import no.nav.hjelpemidler.soknad.db.rapportering.NaisLeaderElection
+import no.nav.hjelpemidler.soknad.db.rapportering.Rapporteringsjobber
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.store.Database
@@ -33,6 +37,8 @@ import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.tokenX
 import org.slf4j.event.Level
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 private val logg = KotlinLogging.logger { }
 
@@ -48,12 +54,19 @@ fun Application.module() {
             envVarPrefix = "DB"
         },
     )
+    val leaderElection = NaisLeaderElection()
+    val scheduler = Executors.newSingleThreadScheduledExecutor()
+    val jobbScheduler = JobbScheduler(scheduler, leaderElection)
+    val rapporteringsjobber = Rapporteringsjobber(jobbScheduler, ManglendeOppgaver(database))
+
     monitor.subscribe(ApplicationStarted) {
         database.migrate()
+        rapporteringsjobber.schedulerJobber()
         monitor.unsubscribe(ApplicationStarted) {}
     }
     monitor.subscribe(ApplicationStopping) {
         database.close()
+        scheduler.awaitTermination(10, TimeUnit.SECONDS)
         monitor.unsubscribe(ApplicationStopping) {}
     }
 
@@ -67,8 +80,6 @@ fun Application.module() {
         safselvbetjening = Safselvbetjening(),
         kafkaClient = kafkaClient,
     )
-
-    Oppgaveinspektør(database)
 
     authentication {
         azure()
