@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - epostvarsel-brukerbekreftelse
+      - epostvarsel-brukerbekreftelse-2
 
 jobs:
   build:

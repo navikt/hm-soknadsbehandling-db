@@ -3,6 +3,9 @@ package no.nav.hjelpemidler.soknad.db.rapportering
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.http.slack.SlackClient
+import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.ScheduledExecutorService
@@ -13,6 +16,7 @@ private val log = KotlinLogging.logger { }
 class JobbScheduler(
     private val scheduler: ScheduledExecutorService,
     private val leaderElection: LeaderElection,
+    private val slack: SlackClient,
 ) {
 
     fun schedulerGjentagendeJobb(
@@ -48,6 +52,14 @@ class JobbScheduler(
             log.info { "Jobb $navn fullført." }
         } catch (e: Exception) {
             log.error(e) { "Jobb $navn feilet." }
+            if (Environment.current.tier.isProd) {
+                slack.sendMessage(
+                    username = "hm-soknadsbehandling-db",
+                    icon = slackIconEmoji(":pepe-sweat:"),
+                    channel = "#digihot-alerts",
+                    message = "Jobben <$navn> feilet. Sjekk logg for detaljer, og vurder om jobben må rekjøres manuelt.",
+                )
+            }
         }
     }
 }

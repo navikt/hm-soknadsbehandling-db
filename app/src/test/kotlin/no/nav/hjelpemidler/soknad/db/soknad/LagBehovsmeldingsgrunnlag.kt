@@ -6,6 +6,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
+import java.time.Instant
 import java.time.LocalDate
 
 fun lagBehovsmeldingsgrunnlagDigital(
@@ -17,6 +18,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
     erKommunaltAnsatt: Boolean = true,
     innsenderArbeidsstedKommunenummer: String = "9999",
     brukersKommunenummer: String = "9999",
+    formidlersEpost: String = "formidler@kommune.no",
 ): Behovsmeldingsgrunnlag.Digital {
     val v1Json = """
         {
@@ -150,7 +152,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                 "postnummer": "9999",
                 "poststed": "poststed"
               },
-              "epost": "formidler@kommune.no",
+              "epost": "$formidlersEpost",
               "treffesEnklest": "treffesEnklest",
               "kommunenavn": null,
               "kommunenummer": "$innsenderArbeidsstedKommunenummer"
@@ -175,7 +177,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
           "id": "$søknadId",
           "type": "$behovsmeldingType",
           "innsendingsdato": "${LocalDate.now()}",
-          "innsendingstidspunkt": null,
+          "innsendingstidspunkt": "${Instant.now()}",
           "skjemaversjon": 2,
           "hjmBrukersFnr": "$fnrBruker",
           "prioritet": "NORMAL"

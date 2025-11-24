@@ -3,8 +3,8 @@ package no.nav.hjelpemidler.soknad.db
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingSomVenterGodkjenningDto
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
-import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import kotlin.test.Test
@@ -14,7 +14,7 @@ class AzureADRoutesTest {
     fun `Skal hente søknader til godkjenning eldre enn 0 dager`() = testApplication {
         lagreBehovsmelding()
         client.get("/api/soknad/utgaatt/0")
-            .expect<List<UtgåttSøknad>>(HttpStatusCode.OK) {
+            .expect<List<BehovsmeldingSomVenterGodkjenningDto>>(HttpStatusCode.OK) {
                 it.shouldNotBeEmpty()
             }
     }

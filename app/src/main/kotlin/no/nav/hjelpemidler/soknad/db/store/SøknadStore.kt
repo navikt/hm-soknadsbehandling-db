@@ -22,12 +22,15 @@ import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
+import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingOgStatus
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
-import no.nav.hjelpemidler.soknad.db.domain.UtgåttSøknad
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
+import no.nav.hjelpemidler.time.toLocalDateTime
 import java.math.BigInteger
+import java.sql.Timestamp
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDateTime
@@ -37,7 +40,11 @@ import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadStore(private val tx: JdbcOperations, private val slackClient: SlackClient) : Store {
+class SøknadStore(
+    private val tx: JdbcOperations,
+    private val slackClient: SlackClient,
+    private val clock: Clock,
+) : Store {
     fun finnSøknad(søknadId: UUID): SøknadDto? {
         return tx.singleOrNull(
             """
@@ -392,28 +399,29 @@ class SøknadStore(private val tx: JdbcOperations, private val slackClient: Slac
         return behovsmelding?.levering?.hjelpemiddelformidler?.navn.toString()
     }
 
-    fun hentSøknaderTilGodkjenningEldreEnn(dager: Int): List<UtgåttSøknad> {
+    fun hentBehovsmeldingerTilGodkjenningEldreEnn(dager: Int): List<BehovsmeldingOgStatus> {
+        val now = LocalDateTime.now(clock)
         val statement = Sql(
             """
-                SELECT soknad.soknads_id, soknad.fnr_bruker, status.status
+                SELECT soknad.data_v2, gs.status
                 FROM v1_soknad AS soknad
-                         LEFT JOIN v1_status AS status
-                                   ON status.id =
-                                      (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
-                WHERE status.status = :status
-                  AND (soknad.created + INTERVAL '$dager day') < NOW()
-                ORDER BY soknad.created DESC
+                JOIN v1_gjeldende_status gs USING (soknads_id)
+                WHERE gs.status = :status
+                    AND soknad.created < (:now)::timestamp - (:dager * INTERVAL '1 day')
             """.trimIndent(),
         )
 
         return tx.list(
             statement,
-            mapOf("status" to BehovsmeldingStatus.VENTER_GODKJENNING),
+            mapOf(
+                "status" to BehovsmeldingStatus.VENTER_GODKJENNING,
+                "now" to now,
+                "dager" to dager,
+            ),
         ) {
-            UtgåttSøknad(
-                søknadId = it.uuid("soknads_id"),
+            BehovsmeldingOgStatus(
+                behovsmelding = it.json<Innsenderbehovsmelding>("data_v2"),
                 status = it.enum<BehovsmeldingStatus>("status"),
-                fnrBruker = it.string("fnr_bruker"),
             )
         }
     }

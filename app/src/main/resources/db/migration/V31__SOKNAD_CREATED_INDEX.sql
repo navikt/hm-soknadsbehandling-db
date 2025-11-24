@@ -1,0 +1,1 @@
+CREATE INDEX idx_soknad_created ON v1_soknad(created);

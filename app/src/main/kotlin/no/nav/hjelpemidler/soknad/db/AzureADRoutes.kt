@@ -49,7 +49,10 @@ fun Route.azureADRoutes(
 
     get("/soknad/utgaatt/{dager}") {
         val dager = call.parameters["dager"]?.toInt() ?: throw BadRequestException("Parameter 'dager' var ugyldig")
-        val søknader = transaction { søknadStore.hentSøknaderTilGodkjenningEldreEnn(dager) }
+        val søknader = transaction {
+            søknadStore.hentBehovsmeldingerTilGodkjenningEldreEnn(dager)
+                .map { it.tilBehovsmeldingSomVenterGodkjenningDto() }
+        }
         call.respond(søknader)
     }
 

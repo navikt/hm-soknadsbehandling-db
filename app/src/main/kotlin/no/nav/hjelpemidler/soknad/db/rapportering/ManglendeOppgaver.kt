@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.soknad.db.rapportering
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache.Apache
 import no.nav.hjelpemidler.configuration.Environment
+import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.store.Transaction
@@ -15,8 +16,8 @@ private const val MINIMUM_DAGER = 2
 
 class ManglendeOppgaver(
     private val transaction: Transaction,
+    private val slack: SlackClient,
 ) {
-    private val slack = slack(engine = Apache.create())
 
     /**
      * Dette er saker som har stoppet opp pga. manglende verdier i innsendingen.

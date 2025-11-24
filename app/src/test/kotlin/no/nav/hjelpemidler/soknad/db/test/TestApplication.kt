@@ -18,7 +18,7 @@ import no.nav.hjelpemidler.soknad.db.store.testDatabase
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 
 fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
-    val database = testDatabase.apply { migrate() }
+    val database = testDatabase().apply { migrate() }
     val context = TestContext(
         createClient {
             install(Resources)

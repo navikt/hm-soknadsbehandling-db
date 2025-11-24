@@ -8,17 +8,18 @@ import no.nav.hjelpemidler.database.transactionAsync
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slack
 import java.io.Closeable
+import java.time.Clock
 import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
-class Database(private val dataSource: DataSource) :
+class Database(private val dataSource: DataSource, private val clock: Clock) :
     Transaction,
     Closeable {
     private val slackClient = slack(engine = Apache.create())
 
-    override suspend operator fun <T> invoke(block: StoreProvider.() -> T): T = transactionAsync(dataSource, strict = true) {
-        StoreProvider(it, slackClient).block()
+    override suspend operator fun <T> invoke(returnGeneratedKeys: Boolean, block: suspend StoreProvider.() -> T): T = transactionAsync(dataSource, strict = true, returnGeneratedKeys = returnGeneratedKeys) {
+        StoreProvider(it, slackClient, clock).block()
     }
 
     fun migrate() {
@@ -33,11 +34,12 @@ class Database(private val dataSource: DataSource) :
         }
     }
 
-    class StoreProvider(tx: JdbcOperations, slackClient: SlackClient) {
+    class StoreProvider(tx: JdbcOperations, slackClient: SlackClient, clock: Clock) {
         val hotsakStore = HotsakStore(tx)
         val infotrygdStore = InfotrygdStore(tx)
         val ordreStore = OrdreStore(tx)
-        val søknadStore = SøknadStore(tx, slackClient)
+        val søknadStore = SøknadStore(tx, slackClient, clock)
         val søknadStoreInnsender = SøknadStoreInnsender(tx)
+        val brukerbekreftelseVarselStore = BrukerbekreftelseVarselStore(tx, clock)
     }
 }

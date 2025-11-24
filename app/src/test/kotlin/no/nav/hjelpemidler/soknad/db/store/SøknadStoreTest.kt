@@ -348,34 +348,21 @@ class SøknadStoreTest {
     @Test
     fun `Søknad er utgått`() = databaseTest {
         val søknadId = lagSøknadId()
-        val fnrBruker = lagFødselsnummer()
 
         testTransaction { tx ->
             søknadStore.lagreBehovsmelding(
-                Behovsmeldingsgrunnlag.Digital(
-                    søknadId = søknadId,
-                    status = BehovsmeldingStatus.VENTER_GODKJENNING,
-                    fnrBruker = fnrBruker,
-                    navnBruker = "Fornavn Etternavn",
-                    fnrInnsender = lagFødselsnummer(),
-                    behovsmelding = emptyMap(),
-                    behovsmeldingGjelder = null,
-                    behovsmeldingV2 = emptyMap(),
-                ),
+                lagBehovsmeldingsgrunnlagDigital(søknadId = søknadId, status = BehovsmeldingStatus.VENTER_GODKJENNING),
             ) shouldBe 1
-            tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '2 week') WHERE SOKNADS_ID = '$søknadId'")
         }
 
+        clock.plusDays(14).plusMinutes(1)
         testTransaction {
-            søknadStore.hentSøknaderTilGodkjenningEldreEnn(14).shouldBeSingleton()
+            søknadStore.hentBehovsmeldingerTilGodkjenningEldreEnn(14).shouldBeSingleton()
         }
 
-        testTransaction { tx ->
-            tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '13 day') WHERE SOKNADS_ID = '$søknadId'")
-        }
-
+        clock.minusDays(1)
         testTransaction {
-            søknadStore.hentSøknaderTilGodkjenningEldreEnn(14).shouldBeEmpty()
+            søknadStore.hentBehovsmeldingerTilGodkjenningEldreEnn(14).shouldBeEmpty()
         }
     }
 
