@@ -105,7 +105,7 @@ class ManglendeBrukerbekreftelse(
         )
     }
 
-    fun nesteKjøring(): LocalDateTime = LocalDateTime.now(clock).plusDays(1).withHour(1).withMinute(0)
+    fun nesteKjøring(): LocalDateTime = LocalDateTime.now(clock).plusMinutes(10) // LocalDateTime.now(clock).plusDays(1).withHour(1).withMinute(0)
 }
 
 const val TITTEL_VARSEL_BRUKERBEKREFTELSE = "Hjelpemiddelsaker som venter på signatur fra innbygger"

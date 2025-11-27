@@ -42,10 +42,7 @@ class GraphEpost(
             return
         }
 
-        // TODO skru på epostutsending etter dry-run validering
-        val mottakerHash = mottaker.hashCode()
-        log.info { "Hopper over epostvarsel til $mottakerHash i dry-run." }
-        // client.sendEpost(request, avsender)
+        client.sendEpost(request, avsender)
     }
 }
 
