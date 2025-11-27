@@ -54,6 +54,8 @@ spec:
       external:
         - host: hooks.slack.com
         - host: safselvbetjening.prod-fss-pub.nais.io
+        - host: login.microsoftonline.com
+        - host: graph.microsoft.com
   resources:
     limits:
       cpu: 800m
