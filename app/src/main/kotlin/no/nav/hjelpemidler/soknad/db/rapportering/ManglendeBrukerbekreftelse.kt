@@ -26,8 +26,9 @@ class ManglendeBrukerbekreftelse(
 ) {
 
     suspend fun rapporter() {
-
-        sendTestepost()
+        if (Environment.current.isProd) {
+            sendTestepost()
+        }
 
         val eposterSomHarBlittVarsletIDag = transaction {
             brukerbekreftelseVarselStore.hentVarslerForIDag()
