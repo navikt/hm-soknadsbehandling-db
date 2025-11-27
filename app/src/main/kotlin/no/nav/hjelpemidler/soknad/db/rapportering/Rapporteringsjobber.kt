@@ -26,18 +26,20 @@ class Rapporteringsjobber(
 
         jobbScheduler.schedulerEngangsjobb(
             navn = "test_epostvarsling",
-            jobb = { epost.send(
-                avsender = EPOST_DIGIHOT,
-                mottaker = "ole.steinar.lillestol.skrede@nav.no",
-                tittel = "TEST",
-                innholdstype = ContentType.TEXT,
-                innhold = """
+            jobb = {
+                epost.send(
+                    avsender = EPOST_DIGIHOT,
+                    mottaker = "ole.steinar.lillestol.skrede@nav.no",
+                    tittel = "TEST",
+                    innholdstype = ContentType.TEXT,
+                    innhold = """
                 Hei!
                 
                 Dette er en test.
-            """.trimIndent(),
-                lagreIUtboks = true,
-            ) },
+                    """.trimIndent(),
+                    lagreIUtboks = true,
+                )
+            },
             beregnNesteKjøring = { LocalDateTime.now().plusMinutes(2) },
         )
     }

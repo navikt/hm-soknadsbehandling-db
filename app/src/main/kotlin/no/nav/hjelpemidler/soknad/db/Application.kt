@@ -79,6 +79,7 @@ fun Application.module() {
         jobbScheduler,
         ManglendeOppgaver(database, slack),
         ManglendeBrukerbekreftelse(database, epostClient, clock),
+        epostClient,
     )
 
     monitor.subscribe(ApplicationStarted) {
