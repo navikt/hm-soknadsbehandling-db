@@ -15,7 +15,7 @@ private val log = KotlinLogging.logger { }
 
 class GraphClient(
     private val openIDClient: OpenIDClient,
-    private val httpClient: HttpClient = createHttpClient(Apache.create()),
+    private val httpClient: HttpClient = createHttpClient(Apache.create()) { expectSuccess = true },
     private val baseUrl: String = "https://graph.microsoft.com/v1.0",
     private val scope: String = "https://graph.microsoft.com/.default",
 ) {
@@ -24,11 +24,10 @@ class GraphClient(
         try {
             withContext(Dispatchers.IO) {
                 val tokenSet = openIDClient.grant(scope)
-                val response = httpClient.post("$baseUrl/users/$avsender/sendMail") {
+                httpClient.post("$baseUrl/users/$avsender/sendMail") {
                     bearerAuth(tokenSet)
                     setBody(body)
                 }
-                log.info { "sendEpost response.status: ${response.status}" }
             }
         } catch (t: Throwable) {
             log.error(t) { "Sending av epost feilet for $request, avsender=$avsender" }
