@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.soknad.db.rapportering
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.ContentType
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.EPOST_DIGIHOT
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
@@ -26,11 +25,6 @@ class ManglendeBrukerbekreftelse(
 ) {
 
     suspend fun rapporter() {
-        if (Environment.current.isProd) {
-            sendTestepost()
-            return
-        }
-
         val eposterSomHarBlittVarsletIDag = transaction {
             brukerbekreftelseVarselStore.hentVarslerForIDag()
         }.toMutableSet()
@@ -110,31 +104,7 @@ class ManglendeBrukerbekreftelse(
         )
     }
 
-    private suspend fun sendTestepost() {
-        epost.send(
-            avsender = EPOST_DIGIHOT,
-            mottaker = "ole.steinar.lillestol.skrede@nav.no",
-            tittel = TITTEL_VARSEL_BRUKERBEKREFTELSE,
-            innholdstype = ContentType.TEXT,
-            innhold = """
-                Hei!
-                
-                Dette er et automatisk generert varsel om at du har en eller flere behovsmeldinger som ikke har blitt signert av innbygger.
-                
-                Vi sender deg dette varselet slik at du kan vurdere om det er behov for oppfølging av innbygger i disse sakene.
-                
-                Du kan se hvilke saker det gjelder ved å logge deg på digital behovsmelding og gå til "Dine innsendte saker". Der vil saker som venter på digital signatur ligge øverst.
-                
-                Du kan svare oss tilbake på denne eposten dersom noe er uklart.
-                
-                Vennlig hilsen
-                DigiHoT, Nav
-            """.trimIndent(),
-            lagreIUtboks = true, // TODO skru av etter verifisering
-        )
-    }
-
-    fun nesteKjøring(): LocalDateTime = LocalDateTime.now(clock).plusMinutes(1) // LocalDateTime.now(clock).plusDays(1).withHour(1).withMinute(0)
+    fun nesteKjøring(): LocalDateTime = LocalDateTime.now(clock).plusDays(1).withHour(1).withMinute(0)
 }
 
 const val TITTEL_VARSEL_BRUKERBEKREFTELSE = "Hjelpemiddelsaker som venter på signatur fra innbygger"
