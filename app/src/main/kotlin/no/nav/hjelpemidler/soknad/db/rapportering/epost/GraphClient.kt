@@ -44,7 +44,7 @@ class GraphClient(
                 val tokenSet = openIDClient.grant(scope)
                 httpClient.post("$baseUrl/users/$avsender/sendMail") {
                     bearerAuth(tokenSet)
-                    setBody(body)
+                    setBody(request)
                 }
             }
         } catch (t: Throwable) {
