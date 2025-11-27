@@ -19,24 +19,6 @@ class JobbScheduler(
     private val slack: SlackClient,
 ) {
 
-    fun schedulerEngangsjobb(
-        navn: String,
-        jobb: suspend CoroutineScope.() -> Unit,
-        beregnNesteKjøring: () -> LocalDateTime,
-    ) {
-        val task = Runnable {
-            runBlocking { kjørJobb(navn, jobb) }
-        }
-
-        val nesteKjøring = beregnNesteKjøring()
-        val forsinkelseTilNesteKjøring = Duration.between(LocalDateTime.now(), nesteKjøring).toMillis()
-
-        require(forsinkelseTilNesteKjøring > 0) { "Kan ikke ha negativ forsinkelse til neste kjøring. Navn=$navn, forsinkelse=$forsinkelseTilNesteKjøring, nesteKjøring=$nesteKjøring" }
-
-        log.info { "Schedulerer neste kjøring av $navn til $nesteKjøring (delay=$forsinkelseTilNesteKjøring ms)" }
-        scheduler.schedule(task, forsinkelseTilNesteKjøring, TimeUnit.MILLISECONDS)
-    }
-
     fun schedulerGjentagendeJobb(
         navn: String,
         jobb: suspend CoroutineScope.() -> Unit,
