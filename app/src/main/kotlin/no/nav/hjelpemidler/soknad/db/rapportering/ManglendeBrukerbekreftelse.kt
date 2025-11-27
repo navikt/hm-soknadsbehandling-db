@@ -26,6 +26,9 @@ class ManglendeBrukerbekreftelse(
 ) {
 
     suspend fun rapporter() {
+
+        sendTestepost()
+
         val eposterSomHarBlittVarsletIDag = transaction {
             brukerbekreftelseVarselStore.hentVarslerForIDag()
         }.toMutableSet()
@@ -85,6 +88,30 @@ class ManglendeBrukerbekreftelse(
         epost.send(
             avsender = EPOST_DIGIHOT,
             mottaker = formidlersEpost,
+            tittel = TITTEL_VARSEL_BRUKERBEKREFTELSE,
+            innholdstype = ContentType.TEXT,
+            innhold = """
+                Hei!
+                
+                Dette er et automatisk generert varsel om at du har en eller flere behovsmeldinger som ikke har blitt signert av innbygger.
+                
+                Vi sender deg dette varselet slik at du kan vurdere om det er behov for oppfølging av innbygger i disse sakene.
+                
+                Du kan se hvilke saker det gjelder ved å logge deg på digital behovsmelding og gå til "Dine innsendte saker". Der vil saker som venter på digital signatur ligge øverst.
+                
+                Du kan svare oss tilbake på denne eposten dersom noe er uklart.
+                
+                Vennlig hilsen
+                DigiHoT, Nav
+            """.trimIndent(),
+            lagreIUtboks = true, // TODO skru av etter verifisering
+        )
+    }
+
+    private suspend fun sendTestepost() {
+        epost.send(
+            avsender = EPOST_DIGIHOT,
+            mottaker = "ole.steinar.lillestol.skrede@nav.no",
             tittel = TITTEL_VARSEL_BRUKERBEKREFTELSE,
             innholdstype = ContentType.TEXT,
             innhold = """

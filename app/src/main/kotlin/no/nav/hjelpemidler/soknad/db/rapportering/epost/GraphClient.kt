@@ -24,10 +24,11 @@ class GraphClient(
         try {
             withContext(Dispatchers.IO) {
                 val tokenSet = openIDClient.grant(scope)
-                httpClient.post("$baseUrl/users/$avsender/sendMail") {
+                val response = httpClient.post("$baseUrl/users/$avsender/sendMail") {
                     bearerAuth(tokenSet)
                     setBody(body)
                 }
+                log.info { "sendEpost response.status: ${response.status}" }
             }
         } catch (t: Throwable) {
             log.error(t) { "Sending av epost feilet for $request, avsender=$avsender" }
