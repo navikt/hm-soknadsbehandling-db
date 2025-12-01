@@ -501,6 +501,7 @@ enum class Funksjonsnedsettelser {
     BEVEGELSE,
     KOGNISJON,
     HØRSEL,
+    SYN,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
