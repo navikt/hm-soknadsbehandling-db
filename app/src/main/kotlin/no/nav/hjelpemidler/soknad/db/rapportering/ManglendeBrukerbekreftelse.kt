@@ -98,7 +98,7 @@ class ManglendeBrukerbekreftelse(
                 Du kan svare oss tilbake på denne eposten dersom noe er uklart.
                 
                 Vennlig hilsen
-                DigiHoT, Nav
+                DigiHoT, Nav Hjelpemidler og tilrettelegging
             """.trimIndent(),
             lagreIUtboks = false,
         )

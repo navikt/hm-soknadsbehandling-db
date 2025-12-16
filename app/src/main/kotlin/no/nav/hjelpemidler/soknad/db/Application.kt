@@ -78,7 +78,7 @@ fun Application.module() {
     val rapporteringsjobber = Rapporteringsjobber(
         jobbScheduler,
         ManglendeOppgaver(database, slack),
-        ManglendeBrukerbekreftelse(database, epostClient, clock)
+        ManglendeBrukerbekreftelse(database, epostClient, clock),
     )
 
     monitor.subscribe(ApplicationStarted) {
