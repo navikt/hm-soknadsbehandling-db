@@ -430,9 +430,9 @@ class SøknadStore(
         lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data, data_v2, er_digital,
+                INSERT INTO v1_soknad (soknads_id, fnr_bruker, navn_bruker, fnr_innsender, data_v2, er_digital,
                                        soknad_gjelder)
-                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :data, :dataV2, TRUE, :soknadGjelder)
+                VALUES (:soknadId, :fnrBruker, :navnBruker, :fnrInnsender, :dataV2, TRUE, :soknadGjelder)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
@@ -440,7 +440,6 @@ class SøknadStore(
                 "fnrBruker" to grunnlag.fnrBruker,
                 "navnBruker" to grunnlag.navnBruker,
                 "fnrInnsender" to grunnlag.fnrInnsender,
-                "data" to pgJsonbOf(grunnlag.behovsmelding),
                 "dataV2" to pgJsonbOf(grunnlag.behovsmeldingV2),
                 "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
             ),

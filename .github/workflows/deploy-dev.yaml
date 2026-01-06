@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - epostvarsel-brukerbekreftelse-2
+      - stopp-lagring-av-behovsmeldingV1
 
 jobs:
   build:
