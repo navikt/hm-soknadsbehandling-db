@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.geografi.Bydel
 import no.nav.hjelpemidler.domain.geografi.Kommune
@@ -234,6 +235,7 @@ data class HjelpemiddelProdukt(
     val artikkelnavn: String,
     val iso8: String,
     val iso8Tittel: String,
+    val iso8KortTittel: String = "",
     val delkontrakttittel: String,
     val sortimentkategori: String, // fra digithot-sortiment
     val delkontraktId: String?, // Brukt av hm-saksfordeling for å sortere til Gosys.
@@ -251,6 +253,7 @@ data class Tilbehør(
     val tilbehørId: UUID? = null,
     val hmsArtNr: String,
     val navn: String,
+    val iso6: Iso6? = null,
     val antall: Int,
     val begrunnelse: String?,
     val fritakFraBegrunnelseÅrsak: FritakFraBegrunnelseÅrsak?,
