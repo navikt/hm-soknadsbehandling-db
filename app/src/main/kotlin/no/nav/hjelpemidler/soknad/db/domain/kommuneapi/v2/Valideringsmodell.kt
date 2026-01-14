@@ -56,6 +56,7 @@ data class Innsenderbehovsmelding(
     val vedlegg: List<Vedlegg> = emptyList(),
 
     val metadata: InnsenderbehovsmeldingMetadata?,
+    val saksbehandlingvarsel: List<Varsel> = emptyList(),
 
     override val id: UUID,
     override val type: BehovsmeldingType,
