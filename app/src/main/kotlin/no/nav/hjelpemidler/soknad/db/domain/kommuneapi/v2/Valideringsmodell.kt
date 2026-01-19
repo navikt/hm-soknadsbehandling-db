@@ -12,6 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.OpplysningKey
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.geografi.Bydel
 import no.nav.hjelpemidler.domain.geografi.Kommune
@@ -283,6 +284,7 @@ data class Utlevertinfo(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Opplysning(
+    val key: OpplysningKey? = null,
     val ledetekst: LokalisertTekst,
     val innhold: List<Tekst>,
 )
