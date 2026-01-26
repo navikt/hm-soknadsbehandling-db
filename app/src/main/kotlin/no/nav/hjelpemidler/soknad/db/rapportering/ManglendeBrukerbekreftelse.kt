@@ -42,7 +42,7 @@ class ManglendeBrukerbekreftelse(
                 continue
             }
 
-            val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost
+            val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost.trim()
             val eksisterendeVarsel = eposterSomHarBlittVarsletIDag.find { it.formidlersEpost == formidlersEpost }
             if (eksisterendeVarsel != null) {
                 log.info { "Behovsmelding ${behovsmelding.id} er moden for varsling, men formidler har allerede blitt varslet i dag. Markerer behovsmelding som varslet." }
