@@ -125,4 +125,10 @@ class SøknadService(private val transaction: Transaction) {
             }
         }
     }
+
+    suspend fun hentStatus(søknadId: BehovsmeldingId): BehovsmeldingStatus {
+        return transaction {
+            søknadStore.hentStatus(søknadId)
+        }
+    }
 }

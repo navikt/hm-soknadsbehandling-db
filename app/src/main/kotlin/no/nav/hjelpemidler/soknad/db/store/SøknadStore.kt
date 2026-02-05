@@ -529,6 +529,17 @@ class SøknadStore(
         }
     }
 
+    fun hentStatus(søknadId: UUID): BehovsmeldingStatus {
+        return tx.single(
+            """
+                SELECT status
+                FROM v1_gjeldende_status
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
+            mapOf("soknadId" to søknadId),
+        ) { it.enum("status") }
+    }
+
     private var hentBehovsmeldingerForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
     fun hentBehovsmeldingerForKommuneApiet(
         kommunenummer: String,

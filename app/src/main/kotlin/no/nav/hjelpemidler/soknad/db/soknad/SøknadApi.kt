@@ -9,6 +9,7 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
@@ -116,6 +117,12 @@ fun Route.søknadApi(
         val sakstilknytning = call.receive<Sakstilknytning>()
         val rowsUpdated = søknadService.lagreSakstilknytning(it.parent.søknadId, sakstilknytning)
         call.respond(HttpStatusCode.OK, rowsUpdated)
+    }
+
+    get<Søknader.SøknadId.Status> {
+        val søknadId = it.parent.søknadId
+        val status = søknadService.hentStatus(søknadId)
+        call.respond(HttpStatusCode.OK, StatusResponse(status))
     }
 
     put<Søknader.SøknadId.Status> {
