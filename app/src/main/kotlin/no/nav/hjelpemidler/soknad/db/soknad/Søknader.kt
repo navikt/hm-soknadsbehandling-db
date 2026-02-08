@@ -86,6 +86,9 @@ class Behovsmelding {
 
         @Resource("/metadata")
         class Metadata(val parent: BehovsmeldingId)
+
+        @Resource("/brukerbekreftelse-til-fullmakt")
+        class BrukerbekreftelseTilFullmakt(val parent: BehovsmeldingId)
     }
 }
 

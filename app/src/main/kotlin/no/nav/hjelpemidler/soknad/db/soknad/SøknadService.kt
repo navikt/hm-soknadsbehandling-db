@@ -8,6 +8,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingNotFoundException
+import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingUgyldigStatusException
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
@@ -129,6 +131,33 @@ class SøknadService(private val transaction: Transaction) {
     suspend fun hentStatus(søknadId: BehovsmeldingId): BehovsmeldingStatus {
         return transaction {
             søknadStore.hentStatus(søknadId)
+        }
+    }
+
+    suspend fun konverterBrukerbekreftelseToFullmakt(behovsmeldingId: BehovsmeldingId) {
+        transaction {
+            val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId)
+                ?: throw BehovsmeldingNotFoundException(behovsmeldingId)
+
+            val nåværendeStatus = søknadStore.hentStatus(behovsmeldingId)
+            if (nåværendeStatus != BehovsmeldingStatus.VENTER_GODKJENNING) {
+                throw BehovsmeldingUgyldigStatusException(
+                    behovsmeldingId = behovsmeldingId,
+                    nåværendeStatus = nåværendeStatus,
+                    forventetStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
+                )
+            }
+
+            val fullmaktBehovsmelding = behovsmelding.copy(
+                bruker = behovsmelding.bruker.copy(
+                    signaturtype = no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype.FULLMAKT,
+                ),
+            )
+
+            søknadStore.oppdaterStatus(behovsmeldingId, BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF)
+            søknadStore.oppdaterBehovsmelding(behovsmeldingId, fullmaktBehovsmelding)
+
+            logg.info { "Behovsmelding $behovsmeldingId konvertert fra brukerbekreftelse til fullmakt med status ${BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF}" }
         }
     }
 }

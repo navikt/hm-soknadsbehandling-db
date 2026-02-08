@@ -9,7 +9,6 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
-import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
@@ -66,6 +65,12 @@ fun Route.søknadApi(
             logg.info { "Fant ikke metadata for behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, behovsmeldingDto)
+    }
+
+    post<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
+        val behovsmeldingId = it.parent.behovsmeldingId
+        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId)
+        call.respond(HttpStatusCode.OK)
     }
 
     get<Brukerpassbytte.BehovsmeldingId> {

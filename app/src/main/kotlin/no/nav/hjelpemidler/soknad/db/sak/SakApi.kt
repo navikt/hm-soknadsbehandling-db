@@ -1,7 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.sak
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.server.application.call
 import io.ktor.server.resources.get
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
@@ -11,7 +10,7 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 private val logg = KotlinLogging.logger {}
 
 fun Route.sakApi(transaction: Transaction) {
-    /**
+    /*
      * NB! Kun saker fra Hotsak har en entydig sakId.
      */
     get<Saker.SakId> {
@@ -23,7 +22,7 @@ fun Route.sakApi(transaction: Transaction) {
         call.respondNullable(sak)
     }
 
-    /**
+    /*
      * NB! Kun saker fra Hotsak har en entydig sakId.
      */
     get<Saker.SakId.Søknad> {

@@ -25,6 +25,15 @@ fun Application.feilmelding() {
             logg.error(cause) { cause.melding }
             call.feilmelding(cause, HttpStatusCode.NotFound)
         }
+        exception<BehovsmeldingNotFoundException> { call, cause ->
+            logg.warn { cause.melding }
+            call.feilmelding(cause, HttpStatusCode.NotFound)
+        }
+        // 409
+        exception<BehovsmeldingUgyldigStatusException> { call, cause ->
+            logg.warn { cause.melding }
+            call.feilmelding(cause, HttpStatusCode.Conflict)
+        }
         // 501
         exception<NotImplementedError> { call, cause ->
             logg.error(cause) { cause.melding }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
@@ -27,6 +28,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
+import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.time.toLocalDateTime
 import java.math.BigInteger
 import java.sql.Timestamp
@@ -442,6 +444,21 @@ class SøknadStore(
                 "fnrInnsender" to grunnlag.fnrInnsender,
                 "dataV2" to pgJsonbOf(grunnlag.behovsmeldingV2),
                 "soknadGjelder" to (grunnlag.behovsmeldingGjelder ?: "Søknad om hjelpemidler"),
+            ),
+        ).actualRowCount
+    }
+
+    fun oppdaterBehovsmelding(behovsmeldingId: BehovsmeldingId, behovsmelding: Innsenderbehovsmelding): Int {
+        return tx.update(
+            """
+                UPDATE v1_soknad 
+                SET data_v2 = :dataV2,
+                    updated = NOW()
+                WHERE soknads_id = :soknadId
+            """.trimIndent(),
+            mapOf(
+                "dataV2" to pgJsonbOf(behovsmelding),
+                "soknadId" to behovsmeldingId,
             ),
         ).actualRowCount
     }
