@@ -4,6 +4,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import java.time.Instant
@@ -19,6 +20,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
     innsenderArbeidsstedKommunenummer: String = "9999",
     brukersKommunenummer: String = "9999",
     formidlersEpost: String = "formidler@kommune.no",
+    signaturtype: Signaturtype = Signaturtype.FULLMAKT,
 ): Behovsmeldingsgrunnlag.Digital {
     val v1Json = """
         {
@@ -35,7 +37,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
               "mellomnavn": null,
               "etternavn": "Etternavn"
             },
-            "signaturtype": "FULLMAKT",
+            "signaturtype": "${signaturtype.name}",
             "telefon": "12345678",
             "veiadresse": {
               "adresse": "adresseveien 2",

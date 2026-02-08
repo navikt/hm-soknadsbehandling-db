@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.soknad.db.test
 import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -25,8 +26,13 @@ class TestJobbContext(
     suspend inline fun lagreBehovsmelding(
         status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
         formidlersEpost: String = "formidler@kommune.no",
+        signaturtype: Signaturtype = Signaturtype.FULLMAKT,
     ): Behovsmeldingsgrunnlag.Digital {
-        val grunnlag = lagBehovsmeldingsgrunnlagDigital(status = status, formidlersEpost = formidlersEpost)
+        val grunnlag = lagBehovsmeldingsgrunnlagDigital(
+            status = status,
+            formidlersEpost = formidlersEpost,
+            signaturtype = signaturtype,
+        )
         søknadService.lagreBehovsmelding(grunnlag)
         return grunnlag
     }
