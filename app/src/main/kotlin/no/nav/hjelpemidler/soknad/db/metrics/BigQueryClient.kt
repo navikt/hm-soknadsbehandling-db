@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.metrics
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
-import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
+import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 
 private val logg = KotlinLogging.logger {}
 

@@ -8,14 +8,16 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingNotFoundException
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingUgyldigStatusException
+import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadService(private val transaction: Transaction) {
+class SøknadService(private val transaction: Transaction, private val kafkaClient: KafkaClient) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
         logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
@@ -134,9 +136,9 @@ class SøknadService(private val transaction: Transaction) {
         }
     }
 
-    suspend fun konverterBrukerbekreftelseToFullmakt(behovsmeldingId: BehovsmeldingId) {
+    suspend fun konverterBrukerbekreftelseToFullmakt(behovsmeldingId: BehovsmeldingId, innsenderFnr: Fødselsnummer) {
         transaction {
-            val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId)
+            val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId, innsenderFnr)
                 ?: throw BehovsmeldingNotFoundException(behovsmeldingId)
 
             val nåværendeStatus = søknadStore.hentStatus(behovsmeldingId)
@@ -155,9 +157,10 @@ class SøknadService(private val transaction: Transaction) {
             )
 
             søknadStore.oppdaterStatus(behovsmeldingId, BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF)
-            søknadStore.oppdaterBehovsmelding(behovsmeldingId, fullmaktBehovsmelding)
-
-            logg.info { "Behovsmelding $behovsmeldingId konvertert fra brukerbekreftelse til fullmakt med status ${BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF}" }
+            søknadStore.oppdaterBehovsmelding(behovsmeldingId, fullmaktBehovsmelding, innsenderFnr)
         }
+
+        kafkaClient.send(behovsmeldingId, BrukerbekreftelseTilFullmaktMelding(behovsmeldingId = behovsmeldingId))
+        logg.info { "Behovsmelding $behovsmeldingId konvertert fra brukerbekreftelse til fullmakt med status ${BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF}" }
     }
 }

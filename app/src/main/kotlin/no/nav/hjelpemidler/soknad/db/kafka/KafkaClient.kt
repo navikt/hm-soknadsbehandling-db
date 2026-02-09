@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.db.metrics.kafka
+package no.nav.hjelpemidler.soknad.db.kafka
 
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.configuration.LocalEnvironment

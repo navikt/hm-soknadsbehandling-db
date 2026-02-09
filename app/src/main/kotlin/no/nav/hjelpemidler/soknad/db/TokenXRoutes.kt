@@ -10,14 +10,17 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
+import no.nav.hjelpemidler.soknad.db.kafka.Melding
 import no.nav.hjelpemidler.soknad.db.ktor.Response
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
+import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -139,15 +142,22 @@ fun Route.tokenXRoutes(
 
         // Send ut kafka event
         data class Event(
-            val eventId: UUID = UUID.randomUUID(),
-            val eventName: String,
+            override val eventId: UUID = UUID.randomUUID(),
+            override val eventName: String,
             val soknadId: UUID,
-        )
+        ) : Melding
         kafkaClient.send(user.ident, Event(eventName = utfall.eventName, soknadId = søknadId))
         call.respond(HttpStatusCode.NoContent)
     }
     post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
     delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
+
+    post<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
+        val behovsmeldingId = it.parent.behovsmeldingId
+        val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
+        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+        call.respond(HttpStatusCode.OK)
+    }
 
     get<Bruker.Dokumenter.ForSak> {
         val user = tokenXUserFactory.createTokenXUser(call)
@@ -182,3 +192,5 @@ private enum class BekreftelseUtfall(val eventName: String) {
     GODKJENT_AV_BRUKER("godkjentAvBruker"),
     SLETTET_AV_BRUKER("slettetAvBruker"),
 }
+
+fun TokenXUser.fnr(): Fødselsnummer = Fødselsnummer(ident)

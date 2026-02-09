@@ -4,6 +4,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.soknad.db.kafka.LocalKafkaClient
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -20,7 +21,7 @@ class TestJobbContext(
         epostClient,
         clock,
     ),
-    val søknadService: SøknadService = SøknadService(transaction),
+    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient),
 ) {
 
     suspend inline fun lagreBehovsmelding(

@@ -21,6 +21,7 @@ import no.nav.hjelpemidler.database.Row
 import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.domain.BehovsmeldingOgStatus
@@ -28,10 +29,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
-import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
-import no.nav.hjelpemidler.time.toLocalDateTime
 import java.math.BigInteger
-import java.sql.Timestamp
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
@@ -84,6 +82,19 @@ class SøknadStore(
                 WHERE soknads_id = :behovsmeldingId
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId),
+            Row::tilInnsenderbehovsmelding,
+        )
+    }
+
+    fun finnInnsenderbehovsmelding(behovsmeldingId: UUID, innsenderFnr: Fødselsnummer): Innsenderbehovsmelding? {
+        return tx.singleOrNull(
+            """
+                SELECT data_v2
+                FROM v1_soknad
+                WHERE soknads_id = :behovsmeldingId
+                AND fnr_innsender = :innsenderFnr
+            """.trimIndent(),
+            mapOf("behovsmeldingId" to behovsmeldingId, "innsenderFnr" to innsenderFnr.value),
             Row::tilInnsenderbehovsmelding,
         )
     }
@@ -448,17 +459,23 @@ class SøknadStore(
         ).actualRowCount
     }
 
-    fun oppdaterBehovsmelding(behovsmeldingId: BehovsmeldingId, behovsmelding: Innsenderbehovsmelding): Int {
+    fun oppdaterBehovsmelding(
+        behovsmeldingId: BehovsmeldingId,
+        behovsmelding: Innsenderbehovsmelding,
+        innsenderFnr: Fødselsnummer,
+    ): Int {
         return tx.update(
             """
                 UPDATE v1_soknad 
                 SET data_v2 = :dataV2,
                     updated = NOW()
                 WHERE soknads_id = :soknadId
+                AND fnr_innsender = :innsenderFnr
             """.trimIndent(),
             mapOf(
                 "dataV2" to pgJsonbOf(behovsmelding),
                 "soknadId" to behovsmeldingId,
+                "innsenderFnr" to innsenderFnr.value,
             ),
         ).actualRowCount
     }

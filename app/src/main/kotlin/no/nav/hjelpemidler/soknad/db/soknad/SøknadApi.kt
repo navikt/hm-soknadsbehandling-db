@@ -67,12 +67,6 @@ fun Route.søknadApi(
         call.respondNullable(HttpStatusCode.OK, behovsmeldingDto)
     }
 
-    post<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
-        val behovsmeldingId = it.parent.behovsmeldingId
-        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId)
-        call.respond(HttpStatusCode.OK)
-    }
-
     get<Brukerpassbytte.BehovsmeldingId> {
         val behovsmeldingId = it.behovsmeldingId
         val behovsmelding = transaction { søknadStore.finnBrukerpassbytte(behovsmeldingId) }

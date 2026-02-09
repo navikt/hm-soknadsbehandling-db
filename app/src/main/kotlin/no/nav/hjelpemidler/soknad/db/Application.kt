@@ -27,7 +27,7 @@ import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
-import no.nav.hjelpemidler.soknad.db.metrics.kafka.createKafkaClient
+import no.nav.hjelpemidler.soknad.db.kafka.createKafkaClient
 import no.nav.hjelpemidler.soknad.db.rapportering.JobbScheduler
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeOppgaver

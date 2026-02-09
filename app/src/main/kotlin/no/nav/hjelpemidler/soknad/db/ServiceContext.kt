@@ -1,9 +1,9 @@
 package no.nav.hjelpemidler.soknad.db
 
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
+import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.metrics.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
@@ -21,5 +21,5 @@ class ServiceContext(
 ) {
     val ordreService = OrdreService(transaction, grunndataClient)
     val rolleService = RolleService(rolleClient)
-    val søknadService = SøknadService(transaction)
+    val søknadService = SøknadService(transaction, kafkaClient)
 }
