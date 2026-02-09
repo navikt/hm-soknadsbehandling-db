@@ -160,7 +160,7 @@ class SøknadService(private val transaction: Transaction, private val kafkaClie
             søknadStore.oppdaterBehovsmelding(behovsmeldingId, fullmaktBehovsmelding, innsenderFnr)
         }
 
-        kafkaClient.send(behovsmeldingId, BrukerbekreftelseTilFullmaktMelding(behovsmeldingId = behovsmeldingId))
+        kafkaClient.send(behovsmeldingId, BrukerbekreftelseTilFullmaktAvventerPdf(behovsmeldingId = behovsmeldingId))
         logg.info { "Behovsmelding $behovsmeldingId konvertert fra brukerbekreftelse til fullmakt med status ${BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF}" }
     }
 }
