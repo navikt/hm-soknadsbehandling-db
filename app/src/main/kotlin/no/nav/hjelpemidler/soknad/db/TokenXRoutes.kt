@@ -8,6 +8,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.patch
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -152,7 +153,7 @@ fun Route.tokenXRoutes(
     post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
     delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
 
-    post<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
+    patch<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
         val behovsmeldingId = it.parent.behovsmeldingId
         val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
         søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
