@@ -101,4 +101,27 @@ class InfotrygdStore(private val tx: JdbcOperations) : Store {
             Row::tilInfotrygdSak,
         )
     }
+
+    fun hentDigitaleVedtakNøkler(fraOgMedDato: LocalDate, tilOgMedDato: LocalDate): List<InfotrygdDigitaltVedtakNøkkel> {
+        return tx.list(
+            """
+                SELECT
+                      i.fnr_bruker,
+                      i.trygdekontornr,
+                      i.saksblokk,
+                      i.saksnr
+                FROM v1_infotrygd_data i
+                INNER JOIN v1_soknad s ON i.soknads_id = s.soknads_id
+                WHERE s.er_digital
+                  AND i.vedtaksdato IS NOT NULL
+                  AND i.vedtaksdato >= :fraOgMedDato
+                  AND i.vedtaksdato <= :tilOgMedDato
+            """.trimIndent(),
+            mapOf(
+                "fraOgMedDato" to fraOgMedDato,
+                "tilOgMedDato" to tilOgMedDato,
+            ),
+            Row::tilInfotrygdDigitaltVedtakNøkkel,
+        )
+    }
 }

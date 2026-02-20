@@ -67,4 +67,15 @@ fun Route.azureADRoutes(
         val result = transaction { ordreStore.harOrdre(søknadId) }
         call.respond(result)
     }
+
+    // Brukes til å tagge digital/papir i brevstatistikk fra Infotrygd!
+    post("/infotrygd/digitale-vedtak-nokler") {
+        data class Request(
+            val fraOgMedDato: LocalDate,
+            val tilOgMedDato: LocalDate,
+        )
+        val req = call.receive<Request>()
+        val response = transaction { infotrygdStore.hentDigitaleVedtakNøkler(req.fraOgMedDato, req.tilOgMedDato) }
+        call.respond(response)
+    }
 }
