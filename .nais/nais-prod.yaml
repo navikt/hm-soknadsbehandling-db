@@ -38,6 +38,7 @@ spec:
       rules:
         - application: hm-dinehjelpemidler
         - application: hm-forslagsmotor-tilbehoer
+        - application: hm-infotrygd-poller
         - application: hm-formidler
         - application: hm-kommune-api
         - application: hm-soknadsbehandling
