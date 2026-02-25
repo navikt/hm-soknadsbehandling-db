@@ -156,7 +156,7 @@ fun Route.tokenXRoutes(
     patch<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
         val behovsmeldingId = it.parent.behovsmeldingId
         val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
-        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+        søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
         call.respond(HttpStatusCode.OK)
     }
 

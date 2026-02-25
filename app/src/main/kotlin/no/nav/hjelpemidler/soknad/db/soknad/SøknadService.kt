@@ -136,7 +136,7 @@ class SøknadService(private val transaction: Transaction, private val kafkaClie
         }
     }
 
-    suspend fun konverterBrukerbekreftelseToFullmakt(behovsmeldingId: BehovsmeldingId, innsenderFnr: Fødselsnummer) {
+    suspend fun konverterBrukerbekreftelseTilFullmakt(behovsmeldingId: BehovsmeldingId, innsenderFnr: Fødselsnummer) {
         transaction {
             val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId, innsenderFnr)
                 ?: throw BehovsmeldingNotFoundException(behovsmeldingId)

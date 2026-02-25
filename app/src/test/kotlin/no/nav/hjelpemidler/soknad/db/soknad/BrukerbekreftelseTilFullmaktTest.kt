@@ -18,7 +18,7 @@ class BrukerbekreftelseTilFullmaktTest {
         val behovsmeldingId = grunnlag.søknadId
         val innsenderFnr = grunnlag.fnrInnsender.toFødselsnummer()!!
 
-        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+        søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
 
         transaction {
             val behovsmeldingEtter = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId)!!
@@ -35,7 +35,7 @@ class BrukerbekreftelseTilFullmaktTest {
         val innsenderFnr = lagFødselsnummer().toFødselsnummer()
 
         shouldThrow<BehovsmeldingNotFoundException> {
-            søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+            søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
         }
     }
 
@@ -46,7 +46,7 @@ class BrukerbekreftelseTilFullmaktTest {
         val innsenderFnr = grunnlag.fnrInnsender.toFødselsnummer()!!
 
         shouldThrow<BehovsmeldingUgyldigStatusException> {
-            søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+            søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
         }
     }
 
@@ -60,7 +60,7 @@ class BrukerbekreftelseTilFullmaktTest {
             søknadStore.finnInnsenderbehovsmelding(behovsmeldingId)!!
         }
 
-        søknadService.konverterBrukerbekreftelseToFullmakt(behovsmeldingId, innsenderFnr)
+        søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
 
         val oppdatertBehovsmelding = transaction {
             søknadStore.finnInnsenderbehovsmelding(behovsmeldingId)!!

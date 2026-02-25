@@ -527,6 +527,7 @@ class SøknadStore(
                     BehovsmeldingStatus.GODKJENT,
                     BehovsmeldingStatus.INNSENDT_FULLMAKT_IKKE_PÅKREVD,
                     BehovsmeldingStatus.BRUKERPASSBYTTE_INNSENDT,
+                    BehovsmeldingStatus.FULLMAKT_AVVENTER_PDF,
                 ).toStringArray(),
             ),
         ) { it.string("soknads_id") }
