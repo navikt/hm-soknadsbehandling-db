@@ -14,7 +14,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
+import io.ktor.server.request.uri
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -129,8 +131,11 @@ fun Application.felles() {
         register(ContentType.Application.Json, JacksonConverter(jsonMapper))
     }
     install(CallLogging) {
-        level = Level.TRACE
+        level = if (Environment.current.tier.isDev) Level.INFO else Level.TRACE
         filter { call -> call.request.path().startsWith("/api") }
+        format { call ->
+            "[${call.request.httpMethod.value}] ${call.request.uri}"
+        }
     }
     feilmelding()
 }
