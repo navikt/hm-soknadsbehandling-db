@@ -153,7 +153,7 @@ fun Route.tokenXRoutes(
     post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
     delete<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.SLETTET_AV_BRUKER) }
 
-    patch<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
+    post<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
         val behovsmeldingId = it.parent.behovsmeldingId
         val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
         søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
