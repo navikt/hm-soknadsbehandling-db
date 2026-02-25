@@ -134,7 +134,7 @@ class SøknadService(
                 if (rowsUpdated > 0) {
                     try {
                         varsleOmSlettetBehovsmelding(formidlersEpost)
-                        logg.info { "Varslet formidler om at en behovsmelding har blitt slettet ($søknadId)." }
+                        logg.info { "Varslet formidler per epost om at en behovsmelding har blitt slettet ($søknadId)." }
                     } catch (e: Exception) {
                         logg.error(e) { "Epost-varsel til formidler om at en behovsmelding er slettet feilet ($søknadId)." }
                     }

@@ -150,6 +150,7 @@ class SøknadApiTest {
 
         assertEquals(1, epostClient.outbox.size)
         assertEquals("Varsel om sak slettet av innbygger", epostClient.outbox.first().tittel)
+        assertEquals("formidler@kommune.no", epostClient.outbox.first().mottaker)
     }
 
     @Test
