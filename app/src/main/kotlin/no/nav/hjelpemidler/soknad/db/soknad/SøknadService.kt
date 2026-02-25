@@ -137,12 +137,14 @@ class SøknadService(private val transaction: Transaction, private val kafkaClie
     }
 
     suspend fun konverterBrukerbekreftelseTilFullmakt(behovsmeldingId: BehovsmeldingId, innsenderFnr: Fødselsnummer) {
+        logg.info { "Endrer brukerbekreftelse til fullmakt for behovsmelding $behovsmeldingId" }
         transaction {
             val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId, innsenderFnr)
                 ?: throw BehovsmeldingNotFoundException(behovsmeldingId)
 
             val nåværendeStatus = søknadStore.hentStatus(behovsmeldingId)
             if (nåværendeStatus != BehovsmeldingStatus.VENTER_GODKJENNING) {
+                logg.error { "Kan ikke endre behovsmelding $behovsmeldingId til FULLMAKT fordi nåværende status er $nåværendeStatus" }
                 throw BehovsmeldingUgyldigStatusException(
                     behovsmeldingId = behovsmeldingId,
                     nåværendeStatus = nåværendeStatus,
