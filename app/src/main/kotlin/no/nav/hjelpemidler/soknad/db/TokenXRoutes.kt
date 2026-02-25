@@ -8,6 +8,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
@@ -17,6 +18,7 @@ import no.nav.hjelpemidler.soknad.db.kafka.Melding
 import no.nav.hjelpemidler.soknad.db.ktor.Response
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
+import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
@@ -158,6 +160,12 @@ fun Route.tokenXRoutes(
         val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
         søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
         call.respond(HttpStatusCode.OK)
+    }
+
+    get<Behovsmelding.BehovsmeldingId.Status> {
+        val behovsmeldingId = it.parent.behovsmeldingId
+        val status = søknadService.hentStatus(behovsmeldingId)
+        call.respond(HttpStatusCode.OK, StatusResponse(status))
     }
 
     get<Bruker.Dokumenter.ForSak> {

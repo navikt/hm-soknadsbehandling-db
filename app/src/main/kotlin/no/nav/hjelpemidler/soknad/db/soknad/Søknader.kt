@@ -89,6 +89,9 @@ class Behovsmelding {
 
         @Resource("/brukerbekreftelse-til-fullmakt")
         class BrukerbekreftelseTilFullmakt(val parent: BehovsmeldingId)
+
+        @Resource("/status")
+        class Status(val parent: BehovsmeldingId)
     }
 }
 

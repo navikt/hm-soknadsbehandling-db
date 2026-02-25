@@ -118,12 +118,6 @@ fun Route.søknadApi(
         call.respond(HttpStatusCode.OK, rowsUpdated)
     }
 
-    get<Søknader.SøknadId.Status> {
-        val søknadId = it.parent.søknadId
-        val status = søknadService.hentStatus(søknadId)
-        call.respond(HttpStatusCode.OK, StatusResponse(status))
-    }
-
     put<Søknader.SøknadId.Status> {
         val søknadId = it.parent.søknadId
         val statusendring = call.receive<Statusendring>()
