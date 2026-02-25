@@ -6,6 +6,7 @@ import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
 class FakeEpostClient : EpostClient {
 
     val outbox = mutableListOf<FakeEpost>()
+    var skalKasteException: Boolean = false
 
     override suspend fun send(
         avsender: String,
@@ -15,6 +16,10 @@ class FakeEpostClient : EpostClient {
         innholdstype: ContentType,
         lagreIUtboks: Boolean,
     ) {
+        if (skalKasteException) {
+            throw RuntimeException("Simulert feil")
+        }
+
         outbox.add(
             FakeEpost(
                 avsender = avsender,

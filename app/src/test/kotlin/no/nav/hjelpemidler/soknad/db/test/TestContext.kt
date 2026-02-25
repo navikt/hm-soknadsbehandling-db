@@ -25,6 +25,7 @@ import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
@@ -32,6 +33,7 @@ import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
+import no.nav.hjelpemidler.soknad.db.test.fakes.FakeEpostClient
 import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -45,6 +47,7 @@ class TestContext(
     val safselvbetjening: Safselvbetjening = mockk(),
     val kafkaClient: KafkaClient = mockk(),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
+    val epostClient: FakeEpostClient = FakeEpostClient(),
 ) {
     init {
         coEvery { grunndataClient.hentProdukterMedHmsnrs(any()) } answers {

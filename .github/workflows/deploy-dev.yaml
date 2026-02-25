@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - stopp-lagring-av-behovsmeldingV1
+      - epostvarsling-sletting
 
 jobs:
   build:

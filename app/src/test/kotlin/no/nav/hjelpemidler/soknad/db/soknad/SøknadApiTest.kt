@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.soknad.db.test.testApplication
 import java.util.UUID
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SøknadApiTest {
     @Test
@@ -137,6 +138,32 @@ class SøknadApiTest {
         oppdaterOppgaveId(søknadId, oppgaveId)
         finnSøknad(søknadId).shouldNotBeNull {
             this.oppgaveId shouldBe oppgaveId
+        }
+    }
+
+    @Test
+    fun `Skal sende epostvarsel til formidler når behovsmelding slettes av innbygger`() = testApplication {
+        val behovsmeldingId =
+            lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = BehovsmeldingStatus.VENTER_GODKJENNING)).søknadId
+
+        oppdaterStatus(behovsmeldingId, BehovsmeldingStatus.SLETTET)
+
+        assertEquals(1, epostClient.outbox.size)
+        assertEquals("Varsel om sak slettet av innbygger", epostClient.outbox.first().tittel)
+        assertEquals("formidler@kommune.no", epostClient.outbox.first().mottaker)
+    }
+
+    @Test
+    fun `Skal ignorere at epostvarsel om slettet behovsmelding feiler`() = testApplication {
+        epostClient.skalKasteException = true
+        val behovsmeldingId =
+            lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(status = BehovsmeldingStatus.VENTER_GODKJENNING)).søknadId
+
+        oppdaterStatus(behovsmeldingId, BehovsmeldingStatus.SLETTET)
+
+        assertEquals(0, epostClient.outbox.size)
+        finnSøknad(behovsmeldingId).shouldNotBeNull {
+            this.status shouldBe BehovsmeldingStatus.SLETTET
         }
     }
 }
