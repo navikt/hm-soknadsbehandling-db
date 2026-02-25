@@ -171,7 +171,7 @@ class SøknadService(
                 
                 $HILSEN_DIGIHOT
             """.trimIndent(),
-            lagreIUtboks = false,
+            lagreIUtboks = true, // TODO skru av etter verifisering
         )
     }
 
