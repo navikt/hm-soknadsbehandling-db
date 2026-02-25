@@ -12,12 +12,21 @@ import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingNotFoundException
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingUgyldigStatusException
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
+import no.nav.hjelpemidler.soknad.db.rapportering.TITTEL_VARSEL_BRUKERBEKREFTELSE
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.ContentType
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EPOST_DIGIHOT
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.HILSEN_DIGIHOT
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadService(private val transaction: Transaction, private val kafkaClient: KafkaClient) {
+class SøknadService(
+    private val transaction: Transaction,
+    private val kafkaClient: KafkaClient,
+    private val epostClient: EpostClient,
+) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
         logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
@@ -110,24 +119,60 @@ class SøknadService(private val transaction: Transaction, private val kafkaClie
         statusendring: Statusendring,
     ): Int {
         val status = statusendring.status
-        return transaction {
-            when (status) {
-                BehovsmeldingStatus.SLETTET -> {
-                    logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
-                    søknadStore.slettSøknad(søknadId)
+        return when (status) {
+            BehovsmeldingStatus.SLETTET -> {
+                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                val (rowsUpdated, formidlersEpost) = transaction {
+                    val behovsmelding =
+                        søknadStore.finnInnsenderbehovsmelding(søknadId) ?: throw BehovsmeldingNotFoundException(
+                            søknadId,
+                        )
+                    val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost
+                    val rowsUpdated = søknadStore.slettSøknad(søknadId)
+                    Pair(rowsUpdated, formidlersEpost)
                 }
+                if (rowsUpdated > 0) {
+                    try {
+                        varsleOmSlettetBehovsmelding(formidlersEpost)
+                        logg.info { "Varslet formidler om at en behovsmelding har blitt slettet ($søknadId)." }
+                    } catch (e: Exception) {
+                        logg.error(e) { "Epost-varsel til formidler om at en behovsmelding er slettet feilet ($søknadId)." }
+                    }
+                }
+                rowsUpdated
+            }
 
-                BehovsmeldingStatus.UTLØPT -> {
-                    logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+            BehovsmeldingStatus.UTLØPT -> {
+                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                transaction {
                     søknadStore.slettUtløptSøknad(søknadId)
                 }
+            }
 
-                else -> {
-                    logg.info { "Oppdaterer søknadsstatus, søknadId: $søknadId, status: $status" }
+            else -> {
+                logg.info { "Oppdaterer søknadsstatus, søknadId: $søknadId, status: $status" }
+                transaction {
                     søknadStore.oppdaterStatus(søknadId, status, statusendring.valgteÅrsaker, statusendring.begrunnelse)
                 }
             }
         }
+    }
+
+    suspend fun varsleOmSlettetBehovsmelding(formidlersEpost: String) {
+        epostClient.send(
+            avsender = EPOST_DIGIHOT,
+            mottaker = formidlersEpost,
+            tittel = "Varsel om sak slettet av innbygger",
+            innholdstype = ContentType.TEXT,
+            innhold = """
+                Hei!
+                
+                En sak du har sendt for bekreftelse er slettet av innbygger. Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
+                
+                $HILSEN_DIGIHOT
+            """.trimIndent(),
+            lagreIUtboks = false,
+        )
     }
 
     suspend fun hentStatus(søknadId: BehovsmeldingId): BehovsmeldingStatus {

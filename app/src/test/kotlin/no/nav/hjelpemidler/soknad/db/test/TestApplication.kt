@@ -15,6 +15,7 @@ import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
 import no.nav.hjelpemidler.soknad.db.store.testDatabase
+import no.nav.hjelpemidler.soknad.db.test.fakes.FakeEpostClient
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
 
 fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
@@ -40,6 +41,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
             rolleClient = context.rolleClient,
             safselvbetjening = context.safselvbetjening,
             kafkaClient = context.kafkaClient,
+            epostClient = context.epostClient,
             metrics = context.metrics,
         )
 

@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
@@ -17,9 +18,10 @@ class ServiceContext(
     rolleClient: RolleClient,
     val safselvbetjening: Safselvbetjening,
     val kafkaClient: KafkaClient,
+    val epostClient: EpostClient,
     val metrics: Metrics = Metrics(transaction, BigQueryClient(kafkaClient)),
 ) {
     val ordreService = OrdreService(transaction, grunndataClient)
     val rolleService = RolleService(rolleClient)
-    val søknadService = SøknadService(transaction, kafkaClient)
+    val søknadService = SøknadService(transaction, kafkaClient, epostClient)
 }

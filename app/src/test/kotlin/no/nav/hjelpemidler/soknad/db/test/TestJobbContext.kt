@@ -21,7 +21,7 @@ class TestJobbContext(
         epostClient,
         clock,
     ),
-    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient),
+    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient),
 ) {
 
     suspend inline fun lagreBehovsmelding(

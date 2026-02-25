@@ -103,6 +103,7 @@ fun Application.module() {
         rolleClient = RolleClient(),
         safselvbetjening = Safselvbetjening(),
         kafkaClient = kafkaClient,
+        epostClient = epostClient,
     )
 
     authentication {

@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.ContentType
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.EPOST_DIGIHOT
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.HILSEN_DIGIHOT
 import no.nav.hjelpemidler.soknad.db.store.BrukerbekreftelseVarselEntity
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.hjelpemidler.time.toInstant
@@ -97,8 +98,7 @@ class ManglendeBrukerbekreftelse(
                 
                 Du kan svare oss tilbake på denne eposten dersom noe er uklart.
                 
-                Vennlig hilsen
-                DigiHoT, Nav Hjelpemidler og tilrettelegging
+                $HILSEN_DIGIHOT
             """.trimIndent(),
             lagreIUtboks = false,
         )
