@@ -97,9 +97,7 @@ class ManglendeBrukerbekreftelse(
                 Du kan se hvilke saker det gjelder ved å logge deg på digital behovsmelding og gå til "Dine innsendte saker". Der vil saker som venter på digital signatur ligge øverst.
                 
                 Du kan svare oss tilbake på denne eposten dersom noe er uklart.
-                
-                $HILSEN_DIGIHOT
-            """.trimIndent(),
+            """.trimIndent() + HILSEN_DIGIHOT,
             lagreIUtboks = false,
         )
     }

@@ -168,9 +168,7 @@ class SøknadService(
                 Hei!
                 
                 En sak du har sendt for bekreftelse er slettet av innbygger. Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
-                
-                $HILSEN_DIGIHOT
-            """.trimIndent(),
+            """.trimIndent() + HILSEN_DIGIHOT,
             lagreIUtboks = true, // TODO skru av etter verifisering
         )
     }
