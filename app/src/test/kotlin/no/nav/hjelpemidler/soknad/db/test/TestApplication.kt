@@ -10,6 +10,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import no.nav.hjelpemidler.http.jackson
+import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
@@ -42,6 +43,7 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
             safselvbetjening = context.safselvbetjening,
             kafkaClient = context.kafkaClient,
             epostClient = context.epostClient,
+            slack = context.slack,
             metrics = context.metrics,
         )
 

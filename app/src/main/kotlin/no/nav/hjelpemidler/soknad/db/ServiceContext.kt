@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db
 
+import no.nav.hjelpemidler.http.slack.SlackClient
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
@@ -19,9 +20,10 @@ class ServiceContext(
     val safselvbetjening: Safselvbetjening,
     val kafkaClient: KafkaClient,
     val epostClient: EpostClient,
+    val slack: SlackClient,
     val metrics: Metrics = Metrics(transaction, BigQueryClient(kafkaClient)),
 ) {
     val ordreService = OrdreService(transaction, grunndataClient)
     val rolleService = RolleService(rolleClient)
-    val søknadService = SøknadService(transaction, kafkaClient, epostClient)
+    val søknadService = SøknadService(transaction, kafkaClient, epostClient, slack)
 }

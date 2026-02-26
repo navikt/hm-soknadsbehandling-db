@@ -20,6 +20,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.http.slack.SlackClient
+import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
@@ -48,6 +50,7 @@ class TestContext(
     val kafkaClient: KafkaClient = mockk(),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
     val epostClient: FakeEpostClient = FakeEpostClient(),
+    val slack: SlackClient = slack(),
 ) {
     init {
         coEvery { grunndataClient.hentProdukterMedHmsnrs(any()) } answers {

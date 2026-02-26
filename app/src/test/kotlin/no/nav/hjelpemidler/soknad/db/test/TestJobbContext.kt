@@ -4,6 +4,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.http.slack.SlackClient
+import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.soknad.db.kafka.LocalKafkaClient
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
@@ -16,12 +18,13 @@ class TestJobbContext(
     val transaction: Transaction,
     val clock: MutableClock,
     val epostClient: FakeEpostClient = FakeEpostClient(),
+    val slack: SlackClient = slack(),
     val manglendeBrukerbekreftelse: ManglendeBrukerbekreftelse = ManglendeBrukerbekreftelse(
         transaction,
         epostClient,
         clock,
     ),
-    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient),
+    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient, slack),
 ) {
 
     suspend inline fun lagreBehovsmelding(

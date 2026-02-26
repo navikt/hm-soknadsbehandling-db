@@ -104,6 +104,7 @@ fun Application.module() {
         safselvbetjening = Safselvbetjening(),
         kafkaClient = kafkaClient,
         epostClient = epostClient,
+        slack = slack,
     )
 
     authentication {

@@ -8,7 +8,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
+import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.http.slack.SlackClient
+import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingNotFoundException
 import no.nav.hjelpemidler.soknad.db.exception.BehovsmeldingUgyldigStatusException
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
@@ -26,6 +29,7 @@ class SøknadService(
     private val transaction: Transaction,
     private val kafkaClient: KafkaClient,
     private val epostClient: EpostClient,
+    private val slack: SlackClient,
 ) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
@@ -181,6 +185,20 @@ class SøknadService(
 
     suspend fun konverterBrukerbekreftelseTilFullmakt(behovsmeldingId: BehovsmeldingId, innsenderFnr: Fødselsnummer) {
         logg.info { "Endrer brukerbekreftelse til fullmakt for behovsmelding $behovsmeldingId" }
+
+        if (Environment.current.tier.isProd) {
+            try {
+                slack.sendMessage(
+                    username = "hm-soknadsbehandling-db",
+                    icon = slackIconEmoji(":tada:"),
+                    channel = "#digihot-alerts",
+                    message = "Behovsmelding $behovsmeldingId ble forsøkt endret fra brukerbekreftelse til fullmakt! Sjekk loggen om alt gikk bra.",
+                )
+            } catch (e: Exception) {
+                logg.error(e) { "Slackvarsling om endring fra brukerbekreftelse til fullmakt for behovsmelding $behovsmeldingId feilet." }
+            }
+        }
+
         transaction {
             val behovsmelding = søknadStore.finnInnsenderbehovsmelding(behovsmeldingId, innsenderFnr)
                 ?: throw BehovsmeldingNotFoundException(behovsmeldingId)
