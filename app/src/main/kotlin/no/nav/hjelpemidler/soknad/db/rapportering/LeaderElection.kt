@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.rapportering
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +15,7 @@ interface LeaderElection {
 }
 
 class NaisLeaderElection(
-    private val httpClient: HttpClient = createHttpClient(Apache.create()),
+    private val httpClient: HttpClient = createHttpClient(Apache5.create()),
     private val url: String = Configuration.ELECTOR_GET_URL,
 ) : LeaderElection {
 

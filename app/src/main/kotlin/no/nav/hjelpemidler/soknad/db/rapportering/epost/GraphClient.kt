@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.rapportering.epost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
@@ -19,7 +19,7 @@ private val log = KotlinLogging.logger { }
 
 class GraphClient(
     private val openIDClient: OpenIDClient,
-    private val httpClient: HttpClient = createHttpClient(Apache.create()) {
+    private val httpClient: HttpClient = createHttpClient(Apache5.create()) {
         expectSuccess = true
         defaultRequest {
             accept(ContentType.Application.Json)

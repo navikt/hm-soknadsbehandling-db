@@ -19,7 +19,7 @@ dependencies {
     implementation(libs.hotlibs.serialization)
 
     // Ktor Client
-    implementation(libs.ktor.client.apache)
+    implementation(libs.ktor.client.apache5)
 
     // Ktor Server
     implementation(libs.bundles.ktor.server)

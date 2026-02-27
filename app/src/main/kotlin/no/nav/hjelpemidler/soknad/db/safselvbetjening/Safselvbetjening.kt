@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db.safselvbetjening
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -38,7 +38,7 @@ class Safselvbetjening(
     private val audience: String = Configuration.SAFSELVBETJENING_AUDIENCE,
 ) {
     private val tokendingsService = TokendingsServiceBuilder.buildTokendingsService()
-    private val client: HttpClient = createHttpClient(Apache.create())
+    private val client: HttpClient = createHttpClient(Apache5.create())
 
     suspend fun hentDokumenter(
         onBehalfOfToken: String,

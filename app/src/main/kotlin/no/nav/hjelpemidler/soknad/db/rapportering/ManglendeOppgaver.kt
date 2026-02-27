@@ -1,10 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.rapportering
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.engine.apache.Apache
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.http.slack.SlackClient
-import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.http.slack.slackIconEmoji
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate

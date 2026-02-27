@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.http.ContentType
 import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.server.application.Application
@@ -72,7 +72,7 @@ fun Application.module() {
             maximumSize = 100
         }
     }
-    val slack = slack(engine = Apache.create())
+    val slack = slack(engine = Apache5.create())
     val epostClient = GraphEpost(GraphClient(entraIDClient))
     val leaderElection = NaisLeaderElection()
     val scheduler = Executors.newSingleThreadScheduledExecutor()

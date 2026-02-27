@@ -10,9 +10,8 @@ import no.nav.hjelpemidler.database.clean
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.database.createRole
 import no.nav.hjelpemidler.database.migrate
-import no.nav.hjelpemidler.database.transactionAsync
+import no.nav.hjelpemidler.database.transaction
 import no.nav.hjelpemidler.soknad.db.test.MutableClock
-import java.util.UUID
 import javax.sql.DataSource
 
 val testDataSource by lazy {
@@ -46,7 +45,7 @@ class TestDatabase(private val dataSource: DataSource, val clock: MutableClock) 
         dataSource.migrate { createRole("cloudsqliamuser") }
     }
 
-    suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T = transactionAsync(dataSource, strict = true) {
+    suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T = transaction(dataSource, strict = true) {
         Database.StoreProvider(it, mockk(relaxed = true), clock).block(it)
     }
 }

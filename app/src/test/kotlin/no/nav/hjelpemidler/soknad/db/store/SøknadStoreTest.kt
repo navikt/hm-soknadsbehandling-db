@@ -83,7 +83,7 @@ class SøknadStoreTest {
 
             assertNull(søknad.innsenderbehovsmelding.levering.annenUtleveringsadresse)
 
-            assertEquals(true, søknad?.er_digital)
+            assertEquals(true, søknad.er_digital)
         }
     }
 
@@ -245,7 +245,7 @@ class SøknadStoreTest {
             assertEquals(fnrBruker, hentSoknad!!.innsenderbehovsmelding!!.bruker.fnr.value)
             assertEquals(true, hentSoknad.er_digital)
             assertTrue(
-                hentSoknad.innsenderbehovsmelding!!.levering.automatiskUtledetTilleggsinfo.contains(
+                hentSoknad.innsenderbehovsmelding.levering.automatiskUtledetTilleggsinfo.contains(
                     LeveringTilleggsinfo.UTLEVERING_KALENDERAPP,
                 ),
             )

@@ -4,7 +4,7 @@ import com.expediagroup.graphql.client.jackson.GraphQLClientJacksonSerializer
 import com.expediagroup.graphql.client.ktor.GraphQLKtorClient
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import no.nav.hjelpemidler.soknad.db.Configuration
 import no.nav.hjelpemidler.soknad.db.client.hmdb.HentProdukterMedHmsnrs
 import java.net.URI
@@ -15,7 +15,7 @@ private val logg = KotlinLogging.logger {}
 class GrunndataClient {
     private val client = GraphQLKtorClient(
         url = URI(Configuration.GRUNNDATA_API_URL).toURL(),
-        httpClient = HttpClient(engineFactory = Apache),
+        httpClient = HttpClient(engineFactory = Apache5),
         serializer = GraphQLClientJacksonSerializer(),
     )
 
