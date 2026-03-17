@@ -9,8 +9,10 @@ private val logg = KotlinLogging.logger {}
 class BigQueryClient(
     val kafkaClient: KafkaClient,
 ) {
-    private fun writeEvent(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
+    fun writeEvent(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) = try {
         kafkaClient.hendelseOpprettet(measurement, fields, tags)
+    } catch (e: Exception) {
+        logg.error(e) { "Feil ved oppretting av måling: $measurement" }
     }
 
     fun registerElapsedTime(metricFieldName: String, tid: Long) {

@@ -25,5 +25,5 @@ class ServiceContext(
 ) {
     val ordreService = OrdreService(transaction, grunndataClient)
     val rolleService = RolleService(rolleClient)
-    val søknadService = SøknadService(transaction, kafkaClient, epostClient, slack)
+    val søknadService = SøknadService(transaction, kafkaClient, epostClient, metrics)
 }

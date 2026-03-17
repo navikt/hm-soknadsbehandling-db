@@ -134,13 +134,28 @@ class Metrics(
         }
     }
 
+    fun brukerbekreftelseTilFullmakt() = writeEvent(BRUKERBEKFREFTELSE_TIL_FULLMAKT)
+
+    fun innbyggerSlettetBrukerbekreftelse() = writeEvent(INNBYGGER_SLETTET_BRUKERBEKREFTELSE)
+
+    private fun writeEvent(
+        measurement: String,
+        tags: Map<String, String> = emptyMap(),
+        fields: Map<String, Any> = mapOf("counter" to 1L),
+    ) {
+        bigQuery.writeEvent(measurement = measurement, fields = fields, tags = tags)
+    }
+
     companion object {
+        const val PREFIX = "hm-soknadsbehandling"
         const val TID_FRA_VENTER_GODKJENNING_TIL_GODKJENT =
-            "hm-soknadsbehandling.event.tid_fra_venter_godkjenning_til_godkjent"
-        const val TID_FRA_GODKJENT_TIL_JOURNALFORT = "hm-soknadsbehandling.event.tid_fra_godkjent_til_journalfort"
-        const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "hm-soknadsbehandling.event.tid_fra_journalfort_til_vedtak"
-        const val TID_FRA_VEDTAK_TIL_UTSENDING = "hm-soknadsbehandling.event.tid_fra_vedtak_til_utsending"
-        const val COUNT_OF_SOKNAD_BY_STATUS = "hm-soknadsbehandling.event.count_of_soknad_by_status"
+            "$PREFIX.event.tid_fra_venter_godkjenning_til_godkjent"
+        const val TID_FRA_GODKJENT_TIL_JOURNALFORT = "$PREFIX.event.tid_fra_godkjent_til_journalfort"
+        const val TID_FRA_JOURNALFORT_TIL_VEDTAK = "$PREFIX.event.tid_fra_journalfort_til_vedtak"
+        const val TID_FRA_VEDTAK_TIL_UTSENDING = "$PREFIX.event.tid_fra_vedtak_til_utsending"
+        const val COUNT_OF_SOKNAD_BY_STATUS = "$PREFIX.event.count_of_soknad_by_status"
+        const val BRUKERBEKFREFTELSE_TIL_FULLMAKT = "$PREFIX.brukerbekreftelse_til_fullmakt"
+        const val INNBYGGER_SLETTET_BRUKERBEKREFTELSE = "$PREFIX.innbygger_slettet_brukerbekreftelse"
     }
 }
 

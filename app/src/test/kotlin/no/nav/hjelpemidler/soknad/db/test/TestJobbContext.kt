@@ -1,12 +1,12 @@
 package no.nav.hjelpemidler.soknad.db.test
 
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
-import no.nav.hjelpemidler.http.slack.SlackClient
-import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.soknad.db.kafka.LocalKafkaClient
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -18,13 +18,13 @@ class TestJobbContext(
     val transaction: Transaction,
     val clock: MutableClock,
     val epostClient: FakeEpostClient = FakeEpostClient(),
-    val slack: SlackClient = slack(),
+    val metrics: Metrics = mockk(relaxed = true),
     val manglendeBrukerbekreftelse: ManglendeBrukerbekreftelse = ManglendeBrukerbekreftelse(
         transaction,
         epostClient,
         clock,
     ),
-    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient, slack),
+    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient, metrics),
 ) {
 
     suspend inline fun lagreBehovsmelding(
