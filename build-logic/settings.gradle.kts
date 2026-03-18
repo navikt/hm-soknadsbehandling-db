@@ -6,7 +6,7 @@ dependencyResolutionManagement {
         gradlePluginPortal()
         mavenCentral()
         maven {
-            url = uri("https://maven.pkg.github.com/navikt/*")
+            url = uri("https://maven.pkg.github.com/navikt/hotlibs")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")

@@ -4,20 +4,26 @@ pluginManagement {
     includeBuild("build-logic")
 }
 
+fun RepositoryHandler.github(repository: String) {
+    maven {
+        url = uri("https://maven.pkg.github.com/$repository")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/*")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-        maven {
-            url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-        }
+
+        github("navikt/hotlibs")
+        github("navikt/tms-ktor-token-support")
+
+        // Plassert under GitHub-repositories (med authentication) for å unngå unødvendige kostnader.
+        maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
     versionCatalogs {
         create("libs") {
