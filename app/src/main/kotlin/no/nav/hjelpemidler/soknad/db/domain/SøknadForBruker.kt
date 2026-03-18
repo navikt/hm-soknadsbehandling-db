@@ -1,7 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.domain
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.treeToValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
@@ -10,8 +8,9 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.treeToValue
 import java.time.LocalDateTime
-import java.util.Date
 import java.util.UUID
 
 class SøknadForBruker private constructor(

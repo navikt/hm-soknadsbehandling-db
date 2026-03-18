@@ -1,16 +1,16 @@
 package no.nav.hjelpemidler.soknad.db.exception
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.path
+import tools.jackson.core.JsonGenerator
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.annotation.JsonDeserialize
+import tools.jackson.databind.annotation.JsonSerialize
+import tools.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.databind.ser.std.StdSerializer
 import java.time.Instant
 
 /**
@@ -55,7 +55,9 @@ data class Feilmelding(
 }
 
 private class HttpStatusCodeSerializer : StdSerializer<HttpStatusCode>(HttpStatusCode::class.java) {
-    override fun serialize(value: HttpStatusCode, generator: JsonGenerator, provider: SerializerProvider) = generator.writeNumber(value.value)
+    override fun serialize(value: HttpStatusCode, generator: JsonGenerator, context: SerializationContext) {
+        generator.writeNumber(value.value)
+    }
 }
 
 private class HttpStatusCodeDeserializer : StdDeserializer<HttpStatusCode>(HttpStatusCode::class.java) {

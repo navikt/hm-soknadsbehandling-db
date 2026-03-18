@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.store
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -29,6 +28,7 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadForBruker
 import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
+import tools.jackson.databind.JsonNode
 import java.math.BigInteger
 import java.time.Clock
 import java.time.DayOfWeek

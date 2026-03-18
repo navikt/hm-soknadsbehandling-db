@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.soknad.db
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.http.ContentType
-import io.ktor.serialization.jackson.JacksonConverter
+import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping

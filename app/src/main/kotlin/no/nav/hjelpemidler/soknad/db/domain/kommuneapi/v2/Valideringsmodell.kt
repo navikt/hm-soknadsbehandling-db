@@ -3,19 +3,18 @@ package no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
-import com.fasterxml.jackson.core.StreamReadFeature
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.OpplysningKey
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.geografi.Bydel
 import no.nav.hjelpemidler.domain.geografi.Kommune
+import tools.jackson.core.StreamReadFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonMapperBuilder
+import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -75,8 +74,7 @@ data class Innsenderbehovsmelding(
 
     companion object {
         private val specializedObjectMapper: JsonMapper = jacksonMapperBuilder()
-            .addModule(JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             // Skal feile hvis man har ukjente verdier i JsonNode, da må denne vedlikeholdes og hva som deles med
             // kommunen revurderes!
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

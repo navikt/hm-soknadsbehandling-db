@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.safselvbetjening
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 
 data class GraphqlRequest(
     val query: String,
