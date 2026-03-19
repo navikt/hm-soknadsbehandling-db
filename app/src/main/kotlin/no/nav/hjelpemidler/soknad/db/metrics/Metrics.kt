@@ -137,7 +137,7 @@ class Metrics(
     fun brukerbekreftelseTilFullmakt() = writeEvent(BRUKERBEKFREFTELSE_TIL_FULLMAKT)
 
     fun innbyggerSlettetBrukerbekreftelse() = writeEvent(INNBYGGER_SLETTET_BRUKERBEKREFTELSE)
-    fun `slettetPgaUtløptBrukerbekreftelse`() = writeEvent(BRUKERBEKREFTELSE_UTLØPT)
+    fun slettetPgaUtløptBrukerbekreftelse() = writeEvent(BRUKERBEKREFTELSE_UTLØPT)
 
     private fun writeEvent(
         measurement: String,

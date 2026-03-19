@@ -28,7 +28,7 @@ class SøknadService(
     private val epostClient: EpostClient,
     private val metrics: Metrics,
 
-    ) {
+) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
         logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
@@ -125,7 +125,7 @@ class SøknadService(
             BehovsmeldingStatus.SLETTET -> {
                 val behovsmelding = transaction {
                     søknadStore.finnInnsenderbehovsmelding(søknadId) ?: throw BehovsmeldingNotFoundException(
-                        søknadId
+                        søknadId,
                     )
                 }
                 logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
@@ -202,7 +202,7 @@ class SøknadService(
                 
                 En sak du har sendt for bekreftelse er slettet som følge av at innbygger ikke har bekreftet saken innen fristen. 
                 Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
-            """.trimIndent() + HILSEN_DIGIHOT
+            """.trimIndent() + HILSEN_DIGIHOT,
         )
     }
 
