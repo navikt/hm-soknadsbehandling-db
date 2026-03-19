@@ -203,6 +203,7 @@ class SøknadService(
                 En sak du har sendt for bekreftelse er slettet som følge av at innbygger ikke har bekreftet saken innen fristen. 
                 Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
             """.trimIndent() + HILSEN_DIGIHOT,
+            lagreIUtboks = true, // TODO skru av etter verifisering
         )
     }
 
