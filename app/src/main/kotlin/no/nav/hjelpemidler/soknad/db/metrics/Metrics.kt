@@ -137,6 +137,7 @@ class Metrics(
     fun brukerbekreftelseTilFullmakt() = writeEvent(BRUKERBEKFREFTELSE_TIL_FULLMAKT)
 
     fun innbyggerSlettetBrukerbekreftelse() = writeEvent(INNBYGGER_SLETTET_BRUKERBEKREFTELSE)
+    fun `slettetPgaUtløptBrukerbekreftelse`() = writeEvent(BRUKERBEKREFTELSE_UTLØPT)
 
     private fun writeEvent(
         measurement: String,
@@ -156,6 +157,7 @@ class Metrics(
         const val COUNT_OF_SOKNAD_BY_STATUS = "$PREFIX.event.count_of_soknad_by_status"
         const val BRUKERBEKFREFTELSE_TIL_FULLMAKT = "$PREFIX.brukerbekreftelse_til_fullmakt"
         const val INNBYGGER_SLETTET_BRUKERBEKREFTELSE = "$PREFIX.innbygger_slettet_brukerbekreftelse"
+        const val BRUKERBEKREFTELSE_UTLØPT = "$PREFIX.brukerbekreftelse_slettet_pga_utløpt_frist"
     }
 }
 

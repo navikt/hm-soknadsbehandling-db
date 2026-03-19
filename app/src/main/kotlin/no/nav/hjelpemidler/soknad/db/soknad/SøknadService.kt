@@ -28,7 +28,7 @@ class SøknadService(
     private val epostClient: EpostClient,
     private val metrics: Metrics,
 
-) {
+    ) {
     suspend fun lagreBehovsmelding(grunnlag: Behovsmeldingsgrunnlag): Int {
         val søknadId = grunnlag.søknadId
         logg.info { "Lagrer behovsmelding, søknadId: $søknadId, kilde: ${grunnlag.kilde}" }
@@ -123,18 +123,17 @@ class SøknadService(
         val status = statusendring.status
         return when (status) {
             BehovsmeldingStatus.SLETTET -> {
-                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
-                val (rowsUpdated, formidlersEpost) = transaction {
-                    val behovsmelding =
-                        søknadStore.finnInnsenderbehovsmelding(søknadId) ?: throw BehovsmeldingNotFoundException(
-                            søknadId,
-                        )
-                    val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost
-                    val rowsUpdated = søknadStore.slettSøknad(søknadId)
-                    Pair(rowsUpdated, formidlersEpost)
+                val behovsmelding = transaction {
+                    søknadStore.finnInnsenderbehovsmelding(søknadId) ?: throw BehovsmeldingNotFoundException(
+                        søknadId
+                    )
                 }
+                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                val rowsUpdated = transaction { søknadStore.slettSøknad(søknadId) }
+
                 if (rowsUpdated > 0) {
                     try {
+                        val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost
                         varsleOmSlettetBehovsmelding(formidlersEpost)
                         logg.info { "Varslet formidler per epost om at en behovsmelding har blitt slettet ($søknadId)." }
                         metrics.innbyggerSlettetBrukerbekreftelse()
@@ -146,10 +145,25 @@ class SøknadService(
             }
 
             BehovsmeldingStatus.UTLØPT -> {
-                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
-                transaction {
-                    søknadStore.slettUtløptSøknad(søknadId)
+                val behovsmelding = transaction {
+                    søknadStore.finnInnsenderbehovsmelding(søknadId) ?: throw BehovsmeldingNotFoundException(
+                        søknadId,
+                    )
                 }
+                logg.info { "Sletter søknad, søknadId: $søknadId, status: $status" }
+                val rowsUpdated = transaction { søknadStore.slettUtløptSøknad(søknadId) }
+
+                if (rowsUpdated > 0) {
+                    try {
+                        val formidlersEpost = behovsmelding.levering.hjelpemiddelformidler.epost
+                        varsleOmUtgåttBehovsmelding(formidlersEpost)
+                        logg.info { "Varslet formidler per epost om at en behovsmelding har blitt slettet som følge av at innbygger ikke har bekreftet saken innen fristen. ($søknadId)." }
+                        metrics.slettetPgaUtløptBrukerbekreftelse()
+                    } catch (e: Exception) {
+                        logg.error(e) { "Epost-varsel til formidler om at en behovsmelding er slettet som følge av at innbygger ikke har bekreftet saken innen fristen, feilet ($søknadId)." }
+                    }
+                }
+                rowsUpdated
             }
 
             else -> {
@@ -170,9 +184,25 @@ class SøknadService(
             innhold = """
                 Hei!
                 
-                En sak du har sendt for bekreftelse er slettet av innbygger. Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
+                En sak du har sendt for bekreftelse er slettet av innbygger. 
+                Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
             """.trimIndent() + HILSEN_DIGIHOT,
             lagreIUtboks = true, // TODO skru av etter verifisering
+        )
+    }
+
+    suspend fun varsleOmUtgåttBehovsmelding(formidlersEpost: String) {
+        epostClient.send(
+            avsender = EPOST_DIGIHOT,
+            mottaker = formidlersEpost,
+            tittel = "Varsel om utløpt sak",
+            innholdstype = ContentType.TEXT,
+            innhold = """
+                Hei!
+                
+                En sak du har sendt for bekreftelse er slettet som følge av at innbygger ikke har bekreftet saken innen fristen. 
+                Gå til digital behovsmelding og dine innsendte saker for mer informasjon.
+            """.trimIndent() + HILSEN_DIGIHOT
         )
     }
 
