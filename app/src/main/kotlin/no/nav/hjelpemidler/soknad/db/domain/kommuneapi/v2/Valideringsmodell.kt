@@ -8,6 +8,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.OpplysningKey
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.geografi.Bydel
 import no.nav.hjelpemidler.domain.geografi.Kommune
+import no.nav.hjelpemidler.serialization.jackson.coreModule
 import tools.jackson.core.StreamReadFeature
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.JsonNode
@@ -74,6 +75,7 @@ data class Innsenderbehovsmelding(
 
     companion object {
         private val specializedObjectMapper: JsonMapper = jacksonMapperBuilder()
+            .addModule(coreModule)
             .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             // Skal feile hvis man har ukjente verdier i JsonNode, da må denne vedlikeholdes og hva som deles med
             // kommunen revurderes!
