@@ -25,7 +25,7 @@ class RolleClient(
         return try {
             withContext(Dispatchers.IO) {
                 val exchangedToken = tokendingsService.exchangeToken(token, audience)
-                client.get("$url/api/roller") { bearerAuth(exchangedToken) }.body<RolleResultat>()
+                client.get("$url/api/roller-altinn3") { bearerAuth(exchangedToken) }.body<RolleResultat>()
             }
         } catch (e: Exception) {
             logg.error(e) { "Henting av roller feilet" }
