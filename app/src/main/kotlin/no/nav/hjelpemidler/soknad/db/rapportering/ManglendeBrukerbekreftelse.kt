@@ -65,7 +65,7 @@ class ManglendeBrukerbekreftelse(
 
     private suspend fun erModenForVarsling(behovsmelding: Innsenderbehovsmelding): Boolean {
         val forrigeVarsling = transaction { brukerbekreftelseVarselStore.hentSisteVarsling(behovsmelding.id) }
-        val innsendt = behovsmelding.innsendingstidspunkt ?: behovsmelding.innsendingsdato.toInstant()
+        val innsendt = behovsmelding.innsendingstidspunkt ?: behovsmelding.innsendingsdato.atStartOfDay().toInstant()
         val nå = Instant.now(clock)
 
         if (forrigeVarsling == null) {
