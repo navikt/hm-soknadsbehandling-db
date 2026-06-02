@@ -100,6 +100,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                 "opplysninger": [
                   {
                     "ledetekst": { "nb": "Behov", "nn": "Behov" },
+                    "innholdstype": "TEKST",
                     "innhold": [
                       {
                         "fritekst": "Tilleggsinfo",
@@ -113,6 +114,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                       "nb": "Kan ikke ha tilsvarende fordi",
                       "nn": "Kan ikkje ha tilsvarande fordi"
                     },
+                    "innholdstype": "TEKST",
                     "innhold": [
                       {
                         "fritekst": "begrunnelse",
@@ -123,6 +125,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
                   },
                   {
                     "ledetekst": { "nb": "Kommentar", "nn": "Kommentar" },
+                    "innholdstype": "TEKST",
                     "innhold": [
                       {
                         "fritekst": "Tilleggsinformasjon",
@@ -137,6 +140,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
               }
             ],
             "tilbehør": [],
+            "produktkategorier": [],
             "totaltAntall": 2
           },
           "levering": {
@@ -163,6 +167,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
             "annenOppfølgingsansvarlig": null,
             "utleveringsmåte": "FOLKEREGISTRERT_ADRESSE",
             "annenUtleveringsadresse": null,
+            "annenUtleveringMottaker": null,
             "utleveringKontaktperson": "HJELPEMIDDELBRUKER",
             "annenKontaktperson": null,
             "utleveringMerknad": "",

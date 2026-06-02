@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Iso6
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.OpplysningInnholdstype
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.OpplysningKey
+import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Produktkategori
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.geografi.Bydel
 import no.nav.hjelpemidler.domain.geografi.Kommune
@@ -180,6 +182,7 @@ data class Levering(
     val annenUtleveringsadresse: Veiadresse?,
     val annenUtleveringskommune: Kommune? = null,
     val annenUtleveringsbydel: Bydel? = null,
+    val annenUtleveringMottaker: String? = null,
 
     // utleveringKontaktperson == null => alle hjm. er allerede utlevert
     val utleveringKontaktperson: KontaktpersonV2?,
@@ -207,6 +210,7 @@ data class Innsender(
 data class Hjelpemidler(
     val hjelpemidler: List<Hjelpemiddel>,
     val tilbehør: List<Tilbehør>? = emptyList(),
+    val produktkategorier: List<Produktkategori> = emptyList(),
     val totaltAntall: Int,
 )
 
@@ -287,6 +291,7 @@ data class Opplysning(
     val key: OpplysningKey? = null,
     val ledetekst: LokalisertTekst,
     val innhold: List<Tekst>,
+    val innholdstype: OpplysningInnholdstype,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
