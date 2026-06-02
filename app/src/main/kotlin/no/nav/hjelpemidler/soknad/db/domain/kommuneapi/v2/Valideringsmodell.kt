@@ -89,7 +89,10 @@ data class Innsenderbehovsmelding(
             return runCatching {
                 specializedObjectMapper.readValue<Innsenderbehovsmelding>(node.toString())
             }.getOrElse { cause ->
-                throw RuntimeException("Kunne ikke opprette Innsenderbehovsmelding-typen fra JsonNode: ${cause.message}", cause)
+                throw RuntimeException(
+                    "Kunne ikke opprette Innsenderbehovsmelding-typen fra JsonNode: ${cause.message}",
+                    cause
+                )
             }
         }
     }
@@ -291,7 +294,7 @@ data class Opplysning(
     val key: OpplysningKey? = null,
     val ledetekst: LokalisertTekst,
     val innhold: List<Tekst>,
-    val innholdstype: OpplysningInnholdstype,
+    val innholdstype: OpplysningInnholdstype = if (innhold.size > 1) OpplysningInnholdstype.LISTE else OpplysningInnholdstype.TEKST,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
