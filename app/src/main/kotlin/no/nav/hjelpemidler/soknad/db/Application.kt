@@ -24,7 +24,6 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
-import no.nav.hjelpemidler.http.openid.entraIDClient
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
@@ -48,7 +47,6 @@ import org.slf4j.event.Level
 import java.time.Clock
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 
 private val logg = KotlinLogging.logger { }
 
@@ -67,13 +65,8 @@ fun Application.module() {
         clock = clock,
     )
 
-    val entraIDClient = entraIDClient {
-        cache(leeway = 10.seconds) {
-            maximumSize = 100
-        }
-    }
     val slack = slack(engine = Apache5.create())
-    val epostClient = GraphEpost(GraphClient(entraIDClient))
+    val epostClient = GraphEpost(GraphClient())
     val leaderElection = NaisLeaderElection()
     val scheduler = Executors.newSingleThreadScheduledExecutor()
     val jobbScheduler = JobbScheduler(scheduler, leaderElection, slack)
