@@ -9,7 +9,7 @@ on:
       - "CODEOWNERS"
     branches:
       - main
-      - epostvarsling-sletting
+      - ny-katalog-versjon
 
 jobs:
   build:
