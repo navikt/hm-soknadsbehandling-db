@@ -161,6 +161,8 @@ data class AnnenOppfølgingsansvarlig(
     val stilling: String,
     val telefon: String,
     val ansvarFor: String,
+    val epost: String? = null,
+    val erGjortOppmerksomPåOpplæringsansvar: Boolean? = null,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
