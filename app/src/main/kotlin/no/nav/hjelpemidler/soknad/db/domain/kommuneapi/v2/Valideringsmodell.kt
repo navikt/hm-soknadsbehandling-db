@@ -73,6 +73,11 @@ data class Innsenderbehovsmelding(
     fun filtrerForKommuneApiet() = this.copy(
         metadata = null,
         innsender = null,
+        levering = this.levering.copy(
+            annenOppfølgingsansvarlig = this.levering.annenOppfølgingsansvarlig?.copy(
+                godkjenningskursResultat = null,
+            ),
+        ),
     )
 
     companion object {
@@ -91,7 +96,7 @@ data class Innsenderbehovsmelding(
             }.getOrElse { cause ->
                 throw RuntimeException(
                     "Kunne ikke opprette Innsenderbehovsmelding-typen fra JsonNode: ${cause.message}",
-                    cause
+                    cause,
                 )
             }
         }
@@ -163,6 +168,14 @@ data class AnnenOppfølgingsansvarlig(
     val ansvarFor: String,
     val epost: String? = null,
     val erGjortOppmerksomPåOpplæringsansvar: Boolean? = null,
+    val godkjenningskursResultat: List<GodkjenningskursSjekk>? = null,
+)
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class GodkjenningskursSjekk(
+    val kursId: Int,
+    val tittel: String,
+    val gjennomført: Boolean,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
