@@ -86,6 +86,8 @@ spec:
             value: "write,ddl,role"
           - name: "pgaudit.log_parameter"
             value: "on"
+          - name: "pgaudit.log_relation"
+            value: "on"
     bigQueryDatasets:
       - name: hm_soknadsbehandling_v1_dataset_prod
         permission: READWRITE
