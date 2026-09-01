@@ -2,13 +2,12 @@ package no.nav.hjelpemidler.soknad.db.store
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.database.JdbcOperations
-import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.time.toLocalDate
 import no.nav.hjelpemidler.time.toLocalDateTime
 import java.time.Clock
 import java.time.Instant
 
-class BrukerbekreftelseVarselStore(private val tx: JdbcOperations, private val clock: Clock) : Store {
+class BrukerbekreftelseVarselStore(private val tx: JdbcOperations, private val clock: Clock) {
 
     private fun nå() = Instant.now(clock)
 

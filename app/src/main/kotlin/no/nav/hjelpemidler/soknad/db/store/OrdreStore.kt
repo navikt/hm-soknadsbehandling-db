@@ -3,12 +3,11 @@ package no.nav.hjelpemidler.soknad.db.store
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.database.JdbcOperations
-import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.soknad.db.domain.HarOrdre
 import no.nav.hjelpemidler.soknad.db.domain.SøknadForBrukerOrdrelinje
 
-class OrdreStore(private val tx: JdbcOperations) : Store {
+class OrdreStore(private val tx: JdbcOperations) {
     fun lagre(søknadId: BehovsmeldingId, ordrelinje: Ordrelinje): Int {
         return tx.update(
             """

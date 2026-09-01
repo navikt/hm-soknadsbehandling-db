@@ -17,7 +17,6 @@ import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
-import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.pgJsonbOf
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -44,7 +43,7 @@ class SøknadStore(
     private val tx: JdbcOperations,
     private val slackClient: SlackClient,
     private val clock: Clock,
-) : Store {
+) {
     fun finnSøknad(søknadId: UUID): SøknadDto? {
         return tx.singleOrNull(
             """

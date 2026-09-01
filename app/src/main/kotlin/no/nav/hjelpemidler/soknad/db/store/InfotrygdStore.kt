@@ -5,11 +5,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
-import no.nav.hjelpemidler.database.Store
 import java.time.LocalDate
 import java.util.UUID
 
-class InfotrygdStore(private val tx: JdbcOperations) : Store {
+class InfotrygdStore(private val tx: JdbcOperations) {
     // EndeligJournalført frå Joark vil opprette linja, og denne blir berika seinare av Infotrygd med resultat og vedtaksdato
     fun lagKnytningMellomSakOgSøknad(
         søknadId: BehovsmeldingId,

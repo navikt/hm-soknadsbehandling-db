@@ -5,11 +5,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
-import no.nav.hjelpemidler.database.Store
 import java.time.LocalDate
 import java.util.UUID
 
-class HotsakStore(private val tx: JdbcOperations) : Store {
+class HotsakStore(private val tx: JdbcOperations) {
     fun lagKnytningMellomSakOgSøknad(søknadId: BehovsmeldingId, sakId: HotsakSakId): Int = tx.update(
         """
                 INSERT INTO v1_hotsak_data (soknads_id, saksnummer)

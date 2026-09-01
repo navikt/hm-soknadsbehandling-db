@@ -5,7 +5,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.database.JdbcOperations
-import no.nav.hjelpemidler.database.Store
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.Instant
@@ -17,7 +16,7 @@ private const val UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS = 4
 
 private val logg = KotlinLogging.logger {}
 
-class SøknadStoreInnsender(private val tx: JdbcOperations) : Store {
+class SøknadStoreInnsender(private val tx: JdbcOperations) {
     fun hentSøknaderForInnsender(
         fnrInnsender: String,
         innsenderRolle: InnsenderRolle?,
