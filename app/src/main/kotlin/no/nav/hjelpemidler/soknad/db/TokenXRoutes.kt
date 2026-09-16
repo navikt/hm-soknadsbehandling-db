@@ -16,6 +16,7 @@ import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.kafka.Melding
 import no.nav.hjelpemidler.soknad.db.ktor.Response
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
+import no.nav.hjelpemidler.soknad.db.safselvbetjening.Formidler
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
@@ -193,6 +194,14 @@ fun Route.tokenXRoutes(
             it.parent.dokumentId,
             it.dokumentvariant,
         )
+    }
+
+    get<Formidler.Dokumenter.ForSak> {
+        val user = tokenXUserFactory.createTokenXUser(call)
+        val fnr = user.ident
+        val token = user.tokenString!!
+        val results = safselvbetjening.hentDokumenter(token, fnr, it.fagsakId, true)
+        call.respond(results)
     }
 }
 

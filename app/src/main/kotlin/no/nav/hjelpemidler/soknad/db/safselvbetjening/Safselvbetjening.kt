@@ -44,7 +44,18 @@ class Safselvbetjening(
         onBehalfOfToken: String,
         fnrBruker: String,
         forFagsakId: String? = null,
+        medAvsenderMottaker: Boolean = false,
     ): List<Journalpost> {
+        val avsenderMottakerFelt = if (medAvsenderMottaker) {
+            """
+                avsenderMottaker {
+                    id
+                    navn
+                }
+            """.trimIndent()
+        } else {
+            ""
+        }
         val req = GraphqlRequest(
             query = """
                 query (${'$'}ident: String!) {
@@ -64,6 +75,7 @@ class Safselvbetjening(
                                     fagsaksystem
                                     fagsakId
                                 }
+                                $avsenderMottakerFelt
                                 dokumenter {
                                     tittel
                                     dokumentInfoId
