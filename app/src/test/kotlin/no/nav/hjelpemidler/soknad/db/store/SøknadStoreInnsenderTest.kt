@@ -106,7 +106,6 @@ class SøknadStoreInnsenderTest {
                     fnrBruker = lagFødselsnummer(),
                     navnBruker = "Fornavn Etternavn",
                     fnrInnsender = fnrInnsender,
-                    behovsmelding = emptyMap(),
                     behovsmeldingGjelder = null,
                     behovsmeldingV2 = emptyMap(),
                 ),

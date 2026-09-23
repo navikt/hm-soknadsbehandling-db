@@ -22,13 +22,7 @@ fun lagBehovsmeldingsgrunnlagDigital(
     formidlersEpost: String = "formidler@kommune.no",
     signaturtype: Signaturtype = Signaturtype.FULLMAKT,
 ): Behovsmeldingsgrunnlag.Digital {
-    val v1Json = """
-        {
-          "soknad": {
-          }
-        }
-    """.trimIndent()
-    val v2Json = """
+    val behovsmeldingJson = """
         {
           "bruker": {
             "fnr": "$fnrBruker",
@@ -196,9 +190,8 @@ fun lagBehovsmeldingsgrunnlagDigital(
         fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
         fnrInnsender = fnrInnsender,
-        behovsmelding = jsonToValue(v1Json),
         behovsmeldingGjelder = "TEST",
-        behovsmeldingV2 = jsonToValue(v2Json),
+        behovsmeldingV2 = jsonToValue(behovsmeldingJson),
     )
 }
 

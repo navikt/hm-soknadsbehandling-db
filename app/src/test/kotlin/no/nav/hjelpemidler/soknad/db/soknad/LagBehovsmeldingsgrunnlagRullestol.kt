@@ -224,7 +224,6 @@ fun mockSøknadMedRullestol(
         fnrBruker = fnrBruker,
         navnBruker = "Fornavn Etternavn",
         fnrInnsender = lagFødselsnummer(),
-        behovsmelding = emptyMap(),
         behovsmeldingGjelder = null,
         behovsmeldingV2 = jsonToValue(v2Json),
     )
