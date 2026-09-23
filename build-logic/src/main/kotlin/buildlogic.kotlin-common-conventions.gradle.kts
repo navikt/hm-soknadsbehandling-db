@@ -15,20 +15,21 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs.addAll("-Xjsr305=strict")
     }
 }
 
 @Suppress("UnstableApiUsage")
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        @Suppress("UnstableApiUsage")
+        withType<JvmTestSuite> {
             useKotlinTest(libs.versions.kotlin.asProvider())
             dependencies {
                 implementation(libs.hotlibs.test)

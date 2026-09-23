@@ -13,7 +13,9 @@ dependencies {
     // hotlibs
     implementation(libs.hotlibs.behovsmelding)
     implementation(libs.hotlibs.core)
-    implementation(libs.hotlibs.http) { exclude("io.ktor", "ktor-client-cio") } // prefer ktor-client-apache
+    implementation(libs.hotlibs.http) {
+        exclude("io.ktor", "ktor-client-cio")
+    } // prefer ktor-client-apache
     implementation(libs.hotlibs.kafka)
     implementation(libs.hotlibs.logging)
     implementation(libs.hotlibs.serialization)
@@ -65,19 +67,21 @@ val graphqlIntrospectSchema by tasks.getting(GraphQLIntrospectSchemaTask::class)
 @Suppress("UnstableApiUsage")
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
-            dependencies {
-                implementation(libs.kotest.assertions.ktor)
-                implementation(libs.ktor.client.resources)
-                implementation(libs.ktor.server.test.host)
-                implementation(libs.wiremock)
-                implementation(libs.hotlibs.database) {
-                    capabilities {
-                        requireCapability("no.nav.hjelpemidler:database-testcontainers")
+        @Suppress("UnstableApiUsage")
+        val test =
+            named<JvmTestSuite>("test") {
+                dependencies {
+                    implementation(libs.kotest.assertions.ktor)
+                    implementation(libs.ktor.client.resources)
+                    implementation(libs.ktor.server.test.host)
+                    implementation(libs.wiremock)
+                    implementation(libs.hotlibs.database) {
+                        capabilities {
+                            requireCapability("no.nav.hjelpemidler:database-testcontainers")
+                        }
                     }
                 }
             }
-        }
     }
 }
 

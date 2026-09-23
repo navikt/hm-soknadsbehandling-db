@@ -1,5 +1,3 @@
-val hotlibsKatalogVersion: String by settings
-
 pluginManagement {
     includeBuild("build-logic")
 }
@@ -14,6 +12,8 @@ fun RepositoryHandler.github(repository: String) {
     }
 }
 
+val hotlibsKatalogVersionProvider = providers.gradleProperty("hotlibsKatalogVersion")
+
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
@@ -27,7 +27,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
+            from(hotlibsKatalogVersionProvider.map { "no.nav.hjelpemidler:katalog:$it" }.get())
         }
     }
 }
