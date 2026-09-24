@@ -1,26 +1,16 @@
-val hotlibsKatalogVersion: String by settings
+import no.nav.hjelpemidler.gradle.addGitHubMavenRepository
 
-dependencyResolutionManagement {
-    @Suppress("UnstableApiUsage")
+pluginManagement {
     repositories {
         gradlePluginPortal()
-        mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/hotlibs")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-        maven {
-            url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-        }
-    }
-    versionCatalogs {
-        create("libs") {
-            from("no.nav.hjelpemidler:katalog:$hotlibsKatalogVersion")
-        }
+        maven("https://navikt.github.io/hotlibs-gradle")
     }
 }
+
+plugins {
+    id("no.nav.hjelpemidler.hotlibs") version "1.0"
+}
+
+addGitHubMavenRepository("navikt/tms-ktor-token-support")
 
 rootProject.name = "build-logic"

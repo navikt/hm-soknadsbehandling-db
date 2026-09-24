@@ -6,7 +6,7 @@ plugins {
 
 application {
     applicationName = "hm-soknadsbehandling-db"
-    mainClass.set("no.nav.hjelpemidler.soknad.db.ApplicationKt")
+    mainClass = "no.nav.hjelpemidler.soknad.db.ApplicationKt"
 }
 
 dependencies {
@@ -59,10 +59,11 @@ graphql {
     }
 }
 
-val graphqlIntrospectSchema by tasks.getting(GraphQLIntrospectSchemaTask::class) {
-    endpoint.set("https://hm-grunndata-search.intern.dev.nav.no/graphql")
-    outputFile.set(file("src/main/resources/hmdb/schema.graphqls"))
-}
+val graphqlIntrospectSchema =
+    tasks.named<GraphQLIntrospectSchemaTask>("graphqlIntrospectSchema") {
+        endpoint.set("https://hm-grunndata-search.intern.dev.nav.no/graphql")
+        outputFile.set(file("src/main/resources/hmdb/schema.graphqls"))
+    }
 
 @Suppress("UnstableApiUsage")
 testing {

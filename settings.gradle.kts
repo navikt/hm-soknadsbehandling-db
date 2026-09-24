@@ -1,36 +1,19 @@
+import no.nav.hjelpemidler.gradle.addGitHubMavenRepository
+
 pluginManagement {
     includeBuild("build-logic")
-}
 
-fun RepositoryHandler.github(repository: String) {
-    maven {
-        url = uri("https://maven.pkg.github.com/$repository")
-        credentials {
-            username = System.getenv("GITHUB_ACTOR")
-            password = System.getenv("GITHUB_TOKEN")
-        }
-    }
-}
-
-val hotlibsKatalogVersionProvider = providers.gradleProperty("hotlibsKatalogVersion")
-
-dependencyResolutionManagement {
-    @Suppress("UnstableApiUsage")
     repositories {
-        mavenCentral()
-
-        github("navikt/hotlibs")
-        github("navikt/tms-ktor-token-support")
-
-        // Plassert under GitHub-repositories (med authentication) for å unngå unødvendige kostnader.
-        maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    }
-    versionCatalogs {
-        create("libs") {
-            from(hotlibsKatalogVersionProvider.map { "no.nav.hjelpemidler:katalog:$it" }.get())
-        }
+        gradlePluginPortal()
+        maven("https://navikt.github.io/hotlibs-gradle")
     }
 }
+
+plugins {
+    id("no.nav.hjelpemidler.hotlibs") version "1.0"
+}
+
+addGitHubMavenRepository("navikt/tms-ktor-token-support")
 
 rootProject.name = "hm-soknadsbehandling-db"
 include("app")
