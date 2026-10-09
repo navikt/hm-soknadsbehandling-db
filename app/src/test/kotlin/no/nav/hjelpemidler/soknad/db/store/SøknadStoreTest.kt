@@ -520,6 +520,39 @@ class SøknadStoreTest {
     }
 
     @Test
+    fun `Behovsmelding for kommune-api som ikke validerer holder tilbake alle nyere behovsmeldinger`() = databaseTest {
+        testTransaction { tx ->
+            val kommunenummer = "5555"
+            val grunnlag = {
+                lagBehovsmeldingsgrunnlagDigital(
+                    søknadId = lagSøknadId(),
+                    innsenderArbeidsstedKommunenummer = kommunenummer,
+                    erKommunaltAnsatt = true,
+                    brukersKommunenummer = kommunenummer,
+                )
+            }
+            val eldst = grunnlag().also { søknadStore.lagreBehovsmelding(it) }
+            val ugyldig = grunnlag().also { søknadStore.lagreBehovsmelding(it) }
+            val nyest = grunnlag().also { søknadStore.lagreBehovsmelding(it) }
+
+            listOf(eldst to 3, ugyldig to 2, nyest to 1).forEach { (it, timerSiden) ->
+                tx.update(
+                    "UPDATE v1_soknad SET created = NOW() - make_interval(hours => :timer) WHERE soknads_id = :id",
+                    mapOf("timer" to timerSiden, "id" to it.søknadId),
+                )
+            }
+            tx.update(
+                "UPDATE v1_soknad SET data_v2 = jsonb_set(data_v2, '{ukjentFelt}', '\"ny\"') WHERE soknads_id = :id",
+                mapOf("id" to ugyldig.søknadId),
+            )
+
+            val behovsmeldinger =
+                søknadStore.hentBehovsmeldingerForKommuneApiet(kommunenummer = kommunenummer, null, null)
+            behovsmeldinger.map { it.behovsmeldingId } shouldBe listOf(eldst.søknadId)
+        }
+    }
+
+    @Test
     fun `Ikke returner behovsmeldinger for kommune-api dersom innsender tilhører annen kommune`() = databaseTest {
         testTransaction {
             val kommunnummer = "2222"

@@ -613,6 +613,10 @@ class SøknadStore(
             """.trimIndent(),
         )
 
+        // Første rad som ikke validerer stopper resten av svaret (sortert på created ASC). Ellers flytter klienten
+        // nyereEnn/nyereEnnTidsstempel forbi raden, og kvitteringen går tapt når valideringsmodellen er oppdatert.
+        var holdesTilbake = false
+
         return tx.list(
             statement,
             mapOf(
@@ -626,14 +630,17 @@ class SøknadStore(
                 },
             ),
         ) {
+            if (holdesTilbake) return@list null
+
             val behovsmeldingId = it.uuid("soknads_id")
 
             // Gjør om til json slik at vi kan verifisere at datamodellen ikke har endret seg uten at
             // validaeringsmodellen har vært fikset
             val data: JsonNode = it.json<JsonNode>("DATA_V2")
 
-            // Valider data-feltet, og hvis ikke filtrer ut raden ved å returnere null-verdi
+            // Valider data-feltet, og hvis ikke hold tilbake denne og alle senere rader
             val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
+                holdesTilbake = true
                 logg.error(cause) { "Kunne ikke tolke søknadsdata (v2), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
                 synchronized(hentBehovsmeldingerForKommuneApietSistRapportertSlack) {
                     if (
