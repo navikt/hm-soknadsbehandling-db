@@ -35,9 +35,13 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding as InnsenderbehovsmeldingKommuneApi
 
 private val logg = KotlinLogging.logger {}
+
+// Delt på tvers av instanser, siden SøknadStore opprettes på nytt for hver transaksjon
+private val kommuneApietSistRapportertSlack = AtomicReference<LocalDateTime?>(null)
 
 class SøknadStore(
     private val tx: JdbcOperations,
@@ -574,7 +578,16 @@ class SøknadStore(
         ) { it.enum("status") }
     }
 
-    private var hentBehovsmeldingerForKommuneApietSistRapportertSlack = LocalDateTime.now().minusHours(2)
+    private fun skalSendeSlackvarselForKommuneApiet(): Boolean {
+        val nå = LocalDateTime.now(clock)
+        val sist = kommuneApietSistRapportertSlack.get()
+        return !Environment.current.tier.isLocal &&
+            nå.dayOfWeek < DayOfWeek.SATURDAY &&
+            nå.hour in 8 until 16 &&
+            (sist == null || sist.isBefore(nå.minusHours(1))) &&
+            kommuneApietSistRapportertSlack.compareAndSet(sist, nå)
+    }
+
     fun hentBehovsmeldingerForKommuneApiet(
         kommunenummer: String,
         nyereEnn: UUID?,
@@ -642,31 +655,20 @@ class SøknadStore(
             val validatedData = runCatching { InnsenderbehovsmeldingKommuneApi.fraJsonNode(data) }.getOrElse { cause ->
                 holdesTilbake = true
                 logg.error(cause) { "Kunne ikke tolke søknadsdata (v2), har datamodellen endret seg? Se gjennom endringene og revurder hva vi deler med kommunene før datamodellen oppdateres. (ref.: $behovsmeldingId)" }
-                synchronized(hentBehovsmeldingerForKommuneApietSistRapportertSlack) {
-                    if (
-                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.isBefore(
-                            LocalDateTime.now().minusHours(1),
-                        ) &&
-                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.hour >= 8 &&
-                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.hour < 16 &&
-                        hentBehovsmeldingerForKommuneApietSistRapportertSlack.dayOfWeek < DayOfWeek.SATURDAY &&
-                        !Environment.current.tier.isLocal
-                    ) {
-                        hentBehovsmeldingerForKommuneApietSistRapportertSlack = LocalDateTime.now()
-                        runBlocking(Dispatchers.IO) {
-                            slackClient.sendMessage(
-                                "hm-soknadsbehandling-db",
-                                slackIconEmoji(":this-is-fine-fire:"),
-                                if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
-                                """
-                                    Datamodellen (v2) for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/app/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/v2/Valideringsmodell.kt|Valideringsmodell.kt>.
-                                    
-                                    Bør fikses ASAP.
-                                    
-                                    Feilmelding: Søk etter UUID i logger: $behovsmeldingId
-                                """.trimIndent(),
-                            )
-                        }
+                if (skalSendeSlackvarselForKommuneApiet()) {
+                    runBlocking(Dispatchers.IO) {
+                        slackClient.sendMessage(
+                            "hm-soknadsbehandling-db",
+                            slackIconEmoji(":this-is-fine-fire:"),
+                            if (Environment.current.tier.isProd) "#digihot-alerts" else "#digihot-alerts-dev",
+                            """
+                                Datamodellen (v2) for søknaden har endret seg og kvittering for innsendte søknader tilbake til kommunen er satt på pause inntil noen har vurdert om endringene kan medføre juridiske utfordringer. Oppdater no.nav.hjelpemidler.soknad.db.domain.kommuneapi.* og sørg for at vi filtrerer ut verdier som ikke skal kvitteres tilbake. Se <https://github.com/navikt/hm-soknadsbehandling-db/blob/main/app/src/main/kotlin/no/nav/hjelpemidler/soknad/db/domain/kommuneapi/v2/Valideringsmodell.kt|Valideringsmodell.kt>.
+                                
+                                Bør fikses ASAP.
+                                
+                                Feilmelding: Søk etter UUID i logger: $behovsmeldingId
+                            """.trimIndent(),
+                        )
                     }
                 }
                 return@list null
