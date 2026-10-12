@@ -486,15 +486,33 @@ class SøknadStore(
         lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpost_id, navn_bruker)
-                VALUES (:soknadId, :fnrBruker, FALSE, :journalpostId, :navnBruker)
+                INSERT INTO v1_soknad (soknads_id, journalpost_id, fnr_bruker, navn_bruker, er_digital)
+                VALUES (:soknadId, :journalpostId, :fnrBruker, :navnBruker, FALSE)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
                 "soknadId" to grunnlag.søknadId,
-                "fnrBruker" to grunnlag.fnrBruker,
                 "journalpostId" to grunnlag.journalpostId,
+                "fnrBruker" to grunnlag.fnrBruker,
                 "navnBruker" to grunnlag.navnBruker,
+            ),
+        ).actualRowCount
+    }
+
+    fun lagreSøknad(grunnlag: Behovsmeldingsgrunnlag.Journalpost): Int {
+        lagreStatus(grunnlag.søknadId, grunnlag.status)
+        return tx.update(
+            """
+                INSERT INTO v1_soknad (soknads_id, journalpost_id, fnr_bruker, navn_bruker, er_digital, soknad_gjelder)
+                VALUES (:soknadId, :journalpostId, :fnrBruker, :navnBruker, FALSE, :soknadGjelder)
+                ON CONFLICT DO NOTHING
+            """.trimIndent(),
+            mapOf(
+                "soknadId" to grunnlag.søknadId,
+                "journalpostId" to grunnlag.journalpostId,
+                "fnrBruker" to grunnlag.fnrBruker,
+                "navnBruker" to grunnlag.navnBruker,
+                "soknadGjelder" to grunnlag.søknadGjelder,
             ),
         ).actualRowCount
     }

@@ -59,6 +59,36 @@ class SøknadService(
                     rowsUpdated
                 }
             }
+
+            is Behovsmeldingsgrunnlag.Journalpost -> {
+                val journalpostId = grunnlag.journalpostId
+                val fnrOgJournalpostIdFinnes = transaction {
+                    søknadStore.fnrOgJournalpostIdFinnes(grunnlag.fnrBruker, journalpostId)
+                }
+                if (fnrOgJournalpostIdFinnes) {
+                    logg.warn { "En søknad med dette fødselsnummeret og journalpostId: $journalpostId er allerede lagret, søknadId: $søknadId" }
+                    return 0
+                }
+
+                transaction {
+                    val rowsUpdated = søknadStore.lagreSøknad(grunnlag)
+                    when (val sakstilknytning = grunnlag.sakstilknytning) {
+                        is Sakstilknytning.Hotsak -> hotsakStore.lagKnytningMellomSakOgSøknad(
+                            søknadId,
+                            sakstilknytning.sakId,
+                        )
+
+                        is Sakstilknytning.Infotrygd -> infotrygdStore.lagKnytningMellomSakOgSøknad(
+                            søknadId,
+                            sakstilknytning.sakId,
+                            sakstilknytning.fnrBruker,
+                        )
+
+                        null -> Unit
+                    }
+                    rowsUpdated
+                }
+            }
         }
     }
 
@@ -74,6 +104,11 @@ class SøknadService(
     ): Int {
         logg.info { "Knytter sakId: ${sakstilknytning.sakId} til søknadId: $søknadId, system: ${sakstilknytning.system}" }
         return transaction {
+            val status = sakstilknytning.status
+            if (status != null) {
+                søknadStore.oppdaterStatus(søknadId, status)
+            }
+
             when (sakstilknytning) {
                 is Sakstilknytning.Hotsak -> hotsakStore.lagKnytningMellomSakOgSøknad(
                     søknadId = søknadId,
