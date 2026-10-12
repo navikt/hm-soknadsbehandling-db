@@ -8,7 +8,6 @@ import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Testcontainers
 import no.nav.hjelpemidler.database.clean
 import no.nav.hjelpemidler.database.createDataSource
-import no.nav.hjelpemidler.database.createRole
 import no.nav.hjelpemidler.database.migrate
 import no.nav.hjelpemidler.database.transaction
 import no.nav.hjelpemidler.soknad.db.test.MutableClock
@@ -42,7 +41,7 @@ class TestDatabase(private val dataSource: DataSource, val clock: MutableClock) 
     }
 
     suspend fun migrate(): Unit = withContext(Dispatchers.IO) {
-        dataSource.migrate { createRole("cloudsqliamuser") }
+        dataSource.migrate()
     }
 
     suspend fun <T> testTransaction(block: Database.StoreProvider.(JdbcOperations) -> T): T = transaction(dataSource, strict = true) {

@@ -2,6 +2,8 @@ import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
 
 plugins {
     id("buildlogic.kotlin-application-conventions")
+
+    alias(libs.plugins.flyway)
 }
 
 application {
@@ -95,4 +97,17 @@ tasks {
         mergeServiceFiles()
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+}
+
+buildscript {
+    dependencies {
+        classpath(libs.flyway.database.postgresql)
+    }
+}
+
+flyway {
+    url = "jdbc:postgresql://localhost:5432/soknadsbehandling?reWriteBatchedInserts=true"
+    user = System.getenv("FLYWAY_USER")
+    password = System.getenv("FLYWAY_PASSWORD")
+    cleanDisabled = false
 }

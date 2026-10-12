@@ -15,6 +15,6 @@ VALUES ('1dd81910-52eb-47c6-967f-410c2fa0b686', '170805', NULL, NULL, DEFAULT);
 
 -- Set journalpostId
 UPDATE v1_soknad
-SET journalpostid = '634470523'
+SET journalpost_id = '634470523'
 WHERE soknads_id = '1dd81910-52eb-47c6-967f-410c2fa0b686';
 ```

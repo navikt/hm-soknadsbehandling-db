@@ -397,7 +397,7 @@ class SøknadStoreTest {
             søknadStore.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2) shouldHaveSize 1
         }
         testTransaction { tx ->
-            tx.execute("UPDATE V1_SOKNAD SET oppgaveid = '123456' WHERE SOKNADS_ID = '$søknadId2'")
+            tx.execute("UPDATE V1_SOKNAD SET oppgave_id = '123456' WHERE SOKNADS_ID = '$søknadId2'")
         }
         testTransaction {
             søknadStore.hentGodkjenteBehovsmeldingerUtenOppgaveEldreEnn(2).shouldBeEmpty()

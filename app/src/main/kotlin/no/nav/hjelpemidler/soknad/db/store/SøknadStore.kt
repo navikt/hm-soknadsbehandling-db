@@ -28,7 +28,6 @@ import no.nav.hjelpemidler.soknad.db.domain.SøknadMedStatus
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.metrics.StatusTemporal
 import tools.jackson.databind.JsonNode
-import java.math.BigInteger
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
@@ -58,8 +57,8 @@ class SøknadStore(
                        soknad.fnr_innsender,
                        soknad.fnr_bruker,
                        soknad.navn_bruker,
-                       soknad.journalpostid,
-                       soknad.oppgaveid,
+                       soknad.journalpost_id,
+                       soknad.oppgave_id,
                        soknad.er_digital,
                        COALESCE(
                                soknad.data_v2 ->> 'behovsmeldingType',
@@ -146,11 +145,11 @@ class SøknadStore(
                 SELECT soknads_id
                 FROM v1_soknad
                 WHERE fnr_bruker = :fnrBruker
-                  AND journalpostid = :journalpostId
+                  AND journalpost_id = :journalpostId
             """.trimIndent(),
             mapOf(
                 "fnrBruker" to fnrBruker,
-                "journalpostId" to journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
+                "journalpostId" to journalpostId,
             ),
         ) { it.uuid("soknads_id") }
         return uuid != null
@@ -161,7 +160,7 @@ class SøknadStore(
             """
                 SELECT soknad.soknads_id,
                        soknad.data_v2 ->> 'type' AS behovsmeldingtype,
-                       soknad.journalpostid,
+                       soknad.journalpost_id,
                        soknad.data_v2,
                        soknad.created,
                        soknad.fnr_bruker,
@@ -202,7 +201,7 @@ class SøknadStore(
                 SøknadForBruker.newEmptySøknad(
                     søknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("journalpostid"),
+                    journalpostId = it.stringOrNull("journalpost_id"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
@@ -219,7 +218,7 @@ class SøknadStore(
                 SøknadForBruker.new(
                     søknadId = it.uuid("soknads_id"),
                     behovsmeldingType = it.tilBehovsmeldingType("behovsmeldingType"),
-                    journalpostId = it.stringOrNull("journalpostid"),
+                    journalpostId = it.stringOrNull("journalpost_id"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
@@ -305,12 +304,12 @@ class SøknadStore(
         return tx.update(
             """
                 UPDATE v1_soknad
-                SET journalpostid = :journalpostId,
+                SET journalpost_id = :journalpostId,
                     updated       = NOW()
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
             mapOf(
-                "journalpostId" to journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
+                "journalpostId" to journalpostId,
                 "soknadId" to søknadId,
             ),
         ).actualRowCount
@@ -320,13 +319,13 @@ class SøknadStore(
         return tx.update(
             """
                 UPDATE v1_soknad
-                SET oppgaveid = :oppgaveId,
+                SET oppgave_id = :oppgaveId,
                     updated   = NOW()
                 WHERE soknads_id = :soknadId
-                  AND oppgaveid IS NULL
+                  AND oppgave_id IS NULL
             """.trimIndent(),
             mapOf(
-                "oppgaveId" to BigInteger(oppgaveId),
+                "oppgaveId" to oppgaveId,
                 "soknadId" to søknadId,
             ),
         ).actualRowCount
@@ -337,7 +336,7 @@ class SøknadStore(
             """
                 SELECT soknad.soknads_id,
                        soknad.data_v2 ->> 'type' AS behovsmeldingtype,
-                       soknad.journalpostid,
+                       soknad.journalpost_id,
                        soknad.created,
                        soknad.updated,
                        soknad.data_v2,
@@ -378,7 +377,7 @@ class SøknadStore(
                 SøknadMedStatus.newSøknadUtenFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
                     behovsmeldingType = behovsmeldingType,
-                    journalpostId = it.stringOrNull("journalpostid"),
+                    journalpostId = it.stringOrNull("journalpost_id"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
@@ -391,7 +390,7 @@ class SøknadStore(
                 SøknadMedStatus.newSøknadMedFormidlernavn(
                     soknadId = it.uuid("soknads_id"),
                     behovsmeldingType = behovsmeldingType,
-                    journalpostId = it.stringOrNull("journalpostid"),
+                    journalpostId = it.stringOrNull("journalpost_id"),
                     status = status,
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
@@ -419,11 +418,11 @@ class SøknadStore(
         val now = LocalDateTime.now(clock)
         val statement = Sql(
             """
-                SELECT soknad.data_v2, gs.status
+                SELECT soknad.data_v2, status.status
                 FROM v1_soknad AS soknad
-                JOIN v1_gjeldende_status gs USING (soknads_id)
-                WHERE gs.status = :status
-                    AND soknad.created < (:now)::timestamp - (:dager * INTERVAL '1 day')
+                JOIN v1_gjeldende_status status USING (soknads_id)
+                WHERE status.status = :status
+                    AND soknad.created < (:now)::TIMESTAMP - (:dager * INTERVAL '1 day')
             """.trimIndent(),
         )
 
@@ -487,14 +486,14 @@ class SøknadStore(
         lagreStatus(grunnlag.søknadId, grunnlag.status)
         return tx.update(
             """
-                INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpostid, navn_bruker)
+                INSERT INTO v1_soknad (soknads_id, fnr_bruker, er_digital, journalpost_id, navn_bruker)
                 VALUES (:soknadId, :fnrBruker, FALSE, :journalpostId, :navnBruker)
                 ON CONFLICT DO NOTHING
             """.trimIndent(),
             mapOf(
                 "soknadId" to grunnlag.søknadId,
                 "fnrBruker" to grunnlag.fnrBruker,
-                "journalpostId" to grunnlag.journalpostId.toBigInteger(), // fixme -> burde vært TEXT i databasen
+                "journalpostId" to grunnlag.journalpostId,
                 "navnBruker" to grunnlag.navnBruker,
             ),
         ).actualRowCount
@@ -516,9 +515,9 @@ class SøknadStore(
                 FROM v1_soknad AS soknad
                          INNER JOIN soknader_med_siste_status_godkjent
                                     ON soknad.soknads_id = soknader_med_siste_status_godkjent.soknads_id
-                WHERE soknad.oppgaveid IS NULL
-                  AND soknad.created < NOW() - INTERVAL '$dager DAYS' -- Buffer for saksbehanling etc.
-                  AND soknad.created > NOW() - INTERVAL '90 DAYS' -- oppgaveid-kolonnen ble lagt til 2021-04-12. Alt før dette har oppgaveid = NULL
+                WHERE soknad.oppgave_id IS NULL
+                  AND soknad.created < NOW() - INTERVAL '$dager DAYS' -- Buffer for saksbehandling etc.
+                  AND soknad.created > NOW() - INTERVAL '90 DAYS' -- oppgave_id-kolonnen ble lagt til 2021-04-12. Alt før dette har oppgave_id = NULL
             """.trimIndent(),
         )
 

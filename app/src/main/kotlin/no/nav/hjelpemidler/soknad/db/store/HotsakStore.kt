@@ -11,9 +11,9 @@ import java.util.UUID
 class HotsakStore(private val tx: JdbcOperations) {
     fun lagKnytningMellomSakOgSøknad(søknadId: BehovsmeldingId, sakId: HotsakSakId): Int = tx.update(
         """
-                INSERT INTO v1_hotsak_data (soknads_id, saksnummer)
-                VALUES (:soknadId, :sakId)
-                ON CONFLICT DO NOTHING
+            INSERT INTO v1_hotsak_data (soknads_id, sak_id)
+            VALUES (:soknadId, :sakId)
+            ON CONFLICT DO NOTHING
         """.trimIndent(),
         mapOf(
             "soknadId" to søknadId,
@@ -39,10 +39,10 @@ class HotsakStore(private val tx: JdbcOperations) {
         ),
     ).actualRowCount
 
-    fun finnSak(søknadId: BehovsmeldingId): HotsakSak? {
+    fun finnSak(søknadId: UUID): HotsakSak? {
         return tx.singleOrNull(
             """
-                SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato, created
+                SELECT soknads_id, sak_id, vedtaksresultat, vedtaksdato, created
                 FROM v1_hotsak_data
                 WHERE soknads_id = :soknadId
             """.trimIndent(),
@@ -54,9 +54,9 @@ class HotsakStore(private val tx: JdbcOperations) {
     fun finnSak(sakId: HotsakSakId): HotsakSak? {
         return tx.singleOrNull(
             """
-                SELECT soknads_id, saksnummer, vedtaksresultat, vedtaksdato, created
+                SELECT soknads_id, sak_id, vedtaksresultat, vedtaksdato, created
                 FROM v1_hotsak_data
-                WHERE saksnummer = :sakId
+                WHERE sak_id = :sakId
             """.trimIndent(),
             mapOf("sakId" to sakId.toString()),
             Row::tilHotsakSak,

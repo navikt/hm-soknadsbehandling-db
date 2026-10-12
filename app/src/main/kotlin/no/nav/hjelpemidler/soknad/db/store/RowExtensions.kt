@@ -31,8 +31,8 @@ fun Row.tilSøknad(): SøknadDto {
         fnrInnsender = stringOrNull("fnr_innsender"),
         fnrBruker = string("fnr_bruker"),
         navnBruker = string("navn_bruker"),
-        journalpostId = stringOrNull("journalpostid"),
-        oppgaveId = stringOrNull("oppgaveid"),
+        journalpostId = stringOrNull("journalpost_id"),
+        oppgaveId = stringOrNull("oppgave_id"),
         digital = boolean("er_digital"),
         behovsmeldingstype = enum<BehovsmeldingType>("behovsmeldingstype"),
         status = enum<BehovsmeldingStatus>("status"),
@@ -52,7 +52,7 @@ fun Row.tilInnsenderbehovsmeldingMetadataDto(): InnsenderbehovsmeldingMetadataDt
 )
 
 fun Row.tilHotsakSak(): HotsakSak = HotsakSak(
-    sakId = HotsakSakId(string("saksnummer")),
+    sakId = HotsakSakId(string("sak_id")),
     søknadId = tilBehovsmeldingId(),
     opprettet = instant("created"),
     vedtak = tilVedtak(),

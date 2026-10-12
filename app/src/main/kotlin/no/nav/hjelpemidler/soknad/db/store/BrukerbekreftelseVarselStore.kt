@@ -3,18 +3,16 @@ package no.nav.hjelpemidler.soknad.db.store
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.time.toLocalDate
-import no.nav.hjelpemidler.time.toLocalDateTime
 import java.time.Clock
 import java.time.Instant
 
 class BrukerbekreftelseVarselStore(private val tx: JdbcOperations, private val clock: Clock) {
-
-    private fun nå() = Instant.now(clock)
+    private fun nå(): Instant = Instant.now(clock)
 
     fun lagreEpostvarsling(epost: String): Long = tx.updateAndReturnGeneratedKey(
         """
-                INSERT INTO v1_varsel_brukerbekreftelse (formidler_epost, tidspunkt_varslet)
-                VALUES (:epost, :now)
+            INSERT INTO v1_varsel_brukerbekreftelse (formidler_epost, tidspunkt_varslet)
+            VALUES (:epost, :now)
         """.trimIndent(),
         mapOf(
             "epost" to epost,
@@ -41,8 +39,8 @@ class BrukerbekreftelseVarselStore(private val tx: JdbcOperations, private val c
 
     fun lagreVarsletBehovsmelding(varselId: Long, behovsmeldingId: BehovsmeldingId): Int = tx.update(
         """
-                INSERT INTO v1_varsel_brukerbekreftelse_behovsmelding (varsel_id, behovsmelding_id)
-                VALUES (:varselId, :behovsmeldingId)
+            INSERT INTO v1_varsel_brukerbekreftelse_behovsmelding (varsel_id, behovsmelding_id)
+            VALUES (:varselId, :behovsmeldingId)
         """.trimIndent(),
         mapOf(
             "varselId" to varselId,
