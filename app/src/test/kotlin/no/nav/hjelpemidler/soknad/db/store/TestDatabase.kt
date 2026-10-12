@@ -33,7 +33,6 @@ fun databaseTest(test: suspend TestDatabase.() -> Unit) = runTest {
 }
 
 class TestDatabase(private val dataSource: DataSource, val clock: MutableClock) : Transaction by Database(dataSource, clock) {
-
     suspend fun clean(): Unit = withContext(Dispatchers.IO) {
         dataSource.clean {
             cleanDisabled(false)

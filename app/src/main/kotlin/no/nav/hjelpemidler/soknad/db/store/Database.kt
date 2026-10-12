@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.soknad.db.store
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.engine.apache5.Apache5
 import no.nav.hjelpemidler.database.JdbcOperations
+import no.nav.hjelpemidler.database.TransactionContext
 import no.nav.hjelpemidler.database.migrate
 import no.nav.hjelpemidler.database.transaction
 import no.nav.hjelpemidler.http.slack.SlackClient
@@ -18,7 +19,10 @@ class Database(private val dataSource: DataSource, private val clock: Clock) :
     Closeable {
     private val slackClient = slack(engine = Apache5.create())
 
-    override suspend operator fun <T> invoke(returnGeneratedKeys: Boolean, block: suspend StoreProvider.() -> T): T = transaction(dataSource, strict = true, returnGeneratedKeys = returnGeneratedKeys) {
+    override suspend operator fun <T> invoke(
+        returnGeneratedKeys: Boolean,
+        block: suspend context(TransactionContext) StoreProvider.() -> T,
+    ): T = transaction(dataSource, strict = true, returnGeneratedKeys = returnGeneratedKeys) {
         StoreProvider(it, slackClient, clock).block()
     }
 
