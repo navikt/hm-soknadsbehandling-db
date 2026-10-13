@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
-    <logger name="no.nav.hjelpemidler.soknad.db.exception" level="OFF" />
+    <logger name="no.nav.hjelpemidler.soknad.db" level="OFF" />
     <logger name="org.flywaydb.core" level="OFF" />
     <logger name="org.testcontainers.utility" level="OFF" />
     <logger name="tjenestekall" level="OFF" />

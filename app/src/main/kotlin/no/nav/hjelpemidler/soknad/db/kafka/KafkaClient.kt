@@ -1,8 +1,5 @@
 package no.nav.hjelpemidler.soknad.db.kafka
 
-import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.configuration.LocalEnvironment
-import no.nav.hjelpemidler.configuration.TestEnvironment
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import java.time.LocalDateTime
 import java.util.UUID
@@ -27,9 +24,4 @@ interface KafkaClient {
     )
 
     fun <K, V> send(key: K, value: V)
-}
-
-fun createKafkaClient(): KafkaClient = when (Environment.current) {
-    LocalEnvironment, TestEnvironment -> LocalKafkaClient
-    else -> AivenKafkaClient()
 }

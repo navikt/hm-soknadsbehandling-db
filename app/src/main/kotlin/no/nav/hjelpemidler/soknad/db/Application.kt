@@ -5,8 +5,6 @@ import io.ktor.client.engine.apache5.Apache5
 import io.ktor.http.ContentType
 import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
@@ -14,6 +12,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.di.dependencies
+import io.ktor.server.plugins.di.provide
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.request.uri
@@ -21,84 +21,78 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
-import no.nav.hjelpemidler.database.PostgreSQL
-import no.nav.hjelpemidler.database.createDataSource
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
-import no.nav.hjelpemidler.soknad.db.kafka.createKafkaClient
-import no.nav.hjelpemidler.soknad.db.rapportering.JobbScheduler
-import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
-import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeOppgaver
-import no.nav.hjelpemidler.soknad.db.rapportering.NaisLeaderElection
+import no.nav.hjelpemidler.soknad.db.kafka.kafka
+import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rapportering.Rapporteringsjobber
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.GraphClient
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.GraphEpost
+import no.nav.hjelpemidler.soknad.db.rapportering.scheduler
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
+import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
+import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.store.Database
+import no.nav.hjelpemidler.soknad.db.store.dataSource
+import no.nav.hjelpemidler.soknad.db.store.database
 import no.nav.tms.token.support.azure.validation.AzureAuthenticator
 import no.nav.tms.token.support.azure.validation.azure
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.tokenX
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import org.slf4j.event.Level
 import java.time.Clock
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
-private val logg = KotlinLogging.logger { }
+private val log = KotlinLogging.logger { }
 
 fun main() {
-    embeddedServer(Netty, Configuration.PORT, module = Application::module).start(wait = true)
+    embeddedServer(Netty, Configuration.PORT, module = Application::main).start(wait = true)
 }
 
-fun Application.module() {
+fun Application.main() {
     TILLAT_SYNTETISKE_FØDSELSNUMRE = !Environment.current.isProd
-    val clock = Clock.systemDefaultZone()
 
-    val database = Database(
-        createDataSource(PostgreSQL) {
-            envVarPrefix = "DB"
-        },
-        clock = clock,
-    )
+    dependencies {
+        provide<Clock> { Clock.systemDefaultZone() }
 
-    val slack = slack(engine = Apache5.create())
-    val epostClient = GraphEpost(GraphClient())
-    val leaderElection = NaisLeaderElection()
-    val scheduler = Executors.newSingleThreadScheduledExecutor()
-    val jobbScheduler = JobbScheduler(scheduler, leaderElection, slack)
-    val rapporteringsjobber = Rapporteringsjobber(
-        jobbScheduler,
-        ManglendeOppgaver(database, slack),
-        ManglendeBrukerbekreftelse(database, epostClient, clock),
-    )
+        dataSource()
+        database()
 
-    monitor.subscribe(ApplicationStarted) {
-        database.migrate()
-        rapporteringsjobber.schedulerJobber()
-        monitor.unsubscribe(ApplicationStarted) {}
+        kafka()
+
+        provide { TokenXUserFactory }
+
+        provide { Apache5.create() }
+
+        provide { slack(engine = resolve()) }
+
+        provide<EpostClient> { GraphEpost(GraphClient(engine = resolve())) }
+        provide { GrunndataClient() }
+        provide { RolleClient() }
+        provide { Safselvbetjening() }
+
+        provide(::BigQueryClient)
+        provide(::Metrics)
+
+        provide(::OrdreService)
+        provide(::RolleService)
+        provide(::SøknadService)
+
+        scheduler()
     }
-    monitor.subscribe(ApplicationStopping) {
-        database.close()
-        scheduler.awaitTermination(10, TimeUnit.SECONDS)
-        monitor.unsubscribe(ApplicationStopping) {}
-    }
 
-    val kafkaClient = createKafkaClient()
-    val grunndataClient = GrunndataClient()
+    val database: Database by dependencies
+    database.migrate()
 
-    val serviceContext = ServiceContext(
-        transaction = database,
-        grunndataClient = grunndataClient,
-        rolleClient = RolleClient(),
-        safselvbetjening = Safselvbetjening(),
-        kafkaClient = kafkaClient,
-        epostClient = epostClient,
-        slack = slack,
-    )
+    val rapporteringsjobber: Rapporteringsjobber by dependencies
+    rapporteringsjobber.schedulerJobber()
 
     authentication {
         azure()
@@ -111,10 +105,10 @@ fun Application.module() {
         internal()
         route("/api") {
             authenticate(AzureAuthenticator.name) {
-                azureADRoutes(database, serviceContext)
+                azureADRoutes()
             }
             authenticate(TokenXAuthenticator.name) {
-                tokenXRoutes(database, serviceContext)
+                tokenXRoutes()
             }
         }
     }
@@ -126,7 +120,7 @@ fun Application.felles() {
         register(ContentType.Application.Json, JacksonConverter(jsonMapper))
     }
     install(CallLogging) {
-        level = if (Environment.current.tier.isDev) Level.INFO else Level.TRACE
+        level = if (Environment.current.isDev) Level.INFO else Level.TRACE
         filter { call -> call.request.path().startsWith("/api") }
         format { call ->
             "[${call.request.httpMethod.value}] ${call.request.uri}"

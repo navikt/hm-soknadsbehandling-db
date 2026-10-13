@@ -2,22 +2,21 @@ package no.nav.hjelpemidler.soknad.db.rapportering.epost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.accept
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.entraID
 
 private val log = KotlinLogging.logger { }
 
 class GraphClient(
-    private val httpClient: HttpClient = createHttpClient(Apache5.create()) {
+    engine: HttpClientEngine,
+    private val client: HttpClient = createHttpClient(engine) {
         expectSuccess = true
         entraID("https://graph.microsoft.com/.default")
         defaultRequest {
@@ -27,17 +26,14 @@ class GraphClient(
     },
     private val baseUrl: String = "https://graph.microsoft.com/v1.0",
 ) {
-
     suspend fun sendEpost(epostRequest: SendMailRequest, avsender: String) {
         try {
-            withContext(Dispatchers.IO) {
-                httpClient.post("$baseUrl/users/$avsender/sendMail") {
-                    setBody(epostRequest)
-                }
+            client.post("$baseUrl/users/$avsender/sendMail") {
+                setBody(epostRequest)
             }
-        } catch (t: Throwable) {
-            log.error(t) { "Sending av epost feilet for $epostRequest, avsender=$avsender" }
-            throw t
+        } catch (e: Exception) {
+            log.error(e) { "Sending av epost feilet for: $epostRequest, avsender: $avsender" }
+            throw e
         }
     }
 }

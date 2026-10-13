@@ -19,7 +19,6 @@ interface EpostClient {
 class GraphEpost(
     val client: GraphClient,
 ) : EpostClient {
-
     override suspend fun send(
         avsender: String,
         mottaker: String,

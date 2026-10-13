@@ -1,15 +1,19 @@
 package no.nav.hjelpemidler.soknad.db.sak
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.resources.get
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.HotsakSakId
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
-fun Route.sakApi(transaction: Transaction) {
+fun Route.sakApi() {
+    val transaction: Transaction by application.dependencies
+
     /*
      * NB! Kun saker fra Hotsak har en entydig sakId.
      */
@@ -17,7 +21,7 @@ fun Route.sakApi(transaction: Transaction) {
         val sakId = HotsakSakId(it.sakId)
         val sak = transaction { hotsakStore.finnSak(sakId) }
         if (sak == null) {
-            logg.info { "Fant ikke sak med sakId: $sakId" }
+            log.info { "Fant ikke sak med sakId: $sakId" }
         }
         call.respondNullable(sak)
     }
@@ -32,7 +36,7 @@ fun Route.sakApi(transaction: Transaction) {
             søknadStore.finnSøknad(sak.søknadId)
         }
         if (søknad == null) {
-            logg.info { "Fant ikke søknad for sakId: $sakId" }
+            log.info { "Fant ikke søknad for sakId: $sakId" }
         }
         call.respondNullable(søknad)
     }

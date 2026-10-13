@@ -3,18 +3,21 @@ package no.nav.hjelpemidler.soknad.db
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
-import io.ktor.server.application.call
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.util.UUID
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
-fun Route.kommuneApi(transaction: Transaction) {
+fun Route.kommuneApi() {
+    val transaction: Transaction by application.dependencies
+
     post<KommuneApi.Søknader> {
         data class Request(
             val kommunenummer: String,
@@ -31,7 +34,7 @@ fun Route.kommuneApi(transaction: Transaction) {
             return@post
         }
 
-        logg.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer}" }
+        log.info { "Henter søknader for kommune-API-et, kommunenummer: ${request.kommunenummer}" }
         val søknader = transaction {
             søknadStore.hentBehovsmeldingerForKommuneApiet(
                 kommunenummer = request.kommunenummer,

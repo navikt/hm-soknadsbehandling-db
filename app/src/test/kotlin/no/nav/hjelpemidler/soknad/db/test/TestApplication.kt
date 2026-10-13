@@ -1,26 +1,45 @@
 package no.nav.hjelpemidler.soknad.db.test
 
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respondError
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.client.request.accept
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.server.plugins.di.dependencies
+import io.ktor.server.plugins.di.provide
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import io.mockk.mockk
 import no.nav.hjelpemidler.http.jackson
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
-import no.nav.hjelpemidler.soknad.db.ServiceContext
 import no.nav.hjelpemidler.soknad.db.azureADRoutes
 import no.nav.hjelpemidler.soknad.db.felles
-import no.nav.hjelpemidler.soknad.db.store.testDatabase
-import no.nav.hjelpemidler.soknad.db.test.fakes.FakeEpostClient
+import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
+import no.nav.hjelpemidler.soknad.db.kafka.kafka
+import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
+import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
+import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
+import no.nav.hjelpemidler.soknad.db.rolle.RolleService
+import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
+import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
+import no.nav.hjelpemidler.soknad.db.store.Database
+import no.nav.hjelpemidler.soknad.db.store.database
+import no.nav.hjelpemidler.soknad.db.store.testDataSource
 import no.nav.hjelpemidler.soknad.db.tokenXRoutes
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
+import java.time.Clock
+import javax.sql.DataSource
 
 fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
-    val database = testDatabase().apply { migrate() }
     val context = TestContext(
         createClient {
             install(Resources)
@@ -34,30 +53,41 @@ fun testApplication(test: suspend TestContext.() -> Unit) = testApplication {
     )
 
     application {
+        dependencies {
+            provide<Clock> { Clock.systemDefaultZone() }
+
+            provide<DataSource> { testDataSource }
+            database()
+
+            kafka()
+
+            provide<TokenXUserFactory> { context.tokenXUserFactory }
+
+            provide<HttpClientEngine> { MockEngine { respondError(HttpStatusCode.NotImplemented) } }
+
+            provide { slack(engine = resolve()) }
+
+            provide<EpostClient> { context.epostClient }
+            provide<GrunndataClient> { context.grunndataClient }
+            provide<RolleClient> { context.rolleClient }
+            provide<Safselvbetjening> { mockk() }
+
+            provide { mockk<BigQueryClient>() }
+            provide(::Metrics)
+
+            provide(::OrdreService)
+            provide(::RolleService)
+            provide(::SøknadService)
+        }
+
+        val database: Database by dependencies
+        database.migrate()
+
         felles()
-
-        val serviceContext = ServiceContext(
-            transaction = database,
-            grunndataClient = context.grunndataClient,
-            rolleClient = context.rolleClient,
-            safselvbetjening = context.safselvbetjening,
-            kafkaClient = context.kafkaClient,
-            epostClient = context.epostClient,
-            slack = context.slack,
-            metrics = context.metrics,
-        )
-
         routing {
             route("/api") {
-                tokenXRoutes(
-                    transaction = database,
-                    serviceContext = serviceContext,
-                    tokenXUserFactory = context.tokenXUserFactory,
-                )
-                azureADRoutes(
-                    transaction = database,
-                    serviceContext = serviceContext,
-                )
+                tokenXRoutes()
+                azureADRoutes()
             }
         }
     }

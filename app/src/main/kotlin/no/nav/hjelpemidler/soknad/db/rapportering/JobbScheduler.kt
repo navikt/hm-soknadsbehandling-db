@@ -17,8 +17,7 @@ class JobbScheduler(
     private val scheduler: ScheduledExecutorService,
     private val leaderElection: LeaderElection,
     private val slack: SlackClient,
-) {
-
+) : AutoCloseable {
     fun schedulerGjentagendeJobb(
         navn: String,
         jobb: suspend CoroutineScope.() -> Unit,
@@ -61,5 +60,10 @@ class JobbScheduler(
                 )
             }
         }
+    }
+
+    override fun close() {
+        log.info { "Stopper jobb-scheduler" }
+        scheduler.awaitTermination(10, TimeUnit.SECONDS)
     }
 }

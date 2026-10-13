@@ -2,9 +2,11 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
@@ -14,15 +16,14 @@ import no.nav.hjelpemidler.soknad.db.store.Transaction
 import java.time.LocalDate
 import java.util.UUID
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
-fun Route.azureADRoutes(
-    transaction: Transaction,
-    serviceContext: ServiceContext,
-) {
-    søknadApi(transaction, serviceContext)
-    sakApi(transaction)
-    kommuneApi(transaction)
+fun Route.azureADRoutes() {
+    val transaction: Transaction by application.dependencies
+
+    søknadApi()
+    sakApi()
+    kommuneApi()
 
     // fixme -> finn et bedre pattern
     post("/soknad/fra-vedtaksresultat-v2") {

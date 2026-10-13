@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.soknad
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.request.receive
 import io.ktor.server.resources.get
 import io.ktor.server.resources.post
@@ -9,21 +10,21 @@ import io.ktor.server.resources.put
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.ordre.Ordrelinje
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
-import no.nav.hjelpemidler.soknad.db.ServiceContext
+import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
-fun Route.søknadApi(
-    transaction: Transaction,
-    serviceContext: ServiceContext,
-) {
-    val søknadService = serviceContext.søknadService
+fun Route.søknadApi() {
+    val transaction: Transaction by application.dependencies
+    val søknadService: SøknadService by application.dependencies
+    val metrics: Metrics by application.dependencies
 
     post<Søknader> {
         val grunnlag = call.receive<Behovsmeldingsgrunnlag>()
@@ -35,7 +36,7 @@ fun Route.søknadApi(
         val søknadId = it.søknadId
         val søknad = transaction { søknadStore.finnSøknad(søknadId) }
         if (søknad == null) {
-            logg.info { "Fant ikke søknad med søknadId: $søknadId" }
+            log.info { "Fant ikke søknad med søknadId: $søknadId" }
         }
         call.respondNullable(HttpStatusCode.OK, søknad)
     }
@@ -44,7 +45,7 @@ fun Route.søknadApi(
         val behovsmeldingId = it.behovsmeldingId
         val behovsmelding = transaction { søknadStore.finnInnsenderbehovsmelding(behovsmeldingId) }
         if (behovsmelding == null) {
-            logg.info { "Fant ikke behovsmelding med behovsmeldingId: $behovsmeldingId" }
+            log.info { "Fant ikke behovsmelding med behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, behovsmelding)
     }
@@ -53,7 +54,7 @@ fun Route.søknadApi(
         val behovsmeldingId = it.parent.behovsmeldingId
         val hjelpemidler = transaction { søknadStore.finnHjelpemidler(behovsmeldingId) }
         if (hjelpemidler == null) {
-            logg.info { "Fant ikke hjelpemidler for behovsmeldingId: $behovsmeldingId" }
+            log.info { "Fant ikke hjelpemidler for behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, hjelpemidler)
     }
@@ -62,7 +63,7 @@ fun Route.søknadApi(
         val behovsmeldingId = it.parent.behovsmeldingId
         val behovsmeldingDto = transaction { søknadStore.finnInnsenderbehovsmeldingDto(behovsmeldingId) }
         if (behovsmeldingDto == null) {
-            logg.info { "Fant ikke metadata for behovsmeldingId: $behovsmeldingId" }
+            log.info { "Fant ikke metadata for behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, behovsmeldingDto)
     }
@@ -71,7 +72,7 @@ fun Route.søknadApi(
         val behovsmeldingId = it.behovsmeldingId
         val behovsmelding = transaction { søknadStore.finnBrukerpassbytte(behovsmeldingId) }
         if (behovsmelding == null) {
-            logg.info { "Fant ikke brukerpassbytte med behovsmeldingId: $behovsmeldingId" }
+            log.info { "Fant ikke brukerpassbytte med behovsmeldingId: $behovsmeldingId" }
         }
         call.respondNullable(HttpStatusCode.OK, behovsmelding)
     }
@@ -81,7 +82,7 @@ fun Route.søknadApi(
 
         val søknadId = it.parent.søknadId
         val journalpostId = call.receive<Journalpost>().journalpostId
-        logg.info { "Knytter journalpostId: $journalpostId til søknadId: $søknadId" }
+        log.info { "Knytter journalpostId: $journalpostId til søknadId: $søknadId" }
         val rowsUpdated = transaction { søknadStore.oppdaterJournalpostId(søknadId, journalpostId) }
         call.respond(HttpStatusCode.OK, rowsUpdated)
     }
@@ -91,7 +92,7 @@ fun Route.søknadApi(
 
         val søknadId = it.parent.søknadId
         val oppgaveId = call.receive<Oppgave>().oppgaveId
-        logg.info { "Knytter oppgaveId: $oppgaveId til søknadId: $søknadId" }
+        log.info { "Knytter oppgaveId: $oppgaveId til søknadId: $søknadId" }
         val rowsUpdated = transaction { søknadStore.oppdaterOppgaveId(søknadId, oppgaveId) }
         call.respond(HttpStatusCode.OK, rowsUpdated)
     }
@@ -107,7 +108,7 @@ fun Route.søknadApi(
         val søknadId = it.parent.søknadId
         val sak = søknadService.finnSak(søknadId)
         if (sak == null) {
-            logg.info { "Fant ikke sak for søknadId: $søknadId" }
+            log.info { "Fant ikke sak for søknadId: $søknadId" }
         }
         call.respondNullable(HttpStatusCode.OK, sak)
     }
@@ -123,7 +124,7 @@ fun Route.søknadApi(
         val statusendring = call.receive<Statusendring>()
         val rowsUpdated = søknadService.oppdaterStatus(søknadId, statusendring)
         call.respond(HttpStatusCode.OK, rowsUpdated)
-        serviceContext.metrics.measureElapsedTimeBetweenStatusChanges(søknadId, statusendring.status)
+        metrics.measureElapsedTimeBetweenStatusChanges(søknadId, statusendring.status)
     }
 
     post<Søknader.SøknadId.Vedtaksresultat> {

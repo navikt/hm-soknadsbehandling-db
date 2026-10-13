@@ -27,6 +27,7 @@ dependencies {
 
     // Ktor Server
     implementation(libs.bundles.ktor.server)
+    implementation(libs.ktor.server.di)
     implementation(libs.ktor.server.resources)
 
     // Database

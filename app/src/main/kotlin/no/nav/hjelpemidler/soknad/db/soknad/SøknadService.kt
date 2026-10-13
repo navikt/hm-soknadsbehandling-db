@@ -104,11 +104,6 @@ class SøknadService(
     ): Int {
         logg.info { "Knytter sakId: ${sakstilknytning.sakId} til søknadId: $søknadId, system: ${sakstilknytning.system}" }
         return transaction {
-            val status = sakstilknytning.status
-            if (status != null) {
-                søknadStore.oppdaterStatus(søknadId, status)
-            }
-
             when (sakstilknytning) {
                 is Sakstilknytning.Hotsak -> hotsakStore.lagKnytningMellomSakOgSøknad(
                     søknadId = søknadId,

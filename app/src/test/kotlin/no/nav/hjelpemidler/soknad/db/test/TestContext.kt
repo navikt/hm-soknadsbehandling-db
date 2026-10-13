@@ -20,18 +20,12 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.http.slack.SlackClient
-import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
-import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
-import no.nav.hjelpemidler.soknad.db.metrics.Metrics
-import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
-import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -44,13 +38,9 @@ import java.time.Instant
 class TestContext(
     val client: HttpClient,
     val grunndataClient: GrunndataClient = mockk(),
-    val metrics: Metrics = mockk(relaxed = true),
     val rolleClient: RolleClient = mockk(),
-    val safselvbetjening: Safselvbetjening = mockk(),
-    val kafkaClient: KafkaClient = mockk(),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
     val epostClient: FakeEpostClient = FakeEpostClient(),
-    val slack: SlackClient = slack(),
 ) {
     init {
         coEvery { grunndataClient.hentProdukterMedHmsnrs(any()) } answers {

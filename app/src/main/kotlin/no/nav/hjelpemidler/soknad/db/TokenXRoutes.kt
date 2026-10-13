@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.resources.delete
 import io.ktor.server.resources.get
 import io.ktor.server.resources.patch
@@ -9,15 +10,21 @@ import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.application
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
+import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.kafka.Melding
 import no.nav.hjelpemidler.soknad.db.ktor.Response
+import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
+import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
+import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
+import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
@@ -28,16 +35,15 @@ import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 
-fun Route.tokenXRoutes(
-    transaction: Transaction,
-    serviceContext: ServiceContext,
-    tokenXUserFactory: TokenXUserFactory = TokenXUserFactory,
-) {
-    val ordreService = serviceContext.ordreService
-    val rolleService = serviceContext.rolleService
-    val søknadService = serviceContext.søknadService
-    val safselvbetjening = serviceContext.safselvbetjening
-    val kafkaClient = serviceContext.kafkaClient
+fun Route.tokenXRoutes() {
+    val transaction: Transaction by application.dependencies
+    val ordreService: OrdreService by application.dependencies
+    val rolleService: RolleService by application.dependencies
+    val søknadService: SøknadService by application.dependencies
+
+    val tokenXUserFactory: TokenXUserFactory by application.dependencies
+    val safselvbetjening: Safselvbetjening by application.dependencies
+    val kafkaClient: KafkaClient by application.dependencies
 
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident

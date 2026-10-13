@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 private val logg = KotlinLogging.logger { }
 
-class AivenKafkaClient : KafkaClient {
+class DefaultKafkaClient : KafkaClient {
     private val topic = Configuration.KAFKA_TOPIC
     private val kafkaProducer: Producer<String, String> = createKafkaProducer()
 
