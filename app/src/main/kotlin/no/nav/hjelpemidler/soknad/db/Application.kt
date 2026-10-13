@@ -91,8 +91,8 @@ fun Application.module() {
                 logg.error(e) { "Migrering feilet" }
                 break
             }
-            Thread.sleep(10_000)
         }
+        Thread.sleep(10_000)
     }
 
     monitor.subscribe(ApplicationStarted) {
