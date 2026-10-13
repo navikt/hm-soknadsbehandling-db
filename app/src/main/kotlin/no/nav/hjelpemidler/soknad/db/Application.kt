@@ -20,6 +20,8 @@ import io.ktor.server.request.uri
 import io.ktor.server.resources.Resources
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.database.PostgreSQL
 import no.nav.hjelpemidler.database.createDataSource
@@ -47,6 +49,7 @@ import org.slf4j.event.Level
 import java.time.Clock
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 private val logg = KotlinLogging.logger { }
 
@@ -76,8 +79,23 @@ fun Application.module() {
         ManglendeBrukerbekreftelse(database, epostClient, clock),
     )
 
+    thread {
+        while (true) {
+            try {
+                val leder = runBlocking(Dispatchers.IO) { leaderElection.erLeder() }
+                if (leder) {
+                    database.migrate()
+                    break
+                }
+            } catch (e: Exception) {
+                logg.error(e) { "Migrering feilet" }
+                break
+            }
+        }
+        Thread.sleep(10_000)
+    }
+
     monitor.subscribe(ApplicationStarted) {
-        database.migrate()
         rapporteringsjobber.schedulerJobber()
         monitor.unsubscribe(ApplicationStarted) {}
     }
@@ -109,6 +127,7 @@ fun Application.module() {
 
     routing {
         internal()
+        /*
         route("/api") {
             authenticate(AzureAuthenticator.name) {
                 azureADRoutes(database, serviceContext)
@@ -117,6 +136,7 @@ fun Application.module() {
                 tokenXRoutes(database, serviceContext)
             }
         }
+        */
     }
 }
 
