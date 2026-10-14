@@ -1,27 +1,41 @@
 package no.nav.hjelpemidler.soknad.db.kafka
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.hjelpemidler.kafka.BigQueryHendelse
+import no.nav.hjelpemidler.kafka.sendAsync
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.soknad.db.Configuration
+import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.LocalDateTime
-import java.util.UUID
 
-interface KafkaClient {
-    fun hendelseOpprettet(measurement: String, fields: Map<String, Any>, tags: Map<String, String>)
+private val log = KotlinLogging.logger { }
 
-    fun toEventString(measurement: String, fields: Map<String, Any>, tags: Map<String, String>): String = jsonMapper.writeValueAsString(
-        mapOf(
-            "eventId" to UUID.randomUUID(),
-            "eventName" to "hm-bigquery-sink-hendelse",
-            "schemaId" to "hendelse_v2",
-            "payload" to mapOf(
-                "opprettet" to LocalDateTime.now(),
-                "navn" to measurement,
-                "kilde" to "hm-soknadsbehandling-db",
-                "data" to fields.mapValues { it.value.toString() }
-                    .plus(tags)
-                    .filterKeys { it != "counter" },
+class KafkaClient(private val producer: KafkaProducer) : AutoCloseable by producer {
+    private val topic = Configuration.KAFKA_TOPIC
+
+    suspend fun hendelseOpprettet(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
+        send(
+            measurement,
+            BigQueryHendelse(
+                schemaId = "hendelse_v2",
+                payload = mapOf(
+                    "opprettet" to LocalDateTime.now(),
+                    "navn" to measurement,
+                    "kilde" to "hm-soknadsbehandling-db",
+                    "data" to fields.mapValues { it.value.toString() }
+                        .plus(tags)
+                        .filterKeys { it != "counter" },
+                ),
             ),
-        ),
-    )
+        )
+    }
 
-    fun <K, V> send(key: K, value: V)
+    suspend fun <K, V> send(key: K, value: V) {
+        try {
+            producer.sendAsync(ProducerRecord(topic, key.toString(), jsonMapper.writeValueAsString(value)))
+        } catch (e: Exception) {
+            log.error(e) { "Publisering til Kafka feilet" }
+            throw e
+        }
+    }
 }

@@ -1,0 +1,31 @@
+query HentDokumentoversiktSelvbetjening($ident: String!) {
+    dokumentoversiktSelvbetjening(ident: $ident, tema: [HJE]) {
+        tema {
+            journalposter {
+                journalpostId
+                tittel
+                journalposttype
+                journalstatus
+                relevanteDatoer {
+                    dato
+                    datotype
+                }
+                kanal
+                sak {
+                    fagsakId
+                    fagsaksystem
+                }
+                dokumenter {
+                    dokumentInfoId
+                    tittel
+                    brevkode
+                    dokumentvarianter {
+                        variantformat
+                        brukerHarTilgang
+                        code
+                    }
+                }
+            }
+        }
+    }
+}

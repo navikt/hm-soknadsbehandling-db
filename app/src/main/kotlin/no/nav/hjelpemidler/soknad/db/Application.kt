@@ -12,6 +12,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.di.DependencyRegistry
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.provide
 import io.ktor.server.request.httpMethod
@@ -22,13 +23,15 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
+import no.nav.hjelpemidler.http.openid.TexasClient
+import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.kafka.kafka
-import no.nav.hjelpemidler.soknad.db.metrics.BigQueryClient
-import no.nav.hjelpemidler.soknad.db.metrics.Metrics
+import no.nav.hjelpemidler.soknad.db.metrics.metrics
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rapportering.Rapporteringsjobber
 import no.nav.hjelpemidler.soknad.db.rapportering.epost.EpostClient
@@ -37,7 +40,6 @@ import no.nav.hjelpemidler.soknad.db.rapportering.epost.GraphEpost
 import no.nav.hjelpemidler.soknad.db.rapportering.scheduler
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.store.Database
 import no.nav.hjelpemidler.soknad.db.store.dataSource
@@ -64,27 +66,37 @@ fun Application.main() {
 
         dataSource()
         database()
-
         kafka()
 
         provide { TokenXUserFactory }
-
         provide { Apache5.create() }
-
         provide { slack(engine = resolve()) }
 
+        provide { TexasClient(engine = resolve()) }
         provide<EpostClient> { GraphEpost(GraphClient(engine = resolve())) }
-        provide { GrunndataClient() }
-        provide { RolleClient() }
-        provide { Safselvbetjening() }
+        provide {
+            GrunndataClient(
+                engine = resolve(),
+                url = Configuration.GRUNNDATA_API_URL,
+            )
+        }
+        provide {
+            RolleClient(
+                engine = resolve(),
+                tokenSetProvider = tokenX(Configuration.HM_ROLLER_TARGET),
+                baseUrl = Configuration.HM_ROLLER_URL,
+            )
+        }
+        provide {
+            SafselvbetjeningClient(
+                engine = resolve(),
+                tokenSetProvider = tokenX(Configuration.SAFSELVBETJENING_TARGET),
+                baseUrl = Configuration.SAFSELVBETJENING_URL,
+            )
+        }
 
-        provide(::BigQueryClient)
-        provide(::Metrics)
-
-        provide(::OrdreService)
-        provide(::RolleService)
-        provide(::SøknadService)
-
+        metrics()
+        services()
         scheduler()
     }
 
@@ -112,6 +124,17 @@ fun Application.main() {
             }
         }
     }
+}
+
+suspend fun DependencyRegistry.tokenX(target: String): TokenSetProvider {
+    val texasClient = resolve<TexasClient>()
+    return texasClient.tokenX(target)
+}
+
+fun DependencyRegistry.services() {
+    provide(::OrdreService)
+    provide(::RolleService)
+    provide(::SøknadService)
 }
 
 fun Application.felles() {

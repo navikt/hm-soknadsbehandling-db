@@ -1,0 +1,162 @@
+type Query {
+    # Get products by hmsArtNr (max 500 results)
+    products(hmsnrs: [String!]!): [Product!]!
+    bestillingsordning(hmsnrs: [String!]!): [Bestillingsordning!]!
+}
+
+type Product {
+    id: String!
+    supplier: ProductSupplier!
+    title: String!
+    articleName: String!
+    attributes: AttributesDoc!
+    status: ProductStatus!
+    hmsArtNr: String
+    identifier: String!
+    supplierRef: String!
+    isoCategory: String!
+    isoCategory22: String!
+    isoCategoryTitle: String
+    isoCategoryTitle22: String
+    isoCategoryTitleShort: String
+    isoCategoryText: String
+    isoCategoryText22: String
+    isoCategoryTextShort: String
+    main: Boolean!
+    accessory: Boolean!
+    sparePart: Boolean!
+    seriesId: String
+    data: [TechData!]!
+    media: [MediaDoc!]!
+    created: String!
+    updated: String!
+    expired: String!
+    createdBy: String!
+    updatedBy: String!
+    filters: TechDataFilters!
+    agreements: [AgreementInfoDoc!]!
+    hasAgreement: Boolean!
+
+    dataAsText: String!
+    productURL: String!
+    productVariantURL: String!
+}
+
+type AgreementInfoDoc {
+    id: String!
+    identifier: String
+    title: String
+    label: String!
+    rank: Int!
+    postNr: Int!
+    postIdentifier: String
+    postTitle: String
+    postId: String
+    reference: String!
+    expired: String!
+}
+
+type AttributesDoc {
+    manufacturer: String
+    compatibleWith: CompatibleWith
+    keywords: [String!]
+    series: String
+    shortdescription: String
+    text: String
+    url: String
+    documentUrls: [DocumentUrl!]
+    bestillingsordning: Boolean
+    digitalSoknad: Boolean
+    sortimentKategori: String
+    pakrevdGodkjenningskurs: PakrevdGodkjenningskurs
+    produkttype: Produkttype
+    tenderId: String
+    hasTender: Boolean
+}
+
+type MediaDoc {
+    uri: String!
+    priority: Int!,
+    type: MediaType!,
+    text: String,
+    source: MediaSourceType!
+}
+
+type TechDataFilters {
+    fyllmateriale: String
+    setebreddeMaksCM: Int
+    setebreddeMinCM: Int
+    brukervektMinKG: Int
+    materialeTrekk: String
+    setedybdeMinCM: Int
+    setedybdeMaksCM: Int
+    setehoydeMaksCM: Int
+    setehoydeMinCM: Int
+    totalVektKG: Int
+    lengdeCM: Int
+    breddeCM: Int
+    dybdeCM: Int
+    beregnetBarn: String
+    brukervektMaksKG: Int
+}
+
+type ProductSupplier {
+    id: String!
+    identifier: String!
+    name: String!
+}
+
+enum ProductStatus {
+    ACTIVE,
+    INACTIVE,
+    DELETED
+}
+
+enum MediaSourceType {
+    HMDB,
+    REGISTER,
+    EXTERNALURL,
+    IMPORT,
+    UNKNOWN
+}
+
+enum MediaType {
+    PDF,
+    IMAGE,
+    VIDEO,
+    XLS,
+    OTHER
+}
+
+enum Produkttype {
+    Hovedprodukt,
+    Tilbehoer,
+    Del
+}
+
+type PakrevdGodkjenningskurs {
+    tittel: String!
+    isokode: String!
+    kursId: Int!
+}
+
+type TechData {
+    key: String!
+    value: String!
+    unit: String!
+}
+
+type CompatibleWith {
+    seriesIds: [String]
+    productIds: [String]
+}
+
+type DocumentUrl {
+    title: String!
+    url: String!
+}
+
+type Bestillingsordning {
+    hmsnr: String!
+    bestillingsordning: Boolean!
+}

@@ -1,0 +1,18 @@
+query HentProdukter($hmsnrs: [String!]!) {
+    produkter: products(hmsnrs: $hmsnrs) {
+        hmsArtNr
+        articleName
+        isoCategoryTitle
+        productVariantURL
+
+        attributes {
+            text
+        }
+
+        media {
+            uri
+            type
+            priority
+        }
+    }
+}

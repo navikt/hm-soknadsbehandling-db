@@ -1,5 +1,3 @@
-import com.expediagroup.graphql.plugin.gradle.tasks.GraphQLIntrospectSchemaTask
-
 plugins {
     id("buildlogic.kotlin-application-conventions")
 
@@ -12,6 +10,9 @@ application {
 }
 
 dependencies {
+    implementation(project(":grunndata"))
+    implementation(project(":joark"))
+
     // hotlibs
     implementation(libs.hotlibs.behovsmelding)
     implementation(libs.hotlibs.core)
@@ -39,34 +40,11 @@ dependencies {
 
     // AAD og TokenX
     implementation(libs.azure.validation)
-    implementation(libs.tokendings.exchange)
     implementation(libs.tokenx.validation)
 
     // Metrics
     implementation(libs.micrometer.registry.prometheus)
-
-    // GraphQL Client
-    implementation(libs.graphql.ktor.client) {
-        exclude("com.expediagroup", "graphql-kotlin-client-serialization") // prefer jackson
-        exclude("io.ktor", "ktor-client-serialization") // prefer ktor-client-jackson
-        exclude("io.ktor", "ktor-client-cio") // prefer ktor-client-apache
-    }
-    implementation(libs.graphql.client.jackson)
 }
-
-graphql {
-    client {
-        schemaFile = file("src/main/resources/hmdb/schema.graphqls")
-        queryFileDirectory = "src/main/resources/hmdb"
-        packageName = "no.nav.hjelpemidler.soknad.db.client.hmdb"
-    }
-}
-
-val graphqlIntrospectSchema =
-    tasks.named<GraphQLIntrospectSchemaTask>("graphqlIntrospectSchema") {
-        endpoint.set("https://hm-grunndata-search.intern.dev.nav.no/graphql")
-        outputFile.set(file("src/main/resources/hmdb/schema.graphqls"))
-    }
 
 @Suppress("UnstableApiUsage")
 testing {

@@ -96,11 +96,11 @@ spec:
       value: http://hm-grunndata-search/graphql
     - name: HM_ROLLER_URL
       value: http://hm-roller
-    - name: HM_ROLLER_AUDIENCE
+    - name: HM_ROLLER_TARGET
       value: dev-gcp:teamdigihot:hm-roller
     - name: SAFSELVBETJENING_URL
       value: https://safselvbetjening.dev-fss-pub.nais.io
-    - name: SAFSELVBETJENING_AUDIENCE
+    - name: SAFSELVBETJENING_TARGET
       value: dev-fss:teamdokumenthandtering:safselvbetjening
     - name: BIGQUERY_DATASET_ID
       value: hm_soknadsbehandling_v1_dataset_dev

@@ -5,7 +5,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
-import no.nav.hjelpemidler.soknad.db.kafka.LocalKafkaClient
+import no.nav.hjelpemidler.kafka.createMockProducer
+import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.metrics.Metrics
 import no.nav.hjelpemidler.soknad.db.rapportering.ManglendeBrukerbekreftelse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
@@ -24,7 +25,12 @@ class TestJobbContext(
         epostClient,
         clock,
     ),
-    val søknadService: SøknadService = SøknadService(transaction, LocalKafkaClient, epostClient, metrics),
+    val søknadService: SøknadService = SøknadService(
+        transaction = transaction,
+        kafkaClient = KafkaClient(createMockProducer(autoComplete = true)),
+        epostClient = epostClient,
+        metrics = metrics,
+    ),
 ) {
 
     suspend inline fun lagreBehovsmelding(

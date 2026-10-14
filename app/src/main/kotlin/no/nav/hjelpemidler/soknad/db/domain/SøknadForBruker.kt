@@ -6,8 +6,8 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
-import no.nav.hjelpemidler.soknad.db.client.hmdb.enums.MediaType
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import no.nav.hjelpemidler.soknad.db.grunndata.enums.MediaType
+import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
 import tools.jackson.databind.JsonNode
 import tools.jackson.module.kotlin.treeToValue
 import java.time.LocalDateTime

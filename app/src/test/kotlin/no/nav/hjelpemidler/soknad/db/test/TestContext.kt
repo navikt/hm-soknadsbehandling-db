@@ -20,9 +20,10 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.AttributesDoc
-import no.nav.hjelpemidler.soknad.db.client.hmdb.hentproduktermedhmsnrs.Product
+import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
+import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.AttributesDoc
+import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
 import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
 import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
@@ -35,15 +36,16 @@ import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.time.Instant
 
-class TestContext(
+class TestContext constructor(
     val client: HttpClient,
-    val grunndataClient: GrunndataClient = mockk(),
-    val rolleClient: RolleClient = mockk(),
     val tokenXUserFactory: TokenXUserFactory = mockk(),
     val epostClient: FakeEpostClient = FakeEpostClient(),
+    val grunndataClient: GrunndataClient = mockk(),
+    val rolleClient: RolleClient = mockk(),
+    val safselvbetjeningClient: SafselvbetjeningClient = mockk(),
 ) {
     init {
-        coEvery { grunndataClient.hentProdukterMedHmsnrs(any()) } answers {
+        coEvery { grunndataClient.hentProdukter(any()) } answers {
             firstArg<Set<String>>().map {
                 Product(
                     hmsArtNr = it,

@@ -16,4 +16,4 @@ plugins {
 addGitHubMavenRepository("navikt/tms-ktor-token-support")
 
 rootProject.name = "hm-soknadsbehandling-db"
-include("app")
+include("app", "grunndata", "joark")

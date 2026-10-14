@@ -17,7 +17,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.timerTask
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 class Metrics(
     private val transaction: Transaction,
@@ -119,7 +119,7 @@ class Metrics(
                 bigQuery.registerElapsedTime(finalMetricFieldName, timeDifference)
             }
         } catch (e: Exception) {
-            logg.error(e) { "Feil ved sending av tid mellom status-metrikker" }
+            log.error(e) { "Feil ved sending av tid mellom status-metrikker" }
         }
     }
 
@@ -130,19 +130,18 @@ class Metrics(
                 bigQuery.registerStatusCounts(COUNT_OF_SOKNAD_BY_STATUS, antallByStatus)
             }
         } catch (e: Exception) {
-            logg.error(e) { "Feil ved sending antall per status metrikker." }
+            log.error(e) { "Feil ved sending antall per status-metrikker" }
         }
     }
 
-    fun brukerbekreftelseTilFullmakt() = writeEvent(BRUKERBEKFREFTELSE_TIL_FULLMAKT)
+    suspend fun brukerbekreftelseTilFullmakt() = writeEvent(BRUKERBEKFREFTELSE_TIL_FULLMAKT)
+    suspend fun innbyggerSlettetBrukerbekreftelse() = writeEvent(INNBYGGER_SLETTET_BRUKERBEKREFTELSE)
+    suspend fun slettetPgaUtløptBrukerbekreftelse() = writeEvent(BRUKERBEKREFTELSE_UTLØPT)
 
-    fun innbyggerSlettetBrukerbekreftelse() = writeEvent(INNBYGGER_SLETTET_BRUKERBEKREFTELSE)
-    fun slettetPgaUtløptBrukerbekreftelse() = writeEvent(BRUKERBEKREFTELSE_UTLØPT)
-
-    private fun writeEvent(
+    private suspend fun writeEvent(
         measurement: String,
         tags: Map<String, String> = emptyMap(),
-        fields: Map<String, Any> = mapOf("counter" to 1L),
+        fields: Map<String, Any> = emptyMap(),
     ) {
         bigQuery.writeEvent(measurement = measurement, fields = fields, tags = tags)
     }

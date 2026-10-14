@@ -14,14 +14,17 @@ import io.ktor.server.routing.application
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.PersonId
+import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.soknad.db.bruker.Bruker
+import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
+import no.nav.hjelpemidler.soknad.db.dokument.JournalpostJson
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
-import no.nav.hjelpemidler.soknad.db.kafka.Melding
 import no.nav.hjelpemidler.soknad.db.ktor.Response
+import no.nav.hjelpemidler.soknad.db.ktor.pipe
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
-import no.nav.hjelpemidler.soknad.db.safselvbetjening.Bruker
-import no.nav.hjelpemidler.soknad.db.safselvbetjening.Safselvbetjening
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
@@ -37,13 +40,16 @@ private val logg = KotlinLogging.logger {}
 
 fun Route.tokenXRoutes() {
     val transaction: Transaction by application.dependencies
+
+    val kafkaClient: KafkaClient by application.dependencies
+
     val ordreService: OrdreService by application.dependencies
     val rolleService: RolleService by application.dependencies
     val søknadService: SøknadService by application.dependencies
 
     val tokenXUserFactory: TokenXUserFactory by application.dependencies
-    val safselvbetjening: Safselvbetjening by application.dependencies
-    val kafkaClient: KafkaClient by application.dependencies
+
+    val safselvbetjeningClient: SafselvbetjeningClient by application.dependencies
 
     get<Søknader.Bruker.SøknadId> {
         val fnr = tokenXUserFactory.createTokenXUser(call).ident
@@ -153,7 +159,7 @@ fun Route.tokenXRoutes() {
             override val eventId: UUID = UUID.randomUUID(),
             override val eventName: String,
             val soknadId: UUID,
-        ) : Melding
+        ) : KafkaMessage
         kafkaClient.send(user.ident, Event(eventName = utfall.eventName, soknadId = søknadId))
         call.respond(HttpStatusCode.NoContent)
     }
@@ -175,30 +181,35 @@ fun Route.tokenXRoutes() {
 
     get<Bruker.Dokumenter.ForSak> {
         val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(token, fnr, it.fagsakId)
-        call.respond(results)
+        val personId = PersonId.of(user.ident)
+        val userToken = user.tokenString!!
+        val journalposter = safselvbetjeningClient
+            .hentJournalposter(userToken, personId, it.fagsakId)
+            .map(::JournalpostJson)
+        call.respond(journalposter)
     }
 
     get<Bruker.Dokumenter> {
         val user = tokenXUserFactory.createTokenXUser(call)
-        val fnr = user.ident
-        val token = user.tokenString!!
-        val results = safselvbetjening.hentDokumenter(token, fnr)
-        call.respond(results)
+        val personId = PersonId.of(user.ident)
+        val userToken = user.tokenString!!
+        val journalposter = safselvbetjeningClient
+            .hentJournalposter(userToken, personId)
+            .map(::JournalpostJson)
+        call.respond(journalposter)
     }
 
     get<Bruker.ArkivDokumenter.JournalpostId.DokumentId.Dokumentvariant> {
         val user = tokenXUserFactory.createTokenXUser(call)
-        val token = user.tokenString!!
-        safselvbetjening.hentPdfDokumentProxy(
-            token,
-            call,
-            it.parent.parent.journalpostId,
-            it.parent.dokumentId,
-            it.dokumentvariant,
+        val userToken = user.tokenString!!
+        val response = safselvbetjeningClient.hentDokument(
+            userToken = userToken,
+            headers = call.request.headers,
+            journalpostId = it.parent.parent.journalpostId,
+            dokumentId = it.parent.dokumentId,
+            dokumentvariant = it.dokumentvariant,
         )
+        call.pipe(response)
     }
 }
 
