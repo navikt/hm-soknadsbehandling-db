@@ -49,7 +49,7 @@ class SøknadStoreTest {
             assertEquals("arbeidssted", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.arbeidssted)
             assertEquals("stilling", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.stilling)
             assertEquals(
-                Veiadresse("postadresse arbeidssted", "9999", "poststed"),
+                Veiadresse(adresselinje1 = "postadresse arbeidssted", postnummer = "9999", poststed = "poststed"),
                 søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.adresse,
             )
             assertEquals("12345678", søknad.innsenderbehovsmelding.levering.hjelpemiddelformidler.telefon)

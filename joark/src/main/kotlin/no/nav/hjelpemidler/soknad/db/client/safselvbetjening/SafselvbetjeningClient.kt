@@ -14,9 +14,8 @@ import io.ktor.http.headers
 import io.ktor.util.filter
 import no.nav.hjelpemidler.domain.person.PersonId
 import no.nav.hjelpemidler.http.correlationId
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.openid.onBehalfOf
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.tokenX
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.hentdokumentoversiktselvbetjening.Journalpost
 import no.nav.hjelpemidler.text.toURL
@@ -26,13 +25,13 @@ private val log = KotlinLogging.logger {}
 
 class SafselvbetjeningClient(
     engine: HttpClientEngine,
-    tokenSetProvider: TokenSetProvider,
+    target: String,
     private val baseUrl: String,
 ) {
     private val graphQLClient = GraphQLKtorClient(
         url = "$baseUrl/graphql".toURL(),
         httpClient = HttpClient(engine) {
-            openID(tokenSetProvider)
+            tokenX(target)
             defaultRequest { correlationId() }
         },
         serializer = GraphQLClientJacksonSerializer(jsonMapper as JsonMapper),
@@ -40,7 +39,7 @@ class SafselvbetjeningClient(
 
     private val httpClient = HttpClient(engine) {
         expectSuccess = false
-        openID(tokenSetProvider)
+        tokenX(target)
         defaultRequest { correlationId() }
     }
 

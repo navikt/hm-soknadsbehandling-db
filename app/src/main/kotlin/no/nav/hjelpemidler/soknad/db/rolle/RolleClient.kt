@@ -8,19 +8,18 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.openid.onBehalfOf
-import no.nav.hjelpemidler.http.openid.openID
+import no.nav.hjelpemidler.http.openid.tokenX
 
 private val log = KotlinLogging.logger { }
 
 class RolleClient(
     engine: HttpClientEngine,
-    tokenSetProvider: TokenSetProvider,
+    target: String,
     private val baseUrl: String,
 ) {
     private val client: HttpClient = createHttpClient(engine) {
-        openID(tokenSetProvider)
+        tokenX(target)
         defaultRequest { correlationId() }
     }
 

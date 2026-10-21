@@ -72,7 +72,6 @@ fun Application.main() {
         provide { Apache5.create() }
         provide { slack(engine = resolve()) }
 
-        provide { TexasClient(engine = resolve()) }
         provide<EpostClient> { GraphEpost(GraphClient(engine = resolve())) }
         provide {
             GrunndataClient(
@@ -83,14 +82,14 @@ fun Application.main() {
         provide {
             RolleClient(
                 engine = resolve(),
-                tokenSetProvider = tokenX(Configuration.HM_ROLLER_TARGET),
+                target = Configuration.HM_ROLLER_TARGET,
                 baseUrl = Configuration.HM_ROLLER_URL,
             )
         }
         provide {
             SafselvbetjeningClient(
                 engine = resolve(),
-                tokenSetProvider = tokenX(Configuration.SAFSELVBETJENING_TARGET),
+                target = Configuration.SAFSELVBETJENING_TARGET,
                 baseUrl = Configuration.SAFSELVBETJENING_URL,
             )
         }

@@ -1,5 +1,8 @@
 package no.nav.hjelpemidler.soknad.db.store
 
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respondError
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -23,7 +26,7 @@ val testDataSource: DataSource by lazy {
 
 fun testDatabase(clock: MutableClock = MutableClock()) = TestDatabase(
     dataSource = testDataSource,
-    slackClient = slack(),
+    slackClient = slack(MockEngine { respondError(HttpStatusCode.NotImplemented) }),
     clock = clock,
 )
 
