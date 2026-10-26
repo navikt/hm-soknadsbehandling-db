@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Signaturtype
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import java.time.Instant
@@ -13,8 +14,8 @@ import java.time.LocalDate
 fun lagBehovsmeldingsgrunnlagDigital(
     søknadId: BehovsmeldingId = lagSøknadId(),
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
-    fnrBruker: String = lagFødselsnummer(),
-    fnrInnsender: String = lagFødselsnummer(),
+    fnrBruker: Fødselsnummer = lagFødselsnummer(),
+    fnrInnsender: Fødselsnummer = lagFødselsnummer(),
     behovsmeldingType: BehovsmeldingType = BehovsmeldingType.SØKNAD,
     erKommunaltAnsatt: Boolean = true,
     innsenderArbeidsstedKommunenummer: String = "9999",
@@ -187,9 +188,9 @@ fun lagBehovsmeldingsgrunnlagDigital(
     return Behovsmeldingsgrunnlag.Digital(
         søknadId = søknadId,
         status = status,
-        fnrBruker = fnrBruker,
+        fnrBruker = fnrBruker.toString(),
         navnBruker = "Fornavn Etternavn",
-        fnrInnsender = fnrInnsender,
+        fnrInnsender = fnrInnsender.toString(),
         behovsmeldingGjelder = "TEST",
         behovsmeldingV2 = jsonToValue(behovsmeldingJson),
     )
@@ -198,12 +199,12 @@ fun lagBehovsmeldingsgrunnlagDigital(
 fun lagBehovsmeldingsgrunnlagPapir(
     søknadId: BehovsmeldingId = lagSøknadId(),
     status: BehovsmeldingStatus = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-    fnrBruker: String = lagFødselsnummer(),
+    fnrBruker: Fødselsnummer = lagFødselsnummer(),
 ): Behovsmeldingsgrunnlag.Papir {
     return Behovsmeldingsgrunnlag.Papir(
         søknadId = søknadId,
         status = status,
-        fnrBruker = fnrBruker,
+        fnrBruker = fnrBruker.toString(),
         navnBruker = "Fornavn Etternavn",
         journalpostId = (1_000_000..9_999_999).random().toString(),
         sakstilknytning = lagSakstilknytningInfotrygd(fnrBruker),

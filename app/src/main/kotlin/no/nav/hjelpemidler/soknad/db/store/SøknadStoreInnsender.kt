@@ -6,19 +6,19 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.sql.Sql
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.Instant
 import java.time.LocalDateTime
-import java.util.Date
 import java.util.UUID
 
 private const val UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS = 4
 
-private val logg = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 class SøknadStoreInnsender(private val tx: JdbcOperations) {
     fun hentSøknaderForInnsender(
-        fnrInnsender: String,
+        fnrInnsender: Fødselsnummer,
         innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): List<SøknadForInnsender> {
@@ -81,7 +81,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                 datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
-                fnrBruker = it.string("fnr_bruker"),
+                fnrBruker = it.fødselsnummer("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 soknadGjelder = it.stringOrNull("soknad_gjelder"),
@@ -90,7 +90,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
     }
 
     fun hentSøknadForInnsender(
-        fnrInnsender: String,
+        fnrInnsender: Fødselsnummer,
         søknadId: UUID,
         innsenderRolle: InnsenderRolle?,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
@@ -157,7 +157,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                 datoOppdatert = it.localDateTimeOrNull("updated") ?: datoOpprettet,
                 status = it.enum<BehovsmeldingStatus>("status"),
                 fullmakt = it.boolean("fullmakt"),
-                fnrBruker = it.string("fnr_bruker"),
+                fnrBruker = it.fødselsnummer("fnr_bruker"),
                 navnBruker = it.stringOrNull("navn_bruker"),
                 valgteÅrsaker = it.jsonOrNull<List<String>?>("arsaker") ?: emptyList(),
                 behovsmelding = it.tilInnsenderbehovsmelding(),
@@ -166,7 +166,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
         }
     }
 
-    fun hentBehovsmeldingerTilGodkjenningForInnsender(fnr: String): List<BehovsmeldingTilGodkjenning> {
+    fun hentBehovsmeldingerTilGodkjenningForInnsender(fnr: Fødselsnummer): List<BehovsmeldingTilGodkjenning> {
         return tx.list(
             """
                 SELECT  soknad.soknads_id, 
@@ -197,7 +197,7 @@ class SøknadForInnsender(
     var datoOppdatert: LocalDateTime?,
     val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
-    val fnrBruker: String,
+    val fnrBruker: Fødselsnummer,
     val navnBruker: String?,
     val valgteÅrsaker: List<String>,
     val behovsmelding: Innsenderbehovsmelding? = null,

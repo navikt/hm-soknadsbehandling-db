@@ -103,9 +103,9 @@ class SøknadStoreInnsenderTest {
                 Behovsmeldingsgrunnlag.Digital(
                     søknadId = søknadId,
                     status = BehovsmeldingStatus.SLETTET,
-                    fnrBruker = lagFødselsnummer(),
+                    fnrBruker = lagFødselsnummer().toString(),
                     navnBruker = "Fornavn Etternavn",
-                    fnrInnsender = fnrInnsender,
+                    fnrInnsender = fnrInnsender.toString(),
                     behovsmeldingGjelder = null,
                     behovsmeldingV2 = emptyMap(),
                 ),
@@ -120,7 +120,7 @@ class SøknadStoreInnsenderTest {
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '5 week') WHERE SOKNADS_ID = '$søknadId'")
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender("00102012345", InnsenderRolle.FORMIDLER, 4)
+                .hentSøknaderForInnsender(lagFødselsnummer(), InnsenderRolle.FORMIDLER, 4)
                 .shouldBeEmpty()
         }
     }

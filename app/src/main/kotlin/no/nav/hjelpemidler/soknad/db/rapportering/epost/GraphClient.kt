@@ -10,7 +10,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import no.nav.hjelpemidler.http.createHttpClient
-import no.nav.hjelpemidler.http.openid.entraID
+import no.nav.hjelpemidler.http.openid.entraId
 
 private val log = KotlinLogging.logger { }
 
@@ -18,7 +18,7 @@ class GraphClient(
     engine: HttpClientEngine,
     private val client: HttpClient = createHttpClient(engine) {
         expectSuccess = true
-        entraID("https://graph.microsoft.com/.default")
+        entraId("https://graph.microsoft.com/.default")
         defaultRequest {
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)

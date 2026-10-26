@@ -6,12 +6,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.headers
-import io.ktor.util.filter
 import no.nav.hjelpemidler.domain.person.PersonId
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.openid.onBehalfOf
@@ -77,25 +75,20 @@ class SafselvbetjeningClient(
 
     suspend fun hentDokument(
         userToken: String,
-        headers: Headers,
         journalpostId: String,
         dokumentId: String,
         dokumentvariant: String,
-    ): HttpResponse {
+        upstreamHeaders: Headers,
+        block: suspend (response: HttpResponse) -> Unit,
+    ) {
         val url = "$baseUrl/rest/hentdokument/$journalpostId/$dokumentId/$dokumentvariant"
         return try {
-            httpClient.get(url) {
-                onBehalfOf(userToken)
-                headers {
-                    appendAll(
-                        headers.filter { key, _ ->
-                            !key.equals(HttpHeaders.ContentType, ignoreCase = true) &&
-                                !key.equals(HttpHeaders.ContentLength, ignoreCase = true) &&
-                                !key.equals(HttpHeaders.Host, ignoreCase = true)
-                        },
-                    )
+            httpClient
+                .prepareGet(url) {
+                    onBehalfOf(userToken)
+                    headers { appendAll(upstreamHeaders) }
                 }
-            }
+                .execute(block)
         } catch (e: Exception) {
             log.error(e) { "Kunne ikke hente dokument, journalpostId: $journalpostId, dokumentId: $dokumentId, dokumentvariant: $dokumentvariant" }
             throw e

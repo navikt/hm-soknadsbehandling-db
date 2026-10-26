@@ -20,7 +20,9 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Fagsak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
+import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
@@ -62,6 +64,15 @@ class TestContext constructor(
     fun tokenXUser(ident: String? = null) {
         every { tokenXUserFactory.createTokenXUser(any()) } returns TokenXUser(
             ident = ident ?: "12345678910",
+            levelOfAssurance = LevelOfAssurance.SUBSTANTIAL,
+            tokenExpirationTime = Instant.now().plusSeconds(60),
+            jwt = lagJwt(),
+        )
+    }
+
+    fun tokenXUser(ident: Fødselsnummer = lagFødselsnummer()) {
+        every { tokenXUserFactory.createTokenXUser(any()) } returns TokenXUser(
+            ident = ident.toString(),
             levelOfAssurance = LevelOfAssurance.SUBSTANTIAL,
             tokenExpirationTime = Instant.now().plusSeconds(60),
             jwt = lagJwt(),

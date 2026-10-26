@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.soknad.db.ktor.søknadId
 import no.nav.hjelpemidler.soknad.db.sak.sakApi
 import no.nav.hjelpemidler.soknad.db.soknad.søknadApi
@@ -28,7 +29,7 @@ fun Route.azureADRoutes() {
     // fixme -> finn et bedre pattern
     post("/soknad/fra-vedtaksresultat-v2") {
         data class Request(
-            val fnrBruker: String,
+            val fnrBruker: Fødselsnummer,
             val saksblokkOgSaksnr: String,
         )
 

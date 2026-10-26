@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSakId
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.Row
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import java.time.LocalDate
 import java.util.UUID
 
@@ -13,7 +14,7 @@ class InfotrygdStore(private val tx: JdbcOperations) {
     fun lagKnytningMellomSakOgSøknad(
         søknadId: BehovsmeldingId,
         sakId: InfotrygdSakId,
-        fnrBruker: String,
+        fnrBruker: Fødselsnummer,
     ): Int = tx.update(
         """
                 INSERT INTO v1_infotrygd_data (soknads_id, fnr_bruker, trygdekontornr, saksblokk, saksnr)
@@ -71,9 +72,9 @@ class InfotrygdStore(private val tx: JdbcOperations) {
         )
     }
 
-    // Brukt for å matche OEBS-data mot et Infotrygd-resultat i alternativ flyt
+    // Brukt for å matche OeBS-data mot et Infotrygd-resultat i alternativ flyt
     fun hentSøknadIdFraVedtaksresultatV2(
-        fnrBruker: String,
+        fnrBruker: Fødselsnummer,
         saksblokkOgSaksnr: String,
     ): List<InfotrygdSak> {
         return tx.list(

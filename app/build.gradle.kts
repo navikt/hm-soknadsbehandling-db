@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.hotlibs.kafka)
     implementation(libs.hotlibs.logging)
     implementation(libs.hotlibs.serialization)
+    implementation(libs.hotlibs.server)
 
     // Ktor Client
     implementation(libs.ktor.client.apache5)

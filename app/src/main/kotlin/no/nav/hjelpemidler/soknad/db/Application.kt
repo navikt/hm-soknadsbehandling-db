@@ -23,8 +23,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
-import no.nav.hjelpemidler.http.openid.TexasClient
-import no.nav.hjelpemidler.http.openid.TokenSetProvider
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
@@ -55,7 +53,11 @@ import java.time.Clock
 private val log = KotlinLogging.logger { }
 
 fun main() {
-    embeddedServer(Netty, Configuration.PORT, module = Application::main).start(wait = true)
+    embeddedServer(
+        factory = Netty,
+        port = Configuration.PORT,
+        module = Application::main,
+    ).start(wait = true)
 }
 
 fun Application.main() {
@@ -123,11 +125,6 @@ fun Application.main() {
             }
         }
     }
-}
-
-suspend fun DependencyRegistry.tokenX(target: String): TokenSetProvider {
-    val texasClient = resolve<TexasClient>()
-    return texasClient.tokenX(target)
 }
 
 fun DependencyRegistry.services() {

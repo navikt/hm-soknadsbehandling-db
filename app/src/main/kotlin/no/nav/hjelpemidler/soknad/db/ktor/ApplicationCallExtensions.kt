@@ -6,10 +6,14 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.util.filter
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyTo
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.security.AuthenticatedUser
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.util.UUID
 
 val ApplicationCall.søknadId: UUID get() = parameters["soknadId"].let(UUID::fromString)
@@ -41,4 +45,17 @@ suspend fun ApplicationCall.pipe(response: HttpResponse) {
         // Pipe the body
         responseBodyChannel.copyTo(this)
     }
+}
+
+fun ApplicationCall.autentisertInnbygger(): AutentisertInnbygger {
+    val tokenXUserFactory: TokenXUserFactory by application.dependencies
+    val user = tokenXUserFactory.createTokenXUser(this)
+    return AutentisertInnbygger(fnr = Fødselsnummer(user.ident), userToken = user.tokenString)
+}
+
+data class AutentisertInnbygger(
+    val fnr: Fødselsnummer,
+    override val userToken: String,
+) : AuthenticatedUser {
+    override val id: Fødselsnummer get() = fnr
 }

@@ -206,7 +206,7 @@ class SøknadStore(
                     fullmakt = it.boolean("fullmakt"),
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
-                    fnrBruker = it.string("fnr_bruker"),
+                    fnrBruker = it.fødselsnummer("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     ordrelinjer = emptyList(),
@@ -224,7 +224,7 @@ class SøknadStore(
                     datoOpprettet = datoOpprettet,
                     datoOppdatert = datoOppdatert,
                     behovsmeldingJsonV2 = it.json<JsonNode>("data_v2"),
-                    fnrBruker = it.string("fnr_bruker"),
+                    fnrBruker = it.fødselsnummer("fnr_bruker"),
                     er_digital = it.boolean("er_digital"),
                     soknadGjelder = it.stringOrNull("soknad_gjelder"),
                     ordrelinjer = emptyList(),
@@ -331,7 +331,7 @@ class SøknadStore(
         ).actualRowCount
     }
 
-    fun hentSøknaderForBruker(fnrBruker: String): List<SøknadMedStatus> {
+    fun hentSøknaderForBruker(fnrBruker: Fødselsnummer): List<SøknadMedStatus> {
         val statement = Sql(
             """
                 SELECT soknad.soknads_id,

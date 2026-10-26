@@ -5,6 +5,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Brukerpassbytte
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.grunndata.enums.MediaType
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
@@ -21,7 +22,7 @@ class SøknadForBruker private constructor(
     var datoOppdatert: LocalDateTime?,
     val status: BehovsmeldingStatus,
     val fullmakt: Boolean,
-    val fnrBruker: String,
+    val fnrBruker: Fødselsnummer,
     val brukerpassbyttedataV2: Brukerpassbytte?,
     val er_digital: Boolean,
     val soknadGjelder: String?,
@@ -41,7 +42,7 @@ class SøknadForBruker private constructor(
             behovsmeldingJsonV2: JsonNode,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
-            fnrBruker: String,
+            fnrBruker: Fødselsnummer,
             er_digital: Boolean,
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,
@@ -83,7 +84,7 @@ class SøknadForBruker private constructor(
             datoOppdatert: LocalDateTime?,
             status: BehovsmeldingStatus,
             fullmakt: Boolean,
-            fnrBruker: String,
+            fnrBruker: Fødselsnummer,
             er_digital: Boolean,
             soknadGjelder: String?,
             ordrelinjer: List<SøknadForBrukerOrdrelinje>,

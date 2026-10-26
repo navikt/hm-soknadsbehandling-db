@@ -13,16 +13,16 @@ import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.application
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.InfotrygdSak
-import no.nav.hjelpemidler.domain.person.Fødselsnummer
-import no.nav.hjelpemidler.domain.person.PersonId
 import no.nav.hjelpemidler.kafka.KafkaMessage
+import no.nav.hjelpemidler.server.ktor.respondUpstream
+import no.nav.hjelpemidler.server.ktor.upstreamHeaders
 import no.nav.hjelpemidler.soknad.db.bruker.Bruker
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
 import no.nav.hjelpemidler.soknad.db.dokument.JournalpostJson
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.kafka.KafkaClient
 import no.nav.hjelpemidler.soknad.db.ktor.Response
-import no.nav.hjelpemidler.soknad.db.ktor.pipe
+import no.nav.hjelpemidler.soknad.db.ktor.autentisertInnbygger
 import no.nav.hjelpemidler.soknad.db.ordre.OrdreService
 import no.nav.hjelpemidler.soknad.db.rolle.RolleService
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
@@ -30,7 +30,6 @@ import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDateTime
@@ -52,7 +51,7 @@ fun Route.tokenXRoutes() {
     val safselvbetjeningClient: SafselvbetjeningClient by application.dependencies
 
     get<Søknader.Bruker.SøknadId> {
-        val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        val fnr = call.autentisertInnbygger().fnr
         val søknad = transaction { søknadStore.hentSøknad(it.søknadId) }
 
         when {
@@ -82,15 +81,16 @@ fun Route.tokenXRoutes() {
     }
 
     get<Søknader.Bruker> {
-        val fnr = tokenXUserFactory.createTokenXUser(call).ident
-        val brukersSaker = transaction { søknadStore.hentSøknaderForBruker(fnr) }
+        val innbygger = call.autentisertInnbygger()
+        val fnrBruker = innbygger.fnr
+        val brukersSaker = transaction { søknadStore.hentSøknaderForBruker(fnrBruker) }
         call.respond(brukersSaker)
     }
 
     get<Søknader.Innsender> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnrInnsender = user.ident
-        val innsenderRolle = rolleService.hentRolle(user.tokenString)
+        val innbygger = call.autentisertInnbygger()
+        val fnrInnsender = innbygger.fnr
+        val innsenderRolle = rolleService.hentRolle(innbygger.userToken)
 
         val søknader = transaction {
             søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
@@ -113,9 +113,9 @@ fun Route.tokenXRoutes() {
 
     get<Søknader.Innsender.SøknadId> {
         val søknadId = it.søknadId
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val fnrInnsender = user.ident
-        val innsenderRolle = rolleService.hentRolle(user.tokenString)
+        val innbygger = call.autentisertInnbygger()
+        val fnrInnsender = innbygger.fnr
+        val innsenderRolle = rolleService.hentRolle(innbygger.userToken)
 
         val søknad = transaction {
             søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, innsenderRolle)
@@ -130,7 +130,8 @@ fun Route.tokenXRoutes() {
     }
 
     get<Søknader.Innsender.VenterGodkjenning> {
-        val fnr = tokenXUserFactory.createTokenXUser(call).ident
+        val innbygger = call.autentisertInnbygger()
+        val fnr = innbygger.fnr
         logg.info { "Henter formidlers saker som venter på godkjenning." }
         val saker = transaction {
             søknadStoreInnsender.hentBehovsmeldingerTilGodkjenningForInnsender(fnr)
@@ -141,13 +142,13 @@ fun Route.tokenXRoutes() {
     suspend fun RoutingContext.brukerbekreftelse(it: Søknader.Bruker.SøknadId.Bekreftelse, utfall: BekreftelseUtfall) {
         logg.info { "Brukerbekreftelse: utfall=$utfall" }
         val søknadId = it.parent.søknadId
-        val user = tokenXUserFactory.createTokenXUser(call)
+        val innbygger = call.autentisertInnbygger()
 
         // Verifiser status og bruker
         val søknad = transaction { søknadStore.hentSøknad(søknadId) }
         val søknadVenterPåGodkjenningFraGittBruker = when {
             søknad == null -> false
-            søknad.fnrBruker != user.ident -> false
+            søknad.fnrBruker != innbygger.fnr -> false
             else -> søknad.status == BehovsmeldingStatus.VENTER_GODKJENNING
         }
         if (!søknadVenterPåGodkjenningFraGittBruker) {
@@ -160,7 +161,7 @@ fun Route.tokenXRoutes() {
             override val eventName: String,
             val soknadId: UUID,
         ) : KafkaMessage
-        kafkaClient.send(user.ident, Event(eventName = utfall.eventName, soknadId = søknadId))
+        kafkaClient.send(innbygger.id.toString(), Event(eventName = utfall.eventName, soknadId = søknadId))
         call.respond(HttpStatusCode.NoContent)
     }
     post<Søknader.Bruker.SøknadId.Bekreftelse> { brukerbekreftelse(it, BekreftelseUtfall.GODKJENT_AV_BRUKER) }
@@ -168,7 +169,8 @@ fun Route.tokenXRoutes() {
 
     patch<Behovsmelding.BehovsmeldingId.BrukerbekreftelseTilFullmakt> {
         val behovsmeldingId = it.parent.behovsmeldingId
-        val innsenderFnr = tokenXUserFactory.createTokenXUser(call).fnr()
+        val innbygger = call.autentisertInnbygger()
+        val innsenderFnr = innbygger.fnr
         søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)
         call.respond(HttpStatusCode.OK)
     }
@@ -180,36 +182,33 @@ fun Route.tokenXRoutes() {
     }
 
     get<Bruker.Dokumenter.ForSak> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val personId = PersonId.of(user.ident)
-        val userToken = user.tokenString!!
+        val innbygger = call.autentisertInnbygger()
         val journalposter = safselvbetjeningClient
-            .hentJournalposter(userToken, personId, it.fagsakId)
+            .hentJournalposter(innbygger.userToken, innbygger.fnr, it.fagsakId)
             .map(::JournalpostJson)
         call.respond(journalposter)
     }
 
     get<Bruker.Dokumenter> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val personId = PersonId.of(user.ident)
-        val userToken = user.tokenString!!
+        val innbygger = call.autentisertInnbygger()
         val journalposter = safselvbetjeningClient
-            .hentJournalposter(userToken, personId)
+            .hentJournalposter(innbygger.userToken, innbygger.fnr)
             .map(::JournalpostJson)
         call.respond(journalposter)
     }
 
     get<Bruker.ArkivDokumenter.JournalpostId.DokumentId.Dokumentvariant> {
-        val user = tokenXUserFactory.createTokenXUser(call)
-        val userToken = user.tokenString!!
-        val response = safselvbetjeningClient.hentDokument(
-            userToken = userToken,
-            headers = call.request.headers,
+        val innbygger = call.autentisertInnbygger()
+        safselvbetjeningClient.hentDokument(
+            userToken = innbygger.userToken,
             journalpostId = it.parent.parent.journalpostId,
             dokumentId = it.parent.dokumentId,
             dokumentvariant = it.dokumentvariant,
-        )
-        call.pipe(response)
+            upstreamHeaders = call.upstreamHeaders(),
+        ) { upstream ->
+            // headers.append("X-Frame-Options", "SAMEORIGIN") -> fixme -> trenger vi denne?
+            call.respondUpstream(upstream)
+        }
     }
 }
 
@@ -217,5 +216,3 @@ private enum class BekreftelseUtfall(val eventName: String) {
     GODKJENT_AV_BRUKER("godkjentAvBruker"),
     SLETTET_AV_BRUKER("slettetAvBruker"),
 }
-
-fun TokenXUser.fnr(): Fødselsnummer = Fødselsnummer(ident)

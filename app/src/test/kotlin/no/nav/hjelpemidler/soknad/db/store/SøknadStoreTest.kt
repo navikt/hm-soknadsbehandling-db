@@ -35,7 +35,7 @@ class SøknadStoreTest {
             søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrBruker = fnrBruker))
             val søknad = søknadStore.hentSøknad(søknadId)
 
-            assertEquals(fnrBruker, søknad?.innsenderbehovsmelding!!.bruker.fnr.value)
+            assertEquals(fnrBruker, søknad?.innsenderbehovsmelding!!.bruker.fnr)
             assertEquals("Fornavn", søknad.innsenderbehovsmelding.bruker.navn.fornavn)
             assertEquals("Etternavn", søknad.innsenderbehovsmelding.bruker.navn.etternavn)
             assertEquals("12345678", søknad.innsenderbehovsmelding.bruker.telefon)
@@ -231,9 +231,9 @@ class SøknadStoreTest {
         testTransaction {
             søknadStore.lagreBehovsmelding(
                 Behovsmeldingsgrunnlag.Digital(
-                    fnrBruker = fnrBruker,
+                    fnrBruker = fnrBruker.toString(),
                     navnBruker = "Fornavn Etternavn",
-                    fnrInnsender = fnrInnsender,
+                    fnrInnsender = fnrInnsender.toString(),
                     søknadId = søknadId,
                     status = BehovsmeldingStatus.VENTER_GODKJENNING,
                     behovsmeldingGjelder = null,
@@ -241,7 +241,7 @@ class SøknadStoreTest {
                 ),
             )
             val hentSoknad = søknadStore.hentSøknad(søknadId)
-            assertEquals(fnrBruker, hentSoknad!!.innsenderbehovsmelding!!.bruker.fnr.value)
+            assertEquals(fnrBruker, hentSoknad!!.innsenderbehovsmelding!!.bruker.fnr)
             assertEquals(true, hentSoknad.er_digital)
             assertTrue(
                 hentSoknad.innsenderbehovsmelding.levering.automatiskUtledetTilleggsinfo.contains(
@@ -258,9 +258,9 @@ class SøknadStoreTest {
                 Behovsmeldingsgrunnlag.Digital(
                     søknadId = lagSøknadId(),
                     status = BehovsmeldingStatus.VENTER_GODKJENNING,
-                    fnrBruker = lagFødselsnummer(),
+                    fnrBruker = lagFødselsnummer().toString(),
                     navnBruker = "Fornavn Etternavn",
-                    fnrInnsender = lagFødselsnummer(),
+                    fnrInnsender = lagFødselsnummer().toString(),
                     behovsmeldingGjelder = null,
                     behovsmeldingV2 = emptyMap(),
                 ),
@@ -414,9 +414,9 @@ class SøknadStoreTest {
                 Behovsmeldingsgrunnlag.Digital(
                     søknadId = søknadId,
                     status = BehovsmeldingStatus.GODKJENT_MED_FULLMAKT,
-                    fnrBruker = lagFødselsnummer(),
+                    fnrBruker = lagFødselsnummer().toString(),
                     navnBruker = "Fornavn Etternavn",
-                    fnrInnsender = lagFødselsnummer(),
+                    fnrInnsender = lagFødselsnummer().toString(),
                     behovsmeldingGjelder = null,
                     behovsmeldingV2 = emptyMap(),
                 ),
@@ -436,7 +436,7 @@ class SøknadStoreTest {
                 Behovsmeldingsgrunnlag.Papir(
                     søknadId = søknadId,
                     status = BehovsmeldingStatus.ENDELIG_JOURNALFØRT,
-                    fnrBruker = lagFødselsnummer(),
+                    fnrBruker = lagFødselsnummer().toString(),
                     navnBruker = "Fornavn Etternavn",
                     journalpostId = "1020",
                     sakstilknytning = null,

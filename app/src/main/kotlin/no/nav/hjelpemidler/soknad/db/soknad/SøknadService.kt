@@ -53,7 +53,7 @@ class SøknadService(
                         infotrygdStore.lagKnytningMellomSakOgSøknad(
                             søknadId,
                             sakstilknytning.sakId,
-                            sakstilknytning.fnrBruker,
+                            fnrBruker = Fødselsnummer(sakstilknytning.fnrBruker),
                         )
                     }
                     rowsUpdated
@@ -81,7 +81,7 @@ class SøknadService(
                         is Sakstilknytning.Infotrygd -> infotrygdStore.lagKnytningMellomSakOgSøknad(
                             søknadId,
                             sakstilknytning.sakId,
-                            sakstilknytning.fnrBruker,
+                            fnrBruker = Fødselsnummer(sakstilknytning.fnrBruker),
                         )
 
                         null -> Unit
@@ -106,14 +106,14 @@ class SøknadService(
         return transaction {
             when (sakstilknytning) {
                 is Sakstilknytning.Hotsak -> hotsakStore.lagKnytningMellomSakOgSøknad(
-                    søknadId = søknadId,
-                    sakId = sakstilknytning.sakId,
+                    søknadId,
+                    sakstilknytning.sakId,
                 )
 
                 is Sakstilknytning.Infotrygd -> infotrygdStore.lagKnytningMellomSakOgSøknad(
-                    søknadId = søknadId,
-                    sakId = sakstilknytning.sakId,
-                    fnrBruker = sakstilknytning.fnrBruker,
+                    søknadId,
+                    sakstilknytning.sakId,
+                    fnrBruker = Fødselsnummer(sakstilknytning.fnrBruker),
                 )
             }
         }

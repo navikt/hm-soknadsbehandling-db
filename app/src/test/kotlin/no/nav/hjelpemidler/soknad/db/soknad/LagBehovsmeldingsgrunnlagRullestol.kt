@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.soknad.db.soknad
 
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import java.util.UUID
@@ -9,7 +10,7 @@ import java.util.UUID
 fun mockSøknadMedRullestol(
     id: UUID,
     status: BehovsmeldingStatus = BehovsmeldingStatus.VENTER_GODKJENNING,
-    fnrBruker: String = lagFødselsnummer(),
+    fnrBruker: Fødselsnummer = lagFødselsnummer(),
 ): Behovsmeldingsgrunnlag.Digital {
     val v2Json = """
         {
@@ -221,9 +222,9 @@ fun mockSøknadMedRullestol(
     return Behovsmeldingsgrunnlag.Digital(
         søknadId = id,
         status = status,
-        fnrBruker = fnrBruker,
+        fnrBruker = fnrBruker.toString(),
         navnBruker = "Fornavn Etternavn",
-        fnrInnsender = lagFødselsnummer(),
+        fnrInnsender = lagFødselsnummer().toString(),
         behovsmeldingGjelder = null,
         behovsmeldingV2 = jsonToValue(v2Json),
     )

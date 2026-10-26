@@ -7,7 +7,7 @@ import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 fun lagOrdrelinje(): Ordrelinje = Ordrelinje(
     søknadId = lagSøknadId(),
     oebsId = 1000,
-    fnrBruker = lagFødselsnummer(),
+    fnrBruker = lagFødselsnummer().toString(),
     serviceforespørsel = 102040,
     ordrenr = 204080,
     ordrelinje = 1,

@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ManglendeBrukerbekreftelseTest {
-
     @Test
     fun `skal IKKE sende varsel etter 2 dager`() = testJobb {
         lagreBehovsmelding(status = BehovsmeldingStatus.VENTER_GODKJENNING)

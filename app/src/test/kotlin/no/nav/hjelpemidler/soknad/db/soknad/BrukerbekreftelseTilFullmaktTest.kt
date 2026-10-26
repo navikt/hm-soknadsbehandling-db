@@ -32,7 +32,7 @@ class BrukerbekreftelseTilFullmaktTest {
     @Test
     fun `Skal kaste exception når behovsmelding ikke finnes`() = testJobb {
         val behovsmeldingId = lagSøknadId()
-        val innsenderFnr = lagFødselsnummer().toFødselsnummer()
+        val innsenderFnr = lagFødselsnummer()
 
         shouldThrow<BehovsmeldingNotFoundException> {
             søknadService.konverterBrukerbekreftelseTilFullmakt(behovsmeldingId, innsenderFnr)

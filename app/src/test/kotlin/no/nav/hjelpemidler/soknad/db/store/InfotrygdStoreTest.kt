@@ -21,7 +21,7 @@ class InfotrygdStoreTest {
         testTransaction {
             infotrygdStore.lagKnytningMellomSakOgSøknad(søknadId, fagsakId, fnrBruker)
             val søknad = infotrygdStore.finnSak(søknadId).shouldNotBeNull()
-            assertEquals(fnrBruker, søknad.fnrBruker)
+            assertEquals(fnrBruker.toString(), søknad.fnrBruker)
             assertEquals("4703", søknad.trygdekontornummer)
             assertEquals("C", søknad.saksblokk)
             assertEquals("13", søknad.saksnummer)
@@ -46,7 +46,7 @@ class InfotrygdStoreTest {
                 .also { it shouldBe (1) }
 
             val sak = infotrygdStore.finnSak(søknadId).shouldNotBeNull()
-            assertEquals(fnrBruker, sak.fnrBruker)
+            assertEquals(fnrBruker.toString(), sak.fnrBruker)
             assertEquals("4703", sak.trygdekontornummer)
             assertEquals("C", sak.saksblokk)
             assertEquals("13", sak.saksnummer)
