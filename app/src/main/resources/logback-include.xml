@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
     <logger name="no.nav.hjelpemidler.soknad.db" level="INFO" />
+    <logger name="io.ktor.server.auth" level="TRACE" />
+    <logger name="com.auth0" level="DEBUG" />
 </included>
