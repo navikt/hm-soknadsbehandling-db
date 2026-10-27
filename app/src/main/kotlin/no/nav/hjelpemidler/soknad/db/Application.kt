@@ -5,7 +5,6 @@ import io.ktor.client.engine.apache5.Apache5
 import io.ktor.http.ContentType
 import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.auth.authentication
 import io.ktor.server.engine.embeddedServer
@@ -15,7 +14,6 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.di.DependencyRegistry
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.provide
-import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.request.uri
@@ -25,11 +23,7 @@ import io.ktor.server.routing.routing
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.slack.slack
-import no.nav.hjelpemidler.security.AuthenticatedPrincipal
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
-import no.nav.hjelpemidler.server.ktor.security.AuthenticatedPrincipalProvider
-import no.nav.hjelpemidler.server.ktor.security.DefaultTokenXAuthenticatedPrincipalProvider
-import no.nav.hjelpemidler.server.ktor.security.TokenXCredential
 import no.nav.hjelpemidler.server.ktor.security.authenticateEntraId
 import no.nav.hjelpemidler.server.ktor.security.authenticateTokenX
 import no.nav.hjelpemidler.server.ktor.security.entraId
@@ -112,7 +106,7 @@ fun Application.main() {
 
     authentication {
         entraId()
-        tokenX(authenticatedPrincipalProvider = DelegateTokenXAuthenticatedPrincipalProvider())
+        tokenX()
     }
 
     felles()
@@ -149,20 +143,4 @@ fun Application.felles() {
         }
     }
     feilmelding()
-}
-
-class DelegateTokenXAuthenticatedPrincipalProvider : AuthenticatedPrincipalProvider<TokenXCredential> {
-    private val delegate = DefaultTokenXAuthenticatedPrincipalProvider()
-    override suspend fun invoke(call: ApplicationCall, credential: TokenXCredential): AuthenticatedPrincipal? {
-        if (Environment.current.isDev) {
-            log.info { call.request.header("Authorization") }
-        }
-        if (credential.fnr == null) {
-            log.warn { "TokenXCredential mangler fnr" }
-        }
-        if (credential.level == null) {
-            log.warn { "TokenXCredential mangler level, ${credential[TokenXCredential.ACR_CLAIM]}" }
-        }
-        return delegate(call, credential)
-    }
 }
