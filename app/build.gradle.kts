@@ -39,10 +39,6 @@ dependencies {
         }
     }
 
-    // AAD og TokenX
-    implementation(libs.azure.validation)
-    implementation(libs.tokenx.validation)
-
     // Metrics
     implementation(libs.micrometer.registry.prometheus)
 }
@@ -63,6 +59,7 @@ testing {
                             requireCapability("no.nav.hjelpemidler:database-testcontainers")
                         }
                     }
+                    implementation(testFixtures(libs.hotlibs.server))
                 }
             }
     }

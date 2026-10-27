@@ -6,7 +6,6 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.jackson3.JacksonConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
@@ -25,6 +24,10 @@ import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.TILLAT_SYNTETISKE_FØDSELSNUMRE
 import no.nav.hjelpemidler.http.slack.slack
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
+import no.nav.hjelpemidler.server.ktor.security.authenticateEntraId
+import no.nav.hjelpemidler.server.ktor.security.authenticateTokenX
+import no.nav.hjelpemidler.server.ktor.security.entraId
+import no.nav.hjelpemidler.server.ktor.security.tokenX
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
 import no.nav.hjelpemidler.soknad.db.exception.feilmelding
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
@@ -42,11 +45,6 @@ import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.store.Database
 import no.nav.hjelpemidler.soknad.db.store.dataSource
 import no.nav.hjelpemidler.soknad.db.store.database
-import no.nav.tms.token.support.azure.validation.AzureAuthenticator
-import no.nav.tms.token.support.azure.validation.azure
-import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
-import no.nav.tms.token.support.tokenx.validation.tokenX
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import org.slf4j.event.Level
 import java.time.Clock
 
@@ -70,7 +68,6 @@ fun Application.main() {
         database()
         kafka()
 
-        provide { TokenXUserFactory }
         provide { Apache5.create() }
         provide { slack(engine = resolve()) }
 
@@ -108,7 +105,7 @@ fun Application.main() {
     rapporteringsjobber.schedulerJobber()
 
     authentication {
-        azure()
+        entraId()
         tokenX()
     }
 
@@ -117,10 +114,10 @@ fun Application.main() {
     routing {
         internal()
         route("/api") {
-            authenticate(AzureAuthenticator.name) {
+            authenticateEntraId {
                 azureADRoutes()
             }
-            authenticate(TokenXAuthenticator.name) {
+            authenticateTokenX {
                 tokenXRoutes()
             }
         }

@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
+import no.nav.hjelpemidler.server.ktor.security.test.bearerAuth
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.BehovsmeldingForKommuneApi
 import no.nav.hjelpemidler.soknad.db.test.expect
 import no.nav.hjelpemidler.soknad.db.test.feilmelding
@@ -15,7 +16,10 @@ class KommuneApiTest {
     fun `Skal hente søknader`() = testApplication {
         val grunnlag = lagreBehovsmelding()
         client
-            .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "9999")) }
+            .post(KommuneApi.Søknader()) {
+                bearerAuth(systembruker)
+                setBody(mapOf("kommunenummer" to "9999"))
+            }
             .expect<List<BehovsmeldingForKommuneApi>>(HttpStatusCode.OK) { søknader ->
                 søknader.shouldHaveSingleElement { it.behovsmelding.id == grunnlag.søknadId }
             }
@@ -25,10 +29,16 @@ class KommuneApiTest {
     fun `Henting av søknader feiler`() = testApplication {
         lagreBehovsmelding()
         client
-            .post(KommuneApi.Søknader()) { setBody(mapOf("kommunenummer" to "-1")) }
+            .post(KommuneApi.Søknader()) {
+                bearerAuth(systembruker)
+                setBody(mapOf("kommunenummer" to "-1"))
+            }
             .feilmelding(HttpStatusCode.BadRequest)
         client
-            .post(KommuneApi.Søknader()) { setBody(mapOf("foobar" to "9999")) }
+            .post(KommuneApi.Søknader()) {
+                bearerAuth(systembruker)
+                setBody(mapOf("foobar" to "9999"))
+            }
             .feilmelding(HttpStatusCode.BadRequest)
     }
 }

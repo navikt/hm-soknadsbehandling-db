@@ -30,7 +30,6 @@ import no.nav.hjelpemidler.soknad.db.soknad.StatusResponse
 import no.nav.hjelpemidler.soknad.db.soknad.SøknadService
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.store.Transaction
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import java.security.MessageDigest
 import java.time.LocalDateTime
 import java.util.UUID
@@ -45,8 +44,6 @@ fun Route.tokenXRoutes() {
     val ordreService: OrdreService by application.dependencies
     val rolleService: RolleService by application.dependencies
     val søknadService: SøknadService by application.dependencies
-
-    val tokenXUserFactory: TokenXUserFactory by application.dependencies
 
     val safselvbetjeningClient: SafselvbetjeningClient by application.dependencies
 

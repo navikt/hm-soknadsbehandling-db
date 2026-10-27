@@ -9,7 +9,6 @@ import io.ktor.client.plugins.resources.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
@@ -21,8 +20,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Sakstilknytning
 import no.nav.hjelpemidler.behovsmeldingsmodell.sak.Vedtaksresultat
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.domain.person.lagTilfeldigFødselsnummer
+import no.nav.hjelpemidler.domain.tilgang.Applikasjonsnavn
+import no.nav.hjelpemidler.security.AuthenticatedApplication
+import no.nav.hjelpemidler.server.ktor.security.test.bearerAuth
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningClient
-import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
@@ -33,19 +35,16 @@ import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.hjelpemidler.soknad.db.test.fakes.FakeEpostClient
-import no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
-import java.time.Instant
 
-class TestContext constructor(
+class TestContext(
     val client: HttpClient,
-    val tokenXUserFactory: TokenXUserFactory = mockk(),
     val epostClient: FakeEpostClient = FakeEpostClient(),
     val grunndataClient: GrunndataClient = mockk(),
     val rolleClient: RolleClient = mockk(),
     val safselvbetjeningClient: SafselvbetjeningClient = mockk(),
 ) {
+    val systembruker = AuthenticatedApplication(Applikasjonsnavn("test"))
+
     init {
         coEvery { grunndataClient.hentProdukter(any()) } answers {
             firstArg<Set<String>>().map {
@@ -59,28 +58,6 @@ class TestContext constructor(
                 )
             }
         }
-    }
-
-    fun tokenXUser(ident: String? = null) {
-        every { tokenXUserFactory.createTokenXUser(any()) } returns TokenXUser(
-            ident = ident ?: "12345678910",
-            levelOfAssurance = LevelOfAssurance.SUBSTANTIAL,
-            tokenExpirationTime = Instant.now().plusSeconds(60),
-            jwt = lagJwt(),
-        )
-    }
-
-    fun tokenXUser(ident: Fødselsnummer = lagFødselsnummer()) {
-        every { tokenXUserFactory.createTokenXUser(any()) } returns TokenXUser(
-            ident = ident.toString(),
-            levelOfAssurance = LevelOfAssurance.SUBSTANTIAL,
-            tokenExpirationTime = Instant.now().plusSeconds(60),
-            jwt = lagJwt(),
-        )
-    }
-
-    fun createTokenXUserFeiler(melding: String = "Ukjent feil!") {
-        every { tokenXUserFactory.createTokenXUser(any()) } throws RuntimeException(melding)
     }
 
     fun formidlerRolle() {
@@ -98,17 +75,19 @@ class TestContext constructor(
         )
     }
 
-    fun hentRolleFeiler(melding: String = "Ukjent feil!") {
-        coEvery { rolleClient.hentRolle(any()) } throws RuntimeException(melding)
-    }
-
-    suspend inline fun lagreBehovsmelding(): Behovsmeldingsgrunnlag.Digital {
-        return lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital())
+    suspend inline fun lagreBehovsmelding(
+        fnrBruker: Fødselsnummer = lagTilfeldigFødselsnummer(),
+        fnrInnsender: Fødselsnummer = lagTilfeldigFødselsnummer(),
+    ): Behovsmeldingsgrunnlag.Digital {
+        return lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(fnrBruker = fnrBruker, fnrInnsender = fnrInnsender))
     }
 
     suspend inline fun <reified T : Behovsmeldingsgrunnlag> lagreBehovsmelding(grunnlag: T, rowUpdated: Int = 1): T {
         client
-            .post(Søknader()) { setBody(grunnlag) }
+            .post(Søknader()) {
+                bearerAuth(systembruker)
+                setBody(grunnlag)
+            }
             .expect(HttpStatusCode.Created, rowUpdated)
         return grunnlag
     }
@@ -116,25 +95,32 @@ class TestContext constructor(
     suspend fun oppdaterStatus(søknadId: BehovsmeldingId, status: BehovsmeldingStatus) {
         client
             .put(Søknader.SøknadId.Status(søknadId)) {
+                bearerAuth(systembruker)
                 setBody(Statusendring(status = status, valgteÅrsaker = null, begrunnelse = null))
             }
             .expect(HttpStatusCode.OK, 1)
     }
 
     suspend fun finnSøknad(søknadId: BehovsmeldingId): SøknadDto? {
-        val response = client.get(Søknader.SøknadId(søknadId))
+        val response = client.get(Søknader.SøknadId(søknadId)) {
+            bearerAuth(systembruker)
+        }
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<SøknadDto?>()
     }
 
     suspend fun finnBehovsmelding(søknadId: BehovsmeldingId): Innsenderbehovsmelding? {
-        val response = client.get(Behovsmelding.BehovsmeldingId(søknadId))
+        val response = client.get(Behovsmelding.BehovsmeldingId(søknadId)) {
+            bearerAuth(systembruker)
+        }
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<Innsenderbehovsmelding?>()
     }
 
     suspend inline fun <reified T : Fagsak> finnSak(søknadId: BehovsmeldingId): T? {
-        val response = client.get(Søknader.SøknadId.Sak(søknadId))
+        val response = client.get(Søknader.SøknadId.Sak(søknadId)) {
+            bearerAuth(systembruker)
+        }
         response shouldHaveStatus HttpStatusCode.OK
         return response.body<T?>()
     }
@@ -145,6 +131,7 @@ class TestContext constructor(
     ) {
         client
             .put(Søknader.SøknadId.Journalpost(søknadId)) {
+                bearerAuth(systembruker)
                 setBody(mapOf("journalpostId" to journalpostId))
             }
             .expect(HttpStatusCode.OK, 1)
@@ -153,6 +140,7 @@ class TestContext constructor(
     suspend fun oppdaterOppgaveId(søknadId: BehovsmeldingId, oppgaveId: String) {
         client
             .put(Søknader.SøknadId.Oppgave(søknadId)) {
+                bearerAuth(systembruker)
                 setBody(mapOf("oppgaveId" to oppgaveId))
             }
             .expect(HttpStatusCode.OK, 1)
@@ -164,6 +152,7 @@ class TestContext constructor(
     ) {
         client
             .post(Søknader.SøknadId.Sak(søknadId)) {
+                bearerAuth(systembruker)
                 setBody(sakstilknytning)
             }
             .expect(HttpStatusCode.OK, 1)
@@ -175,6 +164,7 @@ class TestContext constructor(
     ) {
         client
             .post(Søknader.SøknadId.Vedtaksresultat(søknadId)) {
+                bearerAuth(systembruker)
                 setBody(vedtaksresultat)
             }
             .expect(HttpStatusCode.OK, 1)
