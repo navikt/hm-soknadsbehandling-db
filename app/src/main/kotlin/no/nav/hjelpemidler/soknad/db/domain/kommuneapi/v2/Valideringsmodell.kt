@@ -49,6 +49,9 @@ interface BehovsmeldingBase {
     val prioritet: Prioritet
     val hjmBrukersFnr: Fødselsnummer
     val skjemaversjon: Int
+
+    val kilde: Kilde?
+    val isDigitalBehovsmelding: Boolean?
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -70,10 +73,16 @@ data class Innsenderbehovsmelding(
     override val skjemaversjon: Int,
     override val hjmBrukersFnr: Fødselsnummer,
     override val prioritet: Prioritet,
+
+    override val kilde: Kilde? = null,
+    @JsonProperty("isDigitalBehovsmelding")
+    override val isDigitalBehovsmelding: Boolean? = null,
 ) : BehovsmeldingBase {
     fun filtrerForKommuneApiet() = this.copy(
         metadata = null,
         innsender = null,
+        kilde = null,
+        isDigitalBehovsmelding = null,
         levering = this.levering.copy(
             annenOppfølgingsansvarlig = this.levering.annenOppfølgingsansvarlig?.copy(
                 godkjenningskursResultat = null,
@@ -595,4 +604,12 @@ enum class BehovsmeldingType {
 enum class Brukerkilde {
     PDL,
     FORMIDLER,
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+enum class Kilde {
+    DIGITAL_BEHOVSMELDING,
+
+    @JsonAlias("PAPIR")
+    JOURNALPOST,
 }

@@ -283,7 +283,9 @@ class BehovsmeldingDataValideringTest {
     "innsendingstidspunkt": null,
     "skjemaversjon": 2,
     "hjmBrukersFnr": "07073810927",
-    "prioritet": "NORMAL"
+    "prioritet": "NORMAL",
+    "kilde": "DIGITAL_BEHOVSMELDING",
+    "isDigitalBehovsmelding": true
 }
             """.trimIndent(),
         )
@@ -301,5 +303,7 @@ class BehovsmeldingDataValideringTest {
         }
 
         filtrertRaw shouldNotContain "bestillingsordningsjekk"
+        filtrertRaw shouldNotContain "DIGITAL_BEHOVSMELDING"
+        filtrertRaw shouldNotContain "isDigitalBehovsmelding"
     }
 }
