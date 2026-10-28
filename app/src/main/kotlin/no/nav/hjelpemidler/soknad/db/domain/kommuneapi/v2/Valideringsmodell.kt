@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
@@ -360,10 +361,17 @@ data class Personnavn(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Veiadresse(
-    val adresse: String,
+    @JsonAlias("adresse")
+    val adresselinje1: String,
+    val adresselinje2: String? = null,
+    val adresselinje3: String? = null,
     val postnummer: String,
     val poststed: String,
-)
+) {
+    val adresse: String
+        get() = listOfNotNull(adresselinje1, adresselinje2, adresselinje3)
+            .joinToString(", ")
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 enum class Hasteårsak {
