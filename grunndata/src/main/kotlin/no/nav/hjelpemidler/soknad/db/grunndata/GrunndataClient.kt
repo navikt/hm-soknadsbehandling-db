@@ -6,18 +6,22 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.defaultRequest
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
 import no.nav.hjelpemidler.text.toURL
 import tools.jackson.databind.json.JsonMapper
+import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
 
 class GrunndataClient(
     engine: HttpClientEngine,
     url: String,
-) {
+) : Closeable {
     private val client = GraphQLKtorClient(
         url = url.toURL(),
         httpClient = HttpClient(engine) {
@@ -47,8 +51,15 @@ class GrunndataClient(
                 else -> emptyList()
             }
         } catch (e: Exception) {
+            if (e is CancellationException) {
+                currentCoroutineContext().ensureActive()
+            }
             log.error(e) { "Feil under henting av data fra grunndata, hmsnrs: $hmsnrs" }
             return emptyList()
         }
+    }
+
+    override fun close() {
+        client.close()
     }
 }

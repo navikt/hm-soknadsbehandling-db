@@ -10,6 +10,7 @@ import no.nav.hjelpemidler.http.correlationId
 import no.nav.hjelpemidler.http.createHttpClient
 import no.nav.hjelpemidler.http.openid.onBehalfOf
 import no.nav.hjelpemidler.http.openid.tokenX
+import java.io.Closeable
 
 private val log = KotlinLogging.logger { }
 
@@ -17,7 +18,7 @@ class RolleClient(
     engine: HttpClientEngine,
     target: String,
     private val baseUrl: String,
-) {
+) : Closeable {
     private val client: HttpClient = createHttpClient(engine) {
         tokenX(target)
         defaultRequest { correlationId() }
@@ -33,5 +34,9 @@ class RolleClient(
             log.error(e) { "Henting av roller feilet" }
             throw e
         }
+    }
+
+    override fun close() {
+        client.close()
     }
 }

@@ -18,6 +18,7 @@ import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.hentdokumentoversiktselvbetjening.Journalpost
 import no.nav.hjelpemidler.text.toURL
 import tools.jackson.databind.json.JsonMapper
+import java.io.Closeable
 
 private val log = KotlinLogging.logger {}
 
@@ -25,7 +26,7 @@ class SafselvbetjeningClient(
     engine: HttpClientEngine,
     target: String,
     private val baseUrl: String,
-) {
+) : Closeable {
     private val graphQLClient = GraphQLKtorClient(
         url = "$baseUrl/graphql".toURL(),
         httpClient = HttpClient(engine) {
@@ -93,5 +94,10 @@ class SafselvbetjeningClient(
             log.error(e) { "Kunne ikke hente dokument, journalpostId: $journalpostId, dokumentId: $dokumentId, dokumentvariant: $dokumentvariant" }
             throw e
         }
+    }
+
+    override fun close() {
+        graphQLClient.close()
+        httpClient.close()
     }
 }
