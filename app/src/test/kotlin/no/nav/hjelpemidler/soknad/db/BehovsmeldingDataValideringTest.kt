@@ -2,19 +2,24 @@ package no.nav.hjelpemidler.soknad.db
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.serialization.jackson.jsonToTree
+import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.BrukersituasjonVilkårtype
 import no.nav.hjelpemidler.soknad.db.domain.kommuneapi.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.readValue
+import kotlin.test.assertFailsWith
 
 class BehovsmeldingDataValideringTest {
-    @Test
-    fun `Validering av en normal søknad i dagens format`() {
+    private fun lagSøknadJson(): JsonNode {
         val fnr = lagFødselsnummer()
         lagFødselsnummer()
-        val node = jsonToTree(
+        return jsonToTree(
             """
 {
     "bruker": {
@@ -289,8 +294,11 @@ class BehovsmeldingDataValideringTest {
 }
             """.trimIndent(),
         )
+    }
 
-        val data = Innsenderbehovsmelding.fraJsonNode(node)
+    @Test
+    fun `Validering av en normal søknad i dagens format`() {
+        val data = Innsenderbehovsmelding.fraJsonNode(lagSøknadJson())
         val filtrert = data.filtrerForKommuneApiet()
         val filtrertRaw = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(filtrert)
 
@@ -305,5 +313,60 @@ class BehovsmeldingDataValideringTest {
         filtrertRaw shouldNotContain "bestillingsordningsjekk"
         filtrertRaw shouldNotContain "DIGITAL_BEHOVSMELDING"
         filtrertRaw shouldNotContain "isDigitalBehovsmelding"
+    }
+
+    @Test
+    fun `V1 godtas og opprinnelig vilkårstekst beholdes for kommunen`() {
+        verifiserVilkår(
+            BrukersituasjonVilkårtype.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V1,
+            nb = "Personen vil være i stand til å bruke hjelpemidlene. Jeg har ansvaret for at hjelpemidlene blir levert, og at nødvendig opplæring, tilpasning og montering blir gjort.",
+            nn = "Personen vil vera i stand til å bruka hjelpemidla. Eg har ansvaret for at hjelpemidla blir leverte, og at nødvendig opplæring, tilpassing og montering blir gjort.",
+        )
+    }
+
+    @Test
+    fun `V2 godtas og ny vilkårstekst beholdes for kommunen`() {
+        verifiserVilkår(
+            BrukersituasjonVilkårtype.I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V2,
+            nb = "Personen vil være i stand til å bruke hjelpemidlene når opplæring i bruk av hjelpemidlet er gitt.",
+            nn = "Personen vil vera i stand til å bruka hjelpemidla når opplæring i bruk av hjelpemiddelet er gitt.",
+        )
+    }
+
+    @Test
+    fun `Ukjente vilkårsversjoner avvises fortsatt`() {
+        val node = lagSøknadMedVilkår("I_STAND_TIL_Å_BRUKE_HJELPEMIDLENE_V3", "Ukjent tekst", "Ukjend tekst")
+
+        assertFailsWith<RuntimeException> {
+            Innsenderbehovsmelding.fraJsonNode(node)
+        }
+    }
+
+    private fun verifiserVilkår(vilkårtype: BrukersituasjonVilkårtype, nb: String, nn: String) {
+        val node = lagSøknadMedVilkår(vilkårtype.name, nb, nn)
+        val filtrert = Innsenderbehovsmelding.fraJsonNode(node).filtrerForKommuneApiet()
+        val vilkår = filtrert.brukersituasjon.vilkår.single()
+
+        vilkår.vilkårtype shouldBe vilkårtype
+        vilkår.tekst.nb shouldBe nb
+        vilkår.tekst.nn shouldBe nn
+        filtrert.innsender.shouldBeNull()
+        filtrert.metadata.shouldBeNull()
+
+        val json = jsonToTree(jsonMapper.writeValueAsString(filtrert))
+        json["brukersituasjon"]["vilkår"][0]["vilkårtype"].stringValue() shouldBe vilkårtype.name
+        json["brukersituasjon"]["vilkår"][0]["tekst"]["nb"].stringValue() shouldBe nb
+        json["brukersituasjon"]["vilkår"][0]["tekst"]["nn"].stringValue() shouldBe nn
+    }
+
+    private fun lagSøknadMedVilkår(vilkårtype: String, nb: String, nn: String): JsonNode {
+        val node = jsonMapper.readValue<ObjectNode>(lagSøknadJson().toString())
+        node.withObject("/brukersituasjon").putArray("vilkår")
+            .addObject()
+            .put("vilkårtype", vilkårtype)
+            .putObject("tekst")
+            .put("nb", nb)
+            .put("nn", nn)
+        return node
     }
 }
