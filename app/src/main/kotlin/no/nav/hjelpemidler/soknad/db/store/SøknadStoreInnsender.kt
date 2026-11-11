@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
+import no.nav.hjelpemidler.collections.toStringArray
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -21,7 +22,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
         behovsmeldingstyper: Set<BehovsmeldingType>,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): List<SøknadForInnsender> {
-        val behovsmeldingTypeClause = behovsmeldingstypeFilter(behovsmeldingstyper)
+        if (behovsmeldingstyper.isEmpty()) return emptyList()
 
         val statement = Sql(
             """
@@ -45,7 +46,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
                   AND soknad.fnr_innsender = :fnrInnsender
-                  $behovsmeldingTypeClause
+                  AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' = ANY (:behovsmeldingstyper)) -- slettede har data_v2 = NULL
                   AND soknad.created > :opprettetEtter
                      AND (
                       status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
@@ -66,6 +67,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
             statement,
             mapOf(
                 "fnrInnsender" to fnrInnsender,
+                "behovsmeldingstyper" to behovsmeldingstyper.toStringArray(),
                 "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
         ) {
@@ -91,7 +93,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
         behovsmeldingstyper: Set<BehovsmeldingType>,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SøknadForInnsender? {
-        val behovsmeldingTypeClause = behovsmeldingstypeFilter(behovsmeldingstyper)
+        if (behovsmeldingstyper.isEmpty()) return null
 
         val statement = Sql(
             """
@@ -118,7 +120,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                   AND soknad.fnr_innsender = :fnrInnsender
                   AND soknad.data_v2 ->> 'type' <> 'BRUKERPASSBYTTE'
                   AND soknad.soknads_id = :soknadId
-                  $behovsmeldingTypeClause
+                  AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' = ANY (:behovsmeldingstyper)) -- slettede har data_v2 = NULL
                   AND soknad.created > :opprettetEtter
                      AND (
                       status.STATUS NOT IN ('SLETTET', 'UTLØPT', 'VEDTAKSRESULTAT_AVSLÅTT', 'VEDTAKSRESULTAT_HENLAGTBORTFALT', 'VEDTAKSRESULTAT_ANNET', 'BESTILLING_AVVIST', 'UTSENDING_STARTET')
@@ -138,6 +140,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
             statement,
             mapOf(
                 "fnrInnsender" to fnrInnsender,
+                "behovsmeldingstyper" to behovsmeldingstyper.toStringArray(),
                 "soknadId" to søknadId,
                 "opprettetEtter" to LocalDateTime.now().minusMonths(6),
             ),
@@ -201,11 +204,3 @@ data class BehovsmeldingTilGodkjenning(
     val id: UUID,
     val opprettet: Instant,
 )
-
-// Verdiene er enum-navn, så det er trygt å bygge SQL-en direkte.
-// Slettede behovsmeldinger har data_v2 = NULL og dermed ukjent type; de vises for alle med minst én tillatt type.
-private fun behovsmeldingstypeFilter(behovsmeldingstyper: Set<BehovsmeldingType>): String = if (behovsmeldingstyper.isEmpty()) {
-    "AND FALSE"
-} else {
-    "AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' IN (${behovsmeldingstyper.joinToString { "'${it.name}'" }}))"
-}
