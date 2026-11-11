@@ -12,6 +12,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingId
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
+import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Statusendring
 import no.nav.hjelpemidler.behovsmeldingsmodell.SøknadDto
@@ -28,9 +29,9 @@ import no.nav.hjelpemidler.soknad.db.client.safselvbetjening.SafselvbetjeningCli
 import no.nav.hjelpemidler.soknad.db.grunndata.GrunndataClient
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.AttributesDoc
 import no.nav.hjelpemidler.soknad.db.grunndata.hentprodukter.Product
-import no.nav.hjelpemidler.soknad.db.rolle.FormidlerRolle
 import no.nav.hjelpemidler.soknad.db.rolle.RolleClient
-import no.nav.hjelpemidler.soknad.db.rolle.RolleResultat
+import no.nav.hjelpemidler.soknad.db.rolle.RollerResultat
+import no.nav.hjelpemidler.soknad.db.rolle.Tillatelser
 import no.nav.hjelpemidler.soknad.db.soknad.Behovsmelding
 import no.nav.hjelpemidler.soknad.db.soknad.Søknader
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
@@ -61,16 +62,9 @@ class TestContext(
     }
 
     fun formidlerRolle() {
-        coEvery { rolleClient.hentRolle(any()) } returns RolleResultat(
-            formidlerRolle = FormidlerRolle(
-                harFormidlerRolle = true,
-                erPilotkommune = false,
-                harAltinnRettighet = true,
-                harAllowlistTilgang = true,
-                organisasjoner = emptyList(),
-                organisasjonerManKanBeOmTilgangTil = emptyList(),
-                godkjenningskurs = emptyList(),
-                feil = emptyList(),
+        coEvery { rolleClient.hentRoller(any()) } returns RollerResultat(
+            tillatelser = Tillatelser(
+                behovsmeldingstyper = setOf(BehovsmeldingType.SØKNAD, BehovsmeldingType.BYTTE, BehovsmeldingType.BESTILLING),
             ),
         )
     }

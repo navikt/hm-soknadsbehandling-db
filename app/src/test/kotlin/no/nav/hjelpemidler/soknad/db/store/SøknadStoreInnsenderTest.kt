@@ -5,6 +5,7 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -12,10 +13,11 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
-import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import org.junit.jupiter.api.Test
+
+private val formidler = setOf(BehovsmeldingType.SØKNAD, BehovsmeldingType.BYTTE, BehovsmeldingType.BESTILLING)
 
 class SøknadStoreInnsenderTest {
     @Test
@@ -26,7 +28,7 @@ class SøknadStoreInnsenderTest {
         testTransaction {
             søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrFormidler))
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, formidler)
                 .shouldBeSingleton {
                     it.navnBruker shouldBe "Fornavn Etternavn"
                 }
@@ -43,10 +45,10 @@ class SøknadStoreInnsenderTest {
             søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrFormidler))
             søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(fnrInnsender = fnrAnnenFormidler))
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER) shouldHaveSize 1
+                .hentSøknaderForInnsender(fnrFormidler, formidler) shouldHaveSize 1
 
             søknadStoreInnsender
-                .hentSøknadForInnsender(fnrFormidler, søknadId, InnsenderRolle.FORMIDLER)
+                .hentSøknadForInnsender(fnrFormidler, søknadId, formidler)
                 .shouldNotBeNull {
                     this.søknadId shouldBe søknadId
                     this.behovsmelding.shouldNotBeNull()
@@ -86,7 +88,7 @@ class SøknadStoreInnsenderTest {
             søknadStore.slettSøknad(søknadId) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, formidler)
                 .shouldBeSingleton {
                     it.navnBruker shouldBe "Fornavn Etternavn"
                 }
@@ -114,13 +116,13 @@ class SøknadStoreInnsenderTest {
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '3 week') WHERE SOKNADS_ID = '$søknadId'")
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.FORMIDLER, 4)
+                .hentSøknaderForInnsender(fnrInnsender, formidler, 4)
                 .shouldHaveSize(1)
 
             tx.execute("UPDATE V1_SOKNAD SET CREATED = (now() - interval '5 week') WHERE SOKNADS_ID = '$søknadId'")
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(lagFødselsnummer(), InnsenderRolle.FORMIDLER, 4)
+                .hentSøknaderForInnsender(lagFødselsnummer(), formidler, 4)
                 .shouldBeEmpty()
         }
     }
@@ -141,7 +143,7 @@ class SøknadStoreInnsenderTest {
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrFormidler, InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrFormidler, formidler)
                 .shouldBeSingleton {
                     it.fullmakt.shouldBeTrue()
                 }
@@ -165,7 +167,7 @@ class SøknadStoreInnsenderTest {
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.ENDELIG_JOURNALFØRT) shouldBe 1
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.FORMIDLER)
+                .hentSøknaderForInnsender(fnrInnsender, formidler)
                 .shouldBeSingleton {
                     it.fullmakt.shouldBeFalse()
                 }
@@ -195,18 +197,31 @@ class SøknadStoreInnsenderTest {
             )
 
             søknadStoreInnsender
-                .hentSøknaderForInnsender(fnrInnsender, InnsenderRolle.BESTILLER)
+                .hentSøknaderForInnsender(fnrInnsender, setOf(BehovsmeldingType.BESTILLING))
                 .shouldBeSingleton {
                     it.søknadId shouldBe idBestilling
                 }
 
             søknadStoreInnsender
-                .hentSøknadForInnsender(fnrInnsender, idBestilling, InnsenderRolle.BESTILLER)
+                .hentSøknadForInnsender(fnrInnsender, idBestilling, setOf(BehovsmeldingType.BESTILLING))
                 .shouldNotBeNull()
                 .should {
                     it.søknadId shouldBe idBestilling
                     it.behovsmeldingType shouldBe BehovsmeldingType.BESTILLING
                 }
+        }
+    }
+
+    @Test
+    fun `Innsender uten tillatte behovsmeldingstyper får ingenting`() = databaseTest {
+        val søknadId = lagSøknadId()
+        val fnrInnsender = lagFødselsnummer()
+
+        testTransaction {
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrInnsender))
+
+            søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, emptySet()).shouldBeEmpty()
+            søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, emptySet()).shouldBeNull()
         }
     }
 

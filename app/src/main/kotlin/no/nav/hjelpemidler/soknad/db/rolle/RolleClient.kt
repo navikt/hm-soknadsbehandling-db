@@ -24,12 +24,12 @@ class RolleClient(
         defaultRequest { correlationId() }
     }
 
-    suspend fun hentRolle(userToken: String): RolleResultat {
-        val url = "$baseUrl/api/roller"
+    suspend fun hentRoller(userToken: String): RollerResultat {
+        val url = "$baseUrl/api/v2/roller"
         return try {
             client
                 .get(url) { onBehalfOf(userToken) }
-                .body<RolleResultat>()
+                .body<RollerResultat>()
         } catch (e: Exception) {
             log.error(e) { "Henting av roller feilet" }
             throw e
