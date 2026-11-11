@@ -87,10 +87,10 @@ fun Route.tokenXRoutes() {
     get<Søknader.Innsender> {
         val innbygger = call.autentisertInnbygger()
         val fnrInnsender = innbygger.fnr
-        val innsenderRolle = rolleService.hentRolle(innbygger.userToken)
+        val behovsmeldingstyper = rolleService.hentTillatteBehovsmeldingstyper(innbygger.userToken)
 
         val søknader = transaction {
-            søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, innsenderRolle)
+            søknadStoreInnsender.hentSøknaderForInnsender(fnrInnsender, behovsmeldingstyper)
         }
 
         // Logg tilfeller av gamle saker hos formidler for statistikk, anonymiser fnr med enveis-sha256
@@ -112,10 +112,10 @@ fun Route.tokenXRoutes() {
         val søknadId = it.søknadId
         val innbygger = call.autentisertInnbygger()
         val fnrInnsender = innbygger.fnr
-        val innsenderRolle = rolleService.hentRolle(innbygger.userToken)
+        val behovsmeldingstyper = rolleService.hentTillatteBehovsmeldingstyper(innbygger.userToken)
 
         val søknad = transaction {
-            søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, innsenderRolle)
+            søknadStoreInnsender.hentSøknadForInnsender(fnrInnsender, søknadId, behovsmeldingstyper)
         }
         if (søknad == null) {
             logg.warn { "En formidler forsøkte å hente søknad med id: $søknadId, men den er ikke tilgjengelig for formidler nå" }

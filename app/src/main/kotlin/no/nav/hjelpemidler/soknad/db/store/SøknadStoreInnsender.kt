@@ -7,7 +7,6 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.v2.Innsenderbehovsmelding
 import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.database.sql.Sql
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
-import no.nav.hjelpemidler.soknad.db.rolle.InnsenderRolle
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
@@ -19,13 +18,10 @@ private val log = KotlinLogging.logger {}
 class SøknadStoreInnsender(private val tx: JdbcOperations) {
     fun hentSøknaderForInnsender(
         fnrInnsender: Fødselsnummer,
-        innsenderRolle: InnsenderRolle?,
+        behovsmeldingstyper: Set<BehovsmeldingType>,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): List<SøknadForInnsender> {
-        val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.data_v2 ->> 'type' = 'BESTILLING'"
-            else -> ""
-        }
+        val behovsmeldingTypeClause = behovsmeldingstypeFilter(behovsmeldingstyper)
 
         val statement = Sql(
             """
@@ -92,13 +88,10 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
     fun hentSøknadForInnsender(
         fnrInnsender: Fødselsnummer,
         søknadId: UUID,
-        innsenderRolle: InnsenderRolle?,
+        behovsmeldingstyper: Set<BehovsmeldingType>,
         ukerEtterEndeligStatus: Int = UKER_TILGJENGELIG_ETTER_ENDELIG_STATUS,
     ): SøknadForInnsender? {
-        val behovsmeldingTypeClause = when (innsenderRolle) {
-            InnsenderRolle.BESTILLER -> "AND soknad.data_v2 ->> 'type' = 'BESTILLING'"
-            else -> ""
-        }
+        val behovsmeldingTypeClause = behovsmeldingstypeFilter(behovsmeldingstyper)
 
         val statement = Sql(
             """
@@ -208,3 +201,11 @@ data class BehovsmeldingTilGodkjenning(
     val id: UUID,
     val opprettet: Instant,
 )
+
+// Verdiene er enum-navn, så det er trygt å bygge SQL-en direkte.
+// Slettede behovsmeldinger har data_v2 = NULL og dermed ukjent type; de vises for alle med minst én tillatt type.
+private fun behovsmeldingstypeFilter(behovsmeldingstyper: Set<BehovsmeldingType>): String = if (behovsmeldingstyper.isEmpty()) {
+    "AND FALSE"
+} else {
+    "AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' IN (${behovsmeldingstyper.joinToString { "'${it.name}'" }}))"
+}
