@@ -39,21 +39,6 @@ class JobbScheduler(
         scheduler.schedule(task, forsinkelseTilNesteKjøring, TimeUnit.MILLISECONDS)
     }
 
-    fun schedulerEngangsjobb(
-        navn: String,
-        jobb: suspend CoroutineScope.() -> Unit,
-        tidspunkt: LocalDateTime,
-    ) {
-        val forsinkelse = Duration.between(LocalDateTime.now(), tidspunkt).toMillis()
-        if (forsinkelse <= 0) {
-            log.info { "Tidspunkt for engangskjøring av $navn ($tidspunkt) har passert. Hopper over." }
-            return
-        }
-
-        log.info { "Schedulerer engangskjøring av $navn til $tidspunkt (delay=$forsinkelse ms)" }
-        scheduler.schedule({ runBlocking { kjørJobb(navn, jobb) } }, forsinkelse, TimeUnit.MILLISECONDS)
-    }
-
     suspend fun CoroutineScope.kjørJobb(navn: String, jobb: suspend CoroutineScope.() -> Unit) {
         if (!leaderElection.erLeder()) {
             log.info { "Hopper over jobb $navn fordi denne instansen ikke er leder." }
