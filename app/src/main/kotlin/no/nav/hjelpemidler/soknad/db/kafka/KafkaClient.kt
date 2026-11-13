@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.soknad.db.kafka
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.kafka.BigQueryHendelse
-import no.nav.hjelpemidler.kafka.sendAsync
+import no.nav.hjelpemidler.kafka.sendSuspending
 import no.nav.hjelpemidler.serialization.jackson.jsonMapper
 import no.nav.hjelpemidler.soknad.db.Configuration
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -32,7 +32,7 @@ class KafkaClient(private val producer: KafkaProducer) : AutoCloseable by produc
 
     suspend fun <K, V> send(key: K, value: V) {
         try {
-            producer.sendAsync(ProducerRecord(topic, key.toString(), jsonMapper.writeValueAsString(value)))
+            producer.sendSuspending(ProducerRecord(topic, key.toString(), jsonMapper.writeValueAsString(value)))
         } catch (e: Exception) {
             log.error(e) { "Publisering til Kafka feilet" }
             throw e
