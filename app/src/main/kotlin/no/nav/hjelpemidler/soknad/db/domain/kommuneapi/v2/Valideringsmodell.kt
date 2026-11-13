@@ -234,6 +234,8 @@ data class Levering(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Innsender(
     val rolle: InnsenderRolle,
+    /** null for behovsmeldinger sendt inn før roller v2. */
+    val roller: Set<Innsenderrolletype>? = null,
     val erKommunaltAnsatt: Boolean?,
     val kurs: List<Godkjenningskurs>,
     val sjekketUtlånsoversiktForKategorier: Set<String>?,
@@ -545,6 +547,13 @@ enum class KontaktpersonV2 {
 enum class InnsenderRolle {
     FORMIDLER,
     BESTILLER,
+}
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+enum class Innsenderrolletype {
+    BESTILLER,
+    KOMMUNAL_FORMIDLER,
+    IKKE_KOMMUNAL_FORMIDLER,
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

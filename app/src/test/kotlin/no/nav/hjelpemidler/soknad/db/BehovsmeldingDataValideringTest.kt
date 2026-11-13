@@ -223,6 +223,7 @@ class BehovsmeldingDataValideringTest {
     },
     "innsender": {
         "rolle": "FORMIDLER",
+        "roller": ["KOMMUNAL_FORMIDLER"],
         "erKommunaltAnsatt": null,
         "kurs": [
             {
