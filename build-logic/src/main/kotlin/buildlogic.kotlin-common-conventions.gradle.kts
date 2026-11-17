@@ -30,7 +30,7 @@ testing {
     suites {
         @Suppress("UnstableApiUsage")
         withType<JvmTestSuite> {
-            useKotlinTest(libs.versions.kotlin.asProvider())
+            useKotlinTest(libs.versions.kotlin)
             dependencies {
                 implementation(libs.hotlibs.test)
             }
