@@ -233,7 +233,8 @@ data class Levering(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Innsender(
-    val rolle: InnsenderRolle,
+    /** Sendes ikke lenger for nye behovsmeldinger, men finnes i eldre. */
+    val rolle: InnsenderRolle? = null,
     /** null for behovsmeldinger sendt inn før roller v2. */
     val roller: Set<Innsenderrolletype>? = null,
     val erKommunaltAnsatt: Boolean?,
