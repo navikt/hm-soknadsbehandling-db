@@ -46,6 +46,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
                   AND soknad.fnr_innsender = :fnrInnsender
+                  AND soknad.feilregistrert IS NULL
                   AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' = ANY (:behovsmeldingstyper)) -- slettede har data_v2 = NULL
                   AND soknad.created > :opprettetEtter
                      AND (
@@ -118,6 +119,7 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE TRUE
                   AND soknad.fnr_innsender = :fnrInnsender
+                  AND soknad.feilregistrert IS NULL
                   AND soknad.data_v2 ->> 'type' <> 'BRUKERPASSBYTTE'
                   AND soknad.soknads_id = :soknadId
                   AND (soknad.data_v2 ->> 'type' IS NULL OR soknad.data_v2 ->> 'type' = ANY (:behovsmeldingstyper)) -- slettede har data_v2 = NULL
@@ -172,7 +174,8 @@ class SøknadStoreInnsender(private val tx: JdbcOperations) {
                     LEFT JOIN v1_status AS status
                                    ON status.id =
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
-                WHERE fnr_innsender = :fnrInnsender
+                WHERE soknad.fnr_innsender = :fnrInnsender
+                    AND soknad.feilregistrert IS NULL
                     AND status.status = 'VENTER_GODKJENNING'
             """.trimIndent(),
             mapOf("fnrInnsender" to fnr),

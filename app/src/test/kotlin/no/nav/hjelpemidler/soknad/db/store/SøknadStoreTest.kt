@@ -11,6 +11,7 @@ import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
 import no.nav.hjelpemidler.behovsmeldingsmodell.Funksjonsnedsettelser
 import no.nav.hjelpemidler.behovsmeldingsmodell.LeveringTilleggsinfo
+import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.domain.geografi.Veiadresse
 import no.nav.hjelpemidler.domain.person.Personnavn
 import no.nav.hjelpemidler.serialization.jackson.jsonToValue
@@ -26,6 +27,36 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SøknadStoreTest {
+    @Test
+    fun `Feilregistrert søknad hentes ikke av bruker`() = databaseTest {
+        val søknadId = lagSøknadId()
+        val fnrBruker = lagFødselsnummer()
+
+        testTransaction { tx ->
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrBruker = fnrBruker))
+            flaggSøknad(tx, søknadId)
+
+            assertNull(søknadStore.hentSøknad(søknadId))
+            søknadStore.hentSøknaderForBruker(fnrBruker).shouldBeEmpty()
+            søknadStore.finnSøknad(søknadId).shouldNotBeNull()
+        }
+    }
+
+    @Test
+    fun `Feilregistrert behovsmelding kan ikke oppdateres eller hentes av innsender`() = databaseTest {
+        val søknadId = lagSøknadId()
+        val fnrInnsender = lagFødselsnummer()
+
+        testTransaction { tx ->
+            søknadStore.lagreBehovsmelding(lagBehovsmeldingsgrunnlagDigital(søknadId, fnrInnsender = fnrInnsender))
+            val behovsmelding = søknadStore.finnInnsenderbehovsmelding(søknadId, fnrInnsender).shouldNotBeNull()
+            flaggSøknad(tx, søknadId)
+
+            søknadStore.oppdaterBehovsmelding(søknadId, behovsmelding, fnrInnsender) shouldBe 0
+            assertNull(søknadStore.finnInnsenderbehovsmelding(søknadId, fnrInnsender))
+        }
+    }
+
     @Test
     fun `Hent lagret søknad 1`() = databaseTest {
         val søknadId = lagSøknadId()
@@ -520,6 +551,39 @@ class SøknadStoreTest {
     }
 
     @Test
+    fun `Kommune-api returnerer ikke feilregistrerte behovsmeldinger og bruker flagget cursor`() = databaseTest {
+        testTransaction { tx ->
+            val kommunenummer = "1234"
+            val grunnlag = {
+                lagBehovsmeldingsgrunnlagDigital(
+                    innsenderArbeidsstedKommunenummer = kommunenummer,
+                    erKommunaltAnsatt = true,
+                    brukersKommunenummer = kommunenummer,
+                )
+            }
+            val feilregistrert = grunnlag().also { søknadStore.lagreBehovsmelding(it) }
+            val ny = grunnlag().also { søknadStore.lagreBehovsmelding(it) }
+
+            tx.update(
+                "UPDATE v1_soknad SET created = NOW() - INTERVAL '2 hours' WHERE soknads_id = :soknadId",
+                mapOf("soknadId" to feilregistrert.søknadId),
+            )
+            tx.update(
+                "UPDATE v1_soknad SET created = NOW() - INTERVAL '1 hour' WHERE soknads_id = :soknadId",
+                mapOf("soknadId" to ny.søknadId),
+            )
+            flaggSøknad(tx, feilregistrert.søknadId)
+
+            søknadStore
+                .hentBehovsmeldingerForKommuneApiet(kommunenummer, null, null)
+                .map { it.behovsmeldingId } shouldBe listOf(ny.søknadId)
+            søknadStore
+                .hentBehovsmeldingerForKommuneApiet(kommunenummer, feilregistrert.søknadId, null)
+                .map { it.behovsmeldingId } shouldBe listOf(ny.søknadId)
+        }
+    }
+
+    @Test
     fun `Behovsmelding for kommune-api som ikke validerer holder tilbake alle nyere behovsmeldinger`() = databaseTest {
         testTransaction { tx ->
             val kommunenummer = "5555"
@@ -601,4 +665,11 @@ class SøknadStoreTest {
             assertTrue(behovsmeldinger.isEmpty())
         }
     }
+}
+
+private fun flaggSøknad(tx: JdbcOperations, søknadId: UUID) {
+    tx.update(
+        "UPDATE v1_soknad SET feilregistrert = NOW() WHERE soknads_id = :soknadId",
+        mapOf("soknadId" to søknadId),
+    )
 }
