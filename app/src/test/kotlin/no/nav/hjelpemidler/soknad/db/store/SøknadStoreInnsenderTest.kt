@@ -12,14 +12,37 @@ import io.kotest.matchers.shouldBe
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingStatus
 import no.nav.hjelpemidler.behovsmeldingsmodell.BehovsmeldingType
 import no.nav.hjelpemidler.behovsmeldingsmodell.Behovsmeldingsgrunnlag
+import no.nav.hjelpemidler.database.JdbcOperations
 import no.nav.hjelpemidler.soknad.db.domain.lagFødselsnummer
 import no.nav.hjelpemidler.soknad.db.soknad.lagBehovsmeldingsgrunnlagDigital
 import no.nav.hjelpemidler.soknad.db.soknad.lagSøknadId
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 private val formidler = setOf(BehovsmeldingType.SØKNAD, BehovsmeldingType.BYTTE, BehovsmeldingType.BESTILLING)
 
 class SøknadStoreInnsenderTest {
+    @Test
+    fun `Feilregistrert søknad er skjult for innsender`() = databaseTest {
+        val søknadId = lagSøknadId()
+        val fnrFormidler = lagFødselsnummer()
+
+        testTransaction { tx ->
+            søknadStore.lagreBehovsmelding(
+                lagBehovsmeldingsgrunnlagDigital(
+                    søknadId,
+                    BehovsmeldingStatus.VENTER_GODKJENNING,
+                    fnrInnsender = fnrFormidler,
+                ),
+            )
+            flaggSøknad(tx, søknadId)
+
+            søknadStoreInnsender.hentSøknaderForInnsender(fnrFormidler, formidler).shouldBeEmpty()
+            søknadStoreInnsender.hentSøknadForInnsender(fnrFormidler, søknadId, formidler).shouldBeNull()
+            søknadStoreInnsender.hentBehovsmeldingerTilGodkjenningForInnsender(fnrFormidler).shouldBeEmpty()
+        }
+    }
+
     @Test
     fun `Hent formidlers søknad`() = databaseTest {
         val søknadId = lagSøknadId()
@@ -238,5 +261,12 @@ class SøknadStoreInnsenderTest {
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.GODKJENT) shouldBe 1
             søknadStore.oppdaterStatus(søknadId, BehovsmeldingStatus.VEDTAKSRESULTAT_ANNET) shouldBe 1
         }
+    }
+
+    private fun flaggSøknad(tx: JdbcOperations, søknadId: UUID) {
+        tx.update(
+            "UPDATE v1_soknad SET feilregistrert = NOW() WHERE soknads_id = :soknadId",
+            mapOf("soknadId" to søknadId),
+        )
     }
 }

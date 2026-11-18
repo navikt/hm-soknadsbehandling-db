@@ -95,6 +95,7 @@ class SøknadStore(
                 FROM v1_soknad
                 WHERE soknads_id = :behovsmeldingId
                 AND fnr_innsender = :innsenderFnr
+                AND feilregistrert IS NULL
             """.trimIndent(),
             mapOf("behovsmeldingId" to behovsmeldingId, "innsenderFnr" to innsenderFnr.value),
             Row::tilInnsenderbehovsmelding,
@@ -180,6 +181,7 @@ class SøknadStore(
                                    ON status.id =
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE soknad.soknads_id = :soknadId
+                  AND soknad.feilregistrert IS NULL
                   AND NOT (status.status = ANY (:status))
             """.trimIndent(),
         )
@@ -354,6 +356,7 @@ class SøknadStore(
                                    ON status.id =
                                       (SELECT id FROM v1_status WHERE soknads_id = soknad.soknads_id ORDER BY created DESC LIMIT 1)
                 WHERE soknad.fnr_bruker = :fnrBruker
+                  AND soknad.feilregistrert IS NULL
                   AND NOT (status.status = ANY (:status))
                 ORDER BY soknad.created DESC
             """.trimIndent(),
@@ -423,6 +426,7 @@ class SøknadStore(
                 JOIN v1_gjeldende_status status USING (soknads_id)
                 WHERE status.status = :status
                     AND soknad.created < (:now)::TIMESTAMP - (:dager * INTERVAL '1 day')
+                    AND soknad.feilregistrert IS NULL
             """.trimIndent(),
         )
 
@@ -473,6 +477,7 @@ class SøknadStore(
                     updated = NOW()
                 WHERE soknads_id = :soknadId
                 AND fnr_innsender = :innsenderFnr
+                AND feilregistrert IS NULL
             """.trimIndent(),
             mapOf(
                 "dataV2" to pgJsonbOf(behovsmelding),
@@ -534,6 +539,7 @@ class SøknadStore(
                          INNER JOIN soknader_med_siste_status_godkjent
                                     ON soknad.soknads_id = soknader_med_siste_status_godkjent.soknads_id
                 WHERE soknad.oppgave_id IS NULL
+                  AND soknad.feilregistrert IS NULL
                   AND soknad.created < NOW() - INTERVAL '$dager DAYS' -- Buffer for saksbehandling etc.
                   AND soknad.created > NOW() - INTERVAL '90 DAYS' -- oppgave_id-kolonnen ble lagt til 2021-04-12. Alt før dette har oppgave_id = NULL
             """.trimIndent(),
@@ -626,8 +632,9 @@ class SøknadStore(
                        created
                 FROM v1_soknad
                 WHERE
+                  feilregistrert IS NULL
                   -- Sjekk at formidleren som sendte inn søknaden jobber i kommunen som spør etter kvitteringer
-                  data_v2 -> 'levering' -> 'hjelpemiddelformidler' ->> 'kommunenummer' = :kommunenummer
+                  AND data_v2 -> 'levering' -> 'hjelpemiddelformidler' ->> 'kommunenummer' = :kommunenummer
                   -- Sjekk at brukeren det søkes om bor i samme kommune
                   AND data_v2 -> 'bruker' ->> 'kommunenummer' = :kommunenummer
                   -- Bare søknader/bestillinger/bytter sendt inn av kommunalt ansatt innsender
