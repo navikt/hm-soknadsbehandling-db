@@ -221,7 +221,7 @@ data class Levering(
     val utleveringKontaktperson: KontaktpersonV2?,
     val annenKontaktperson: AnnenKontaktperson?,
 
-    val utleveringMerknad: String,
+    val utleveringMerknad: String?,
 
     val hast: Hast?,
 
