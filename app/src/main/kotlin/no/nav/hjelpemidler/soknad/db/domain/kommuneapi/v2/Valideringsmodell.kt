@@ -341,6 +341,7 @@ data class Tekst(
     val fritekst: String? = null,
     val forhåndsdefinertTekst: LokalisertTekst? = null,
     val begrepsforklaring: LokalisertTekst? = null, // feks forklaring av "avlastningsbolig". Ikke relevant for fritekst.
+    val ledetekst: LokalisertTekst? = null, // Brukes kun ved innholdstype NØKKEL_VERDI
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
